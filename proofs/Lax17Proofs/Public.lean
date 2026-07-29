@@ -144,31 +144,4 @@ theorem containsGridMinorToPublic {V : Type u}
 
 end Bridge
 
-/--
----
-conclusion: Lax17.PolynomialGridMinor.polynomial_grid_minor
----
-The direct exponent-ten polynomial grid-minor theorem, expressed with the
-submission's canonical grid, standard set-valued minor model, and native
-treewidth definition.
--/
-theorem polynomial_grid_minor :
-    ∃ c d : ℕ, 0 < c ∧ 0 < d ∧
-      ∀ {V : Type u} [Fintype V] [DecidableEq V]
-        (G : SimpleGraph V) {g : ℕ},
-          2 ≤ g →
-            c * g ^ 10 * (Nat.log 2 g) ^ d ≤
-                Lax17.Treewidth.treewidth G →
-              Lax17.GridMinor.ContainsGridMinor G g := by
-  rcases
-      Lax17Proofs.SimpleGraph.PolynomialGridMinor.polynomial_grid_minor_theorem_degree10_proved.{u} with
-    ⟨c, d, hc, hd, hmain⟩
-  refine ⟨c, d, hc, hd, ?_⟩
-  intro V _ _ G g hg htw
-  apply Bridge.containsGridMinorToPublic
-  apply hmain G hg
-  rw [Bridge.treewidth_eq]
-  simpa [Lax17Proofs.SimpleGraph.polynomialGridMinorTreewidthBound10]
-    using htw
-
 end Lax17Proofs

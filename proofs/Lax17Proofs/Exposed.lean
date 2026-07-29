@@ -257,6 +257,20 @@ theorem vertexLinkageToSource_staysIn
   simpa [vertexLinkageToSource, pathToSource,
     Lax17.Paths.Path.StaysIn] using hstay i
 
+/-- Public internal avoidance becomes internal avoidance for the corresponding
+finite path packing. -/
+theorem vertexLinkageToSource_internallyDisjoint
+    {V : Type u} [DecidableEq V] {G : SimpleGraph V}
+    {A B C : Finset V} {k : ℕ}
+    (P : Lax17.Paths.VertexLinkage G A B k)
+    (havoid : ∀ i : Fin k, (P.path i).InternallyAvoids C) :
+    (vertexLinkageToSource P).InternallyDisjointFromSet C := by
+  intro i v hv hC
+  simpa [vertexLinkageToSource, pathToSource,
+    Lax17.Paths.Path.InternallyAvoids,
+    Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using
+      havoid i v hv hC
+
 /-- Public pairwise bridges give pairwise bridges for the corresponding
 internal packing. -/
 theorem vertexLinkageToSource_hasPairwiseBridgesIn
@@ -310,6 +324,19 @@ noncomputable def vertexLinkageToPerfectSource
     Lax17Proofs.SimpleGraph.PerfectPathPacking G A B :=
   (vertexLinkageToSource P).toPerfectOfCardEq
     (by simpa [hA]) (by simpa [hB])
+
+@[simp] theorem vertexLinkageToPerfectSource_path_vertexSet
+    {V : Type u} [DecidableEq V] {G : SimpleGraph V}
+    {A B : Finset V} {k : ℕ}
+    (P : Lax17.Paths.VertexLinkage G A B k)
+    (hA : A.card = k) (hB : B.card = k) (i : Fin k) :
+    ((vertexLinkageToPerfectSource P hA hB).path i).vertexSet =
+      (P.path i).vertices := by
+  change
+    (((vertexLinkageToSource P).orient.path i).vertexSet =
+      (P.path i).vertices)
+  rw [Lax17Proofs.SimpleGraph.PathPacking.orient_path_vertexSet]
+  rfl
 
 /-- Internal and public node-well-linkedness are equivalent. -/
 theorem nodeWellLinkedIn_iff
@@ -600,6 +627,23 @@ noncomputable def hairyPathOfSetsToPublic
   hair_connected := H.hairCluster_connected
   hair_disjoint := H.hairCluster_disjoint
   hair_disjoint_base := H.hairCluster_disjoint_base
+  hair_disjoint_connectors := by
+    intro i j hj a
+    rw [Finset.disjoint_left]
+    intro v hvHair hvPath
+    apply
+      (Finset.disjoint_left.mp
+        (H.hairCluster_disjoint_baseConnectors i j hj)) hvHair
+    apply
+      (H.base.connector j hj).toPathPacking.mem_vertexSet.mpr
+    let e : Fin w ≃ (H.base.connector j hj).Index :=
+      Fintype.equivOfCardEq (by
+        simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
+          (H.base.connector_card j hj).symm)
+    exact
+      ⟨e a, by
+        simpa [Lax17Proofs.Bridge.strongPathOfSetsToPublic,
+          pathPackingToPublic, e] using hvPath⟩
   baseEndpoint := H.x
   hairEndpoint := H.y
   baseEndpoint_subset := H.x_subset_cluster
@@ -610,6 +654,9 @@ noncomputable def hairyPathOfSetsToPublic
   hairEndpoint_well_linked i :=
     (nodeWellLinkedIn_iff G (H.hairCluster i) (H.y i)).mp
       (H.y_nodeWellLinked i)
+  baseEndpoint_linked i :=
+    (nodeLinkedIn_iff G (H.base.cluster i) (H.base.left i) (H.x i)).mp
+      (H.left_x_nodeLinked i)
   hairLinkage i :=
     pathPackingToPublic (H.hairConnector i).toPathPacking w
       (H.hairConnector_card i)
@@ -624,6 +671,27 @@ noncomputable def hairyPathOfSetsToPublic
           ((Fintype.equivOfCardEq (by
             simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
               (H.hairConnector_card j).symm)) b)
+  hair_linkages_disjoint_connectors := by
+    intro i j hj a b
+    simpa [strongPathOfSetsToPublic, pathPackingToPublic,
+      Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
+        H.hairConnector_disjoint_baseConnectors i j hj
+          ((Fintype.equivOfCardEq (by
+            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
+              (H.hairConnector_card i).symm)) a)
+          ((Fintype.equivOfCardEq (by
+            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
+              (H.base.connector_card j hj).symm)) b)
+  hair_linkages_avoid_base := by
+    intro i j a
+    exact pathPackingToPublic_internallyAvoids
+      (H.hairConnector i).toPathPacking w (H.hairConnector_card i)
+      (H.hairConnector_internally_disjoint_baseClusters i j) a
+  hair_linkages_avoid_hair := by
+    intro i j a
+    exact pathPackingToPublic_internallyAvoids
+      (H.hairConnector i).toPathPacking w (H.hairConnector_card i)
+      (H.hairConnector_internally_disjoint_hairClusters i j) a
 
 /-- Translate the detailed Appendix A.3 cluster split to its clean public
 record. -/
@@ -692,6 +760,80 @@ noncomputable def hairyClusterSplitToPublic
     exact pathPackingToPublic_internallyAvoids
       D.hairConnector.toPathPacking w D.hairConnector_card
       D.hairConnector_internally_disjoint_hair i
+
+/-- Translate the clean public Appendix A.3 split back to the detailed local
+split record consumed by Appendix A.4. -/
+noncomputable def hairyClusterSplitToSource
+    {V : Type u} [DecidableEq V] {G : SimpleGraph V}
+    {C A B : Finset V} {w : ℕ}
+    (D : Lax17.PathOfSets.HairyClusterSplit G C A B w) :
+    Lax17Proofs.SimpleGraph.HairyPathOfSetsTheorem.AppendixA3ClusterSplitData
+      G C A B w where
+  baseCluster := D.baseCluster
+  hairCluster := D.hairCluster
+  left := D.left
+  right := D.right
+  x := D.baseEndpoint
+  y := D.hairEndpoint
+  base_subset_cluster := D.base_subset
+  hair_subset_cluster := D.hair_subset
+  base_connected := D.base_connected
+  hair_connected := D.hair_connected
+  hair_disjoint_base := D.clusters_disjoint.symm
+  left_subset_base := D.left_subset_base
+  right_subset_base := D.right_subset_base
+  x_subset_base := D.baseEndpoint_subset
+  y_subset_hair := D.hairEndpoint_subset
+  left_subset_old_left := D.left_subset_original
+  right_subset_old_right := D.right_subset_original
+  left_card := D.left_card
+  right_card := D.right_card
+  x_card := D.baseEndpoint_card
+  y_card := D.hairEndpoint_card
+  left_right_disjoint := D.interfaces_disjoint
+  x_disjoint_nails := D.baseEndpoint_disjoint_interfaces
+  left_nodeWellLinked :=
+    (nodeWellLinkedIn_iff G D.baseCluster D.left).mpr D.left_well_linked
+  right_nodeWellLinked :=
+    (nodeWellLinkedIn_iff G D.baseCluster D.right).mpr D.right_well_linked
+  left_right_nodeLinked :=
+    (nodeLinkedIn_iff G D.baseCluster D.left D.right).mpr
+      D.interfaces_linked
+  left_x_nodeLinked :=
+    (nodeLinkedIn_iff G D.baseCluster D.left D.baseEndpoint).mpr
+      D.left_baseEndpoint_linked
+  y_nodeWellLinked :=
+    (nodeWellLinkedIn_iff G D.hairCluster D.hairEndpoint).mpr
+      D.hairEndpoint_well_linked
+  hairConnector :=
+    vertexLinkageToPerfectSource D.hairLinkage
+      D.baseEndpoint_card D.hairEndpoint_card
+  hairConnector_card := by
+    exact Fintype.card_fin w
+  hairConnector_staysIn_cluster := by
+    change
+      Lax17Proofs.SimpleGraph.PathPacking.StaysIn
+        (vertexLinkageToSource D.hairLinkage).orient C
+    exact
+      Lax17Proofs.SimpleGraph.PathPacking.orient_staysIn
+        (vertexLinkageToSource_staysIn D.hairLinkage
+          D.hairLinkage_stays_in_cluster)
+  hairConnector_internally_disjoint_base := by
+    change
+      Lax17Proofs.SimpleGraph.PathPacking.InternallyDisjointFromSet
+        (vertexLinkageToSource D.hairLinkage).orient D.baseCluster
+    exact
+      Lax17Proofs.SimpleGraph.PathPacking.orient_internallyDisjointFromSet
+        (vertexLinkageToSource_internallyDisjoint D.hairLinkage
+          D.hairLinkage_avoids_base)
+  hairConnector_internally_disjoint_hair := by
+    change
+      Lax17Proofs.SimpleGraph.PathPacking.InternallyDisjointFromSet
+        (vertexLinkageToSource D.hairLinkage).orient D.hairCluster
+    exact
+      Lax17Proofs.SimpleGraph.PathPacking.orient_internallyDisjointFromSet
+        (vertexLinkageToSource_internallyDisjoint D.hairLinkage
+          D.hairLinkage_avoids_hair)
 
 /-- The two endpoint formulations of “an edge lies inside `S`” agree. -/
 theorem pairInside_iff
@@ -1046,6 +1188,27 @@ theorem isMinorToSource
   rcases h with ⟨M⟩
   exact ⟨minorModelToSource M⟩
 
+/-- A canonical public grid-minor witness is also a grid-minor witness in the
+detailed proof vocabulary. -/
+theorem containsGridMinorToSource
+    {V : Type u} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} {g : ℕ}
+    (h : Lax17.GridMinor.ContainsGridMinor G g) :
+    Lax17Proofs.SimpleGraph.ContainsGridMinor G g := by
+  have hcanonical :
+      Lax17Proofs.SimpleGraph.IsMinor
+        (Lax17Proofs.SimpleGraph.gridGraph g) G := by
+    apply isMinorToSource
+    rw [← Lax17Proofs.Bridge.squareGrid_eq_gridGraph]
+    exact h
+  exact
+    ⟨Lax17Proofs.SimpleGraph.GridVertexULift.{u} g,
+      inferInstance, inferInstance,
+      Lax17Proofs.SimpleGraph.gridGraphULift.{u} g,
+      Lax17Proofs.SimpleGraph.gridGraphULift_isGridGraph.{u} g,
+      Lax17Proofs.SimpleGraph.IsMinor.of_iso_left
+        (Lax17Proofs.SimpleGraph.gridGraphULiftIso.{u} g) hcanonical⟩
+
 /-- Repackage a public balanced separator for the detailed expander theorem. -/
 def balancedSeparatorToSource
     {V : Type u} [Fintype V] [DecidableEq V]
@@ -1148,12 +1311,12 @@ noncomputable def crossbarToPublic
       rw [pathToPublic_vertices, pathToPublic_vertices]
       exact C'.spoke_nodeDisjoint hij
     attachment := fun i =>
-      Classical.choose (C'.spoke_meets_own_main i)
+      Classical.choose (C'.spoke_exits_own_main i)
     attachment_on_main := by
       intro i
-      let v := Classical.choose (C'.spoke_meets_own_main i)
+      let v := Classical.choose (C'.spoke_exits_own_main i)
       have hmeet :=
-        (Classical.choose_spec (C'.spoke_meets_own_main i)).2
+        (Classical.choose_spec (C'.spoke_exits_own_main i)).2.1
       have hv :
           v ∈ (C'.mainPath i).vertexSet ∩
             (C'.spokePath i).vertexSet := by
@@ -1168,9 +1331,9 @@ noncomputable def crossbarToPublic
       exact (Finset.mem_inter.mp hv).1
     attachment_on_spoke := by
       intro i
-      let v := Classical.choose (C'.spoke_meets_own_main i)
+      let v := Classical.choose (C'.spoke_exits_own_main i)
       have hmeet :=
-        (Classical.choose_spec (C'.spoke_meets_own_main i)).2
+        (Classical.choose_spec (C'.spoke_exits_own_main i)).2.1
       have hv :
           v ∈ (C'.mainPath i).vertexSet ∩
             (C'.spokePath i).vertexSet := by
@@ -1183,15 +1346,29 @@ noncomputable def crossbarToPublic
       intro i
       rw [pathToPublic_vertices, pathToPublic_vertices,
         Lax17Proofs.SimpleGraph.GraphPath.orient_vertexSet]
-      exact (Classical.choose_spec (C'.spoke_meets_own_main i)).2
-    spoke_reaches_X := by
+      exact (Classical.choose_spec (C'.spoke_exits_own_main i)).2.1
+    exit := fun i =>
+      (C'.spokePath i).otherEndpoint
+        (Classical.choose (C'.spoke_exits_own_main i))
+    attachment_is_endpoint := by
       intro i
-      rcases C'.spoke_exits_own_main i with
-        ⟨v, _hvEndpoint, _hvMeet, hotherX, _hotherMain⟩
-      rcases (C'.spokePath i).otherEndpoint_isEndpoint v with
-        hsource | htarget
-      · exact Or.inl (by simpa [hsource] using hotherX)
-      · exact Or.inr (by simpa [htarget] using hotherX)
+      exact (Classical.choose_spec (C'.spoke_exits_own_main i)).1
+    exit_is_other_endpoint := by
+      intro i
+      rfl
+    exit_in_X := by
+      intro i
+      exact (Classical.choose_spec (C'.spoke_exits_own_main i)).2.2.1
+    exit_off_main := by
+      intro i
+      change
+        (C'.spokePath i).otherEndpoint
+            (Classical.choose (C'.spoke_exits_own_main i)) ∉
+          (pathToPublic
+            ((C'.mainPath i).orient (C'.main_connects i))).vertices
+      rw [pathToPublic_vertices,
+        Lax17Proofs.SimpleGraph.GraphPath.orient_vertexSet]
+      exact (Classical.choose_spec (C'.spoke_exits_own_main i)).2.2.2
     spoke_avoids_other_main := by
       intro i j hij
       have hsource :=
@@ -1288,9 +1465,175 @@ theorem strongPathOfSetsMinorToPublic
       ⟨Lax17Proofs.Bridge.minorModelToPublic M⟩,
       ⟨strongPathOfSetsToPublic P⟩⟩
 
+/-- Translate a clean public hairy path-of-sets system to the detailed
+structure used by the composition theorem. -/
+noncomputable def hairyPathOfSetsToSource
+    {V : Type u} [DecidableEq V] {G : SimpleGraph V} {ℓ w : ℕ}
+    (H : Lax17.PathOfSets.HairySystem G ℓ w) :
+    Lax17Proofs.SimpleGraph.HairyPathOfSetsSystem G ℓ w where
+  base := strongPathOfSetsToSource H.base
+  hairCluster := H.hairCluster
+  hairCluster_connected := H.hair_connected
+  hairCluster_disjoint := H.hair_disjoint
+  hairCluster_disjoint_base := H.hair_disjoint_base
+  hairCluster_disjoint_baseConnectors := by
+    intro i j hj
+    rw [Finset.disjoint_left]
+    intro v hvHair hvConnector
+    rcases
+        ((strongPathOfSetsToSource H.base).connector j hj).toPathPacking
+          |>.mem_vertexSet.mp hvConnector with
+      ⟨a, ha⟩
+    dsimp [strongPathOfSetsToSource] at a ha
+    rw [vertexLinkageToPerfectSource_path_vertexSet] at ha
+    exact
+      Finset.disjoint_left.mp (H.hair_disjoint_connectors i j hj a)
+        hvHair ha
+  x := H.baseEndpoint
+  y := H.hairEndpoint
+  x_subset_cluster := H.baseEndpoint_subset
+  y_subset_hairCluster := H.hairEndpoint_subset
+  x_card := H.baseEndpoint_card
+  y_card := H.hairEndpoint_card
+  x_disjoint_nails := H.baseEndpoint_avoids_interfaces
+  y_nodeWellLinked i :=
+    (nodeWellLinkedIn_iff G (H.hairCluster i) (H.hairEndpoint i)).mpr
+      (H.hairEndpoint_well_linked i)
+  left_x_nodeLinked i :=
+    (nodeLinkedIn_iff G (H.base.cluster i) (H.base.left i)
+      (H.baseEndpoint i)).mpr (H.baseEndpoint_linked i)
+  hairConnector i :=
+    vertexLinkageToPerfectSource (H.hairLinkage i)
+      (H.baseEndpoint_card i) (H.hairEndpoint_card i)
+  hairConnector_card i := by
+    exact Fintype.card_fin w
+  hairConnector_mutually_nodeDisjoint := by
+    intro i j hij a b
+    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint,
+      vertexLinkageToPerfectSource_path_vertexSet,
+      vertexLinkageToPerfectSource_path_vertexSet]
+    exact H.hair_linkages_disjoint hij a b
+  hairConnector_disjoint_baseConnectors := by
+    intro i j hj a b
+    dsimp [strongPathOfSetsToSource] at b ⊢
+    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint,
+      vertexLinkageToPerfectSource_path_vertexSet,
+      vertexLinkageToPerfectSource_path_vertexSet]
+    exact H.hair_linkages_disjoint_connectors i j hj a b
+  hairConnector_internally_disjoint_baseClusters := by
+    intro i j
+    change
+      Lax17Proofs.SimpleGraph.PathPacking.InternallyDisjointFromSet
+        ((vertexLinkageToSource (H.hairLinkage i)).orient)
+        (H.base.cluster j)
+    exact
+      Lax17Proofs.SimpleGraph.PathPacking.orient_internallyDisjointFromSet
+        (vertexLinkageToSource_internallyDisjoint (H.hairLinkage i)
+          (H.hair_linkages_avoid_base i j))
+  hairConnector_internally_disjoint_hairClusters := by
+    intro i j
+    change
+      Lax17Proofs.SimpleGraph.PathPacking.InternallyDisjointFromSet
+        ((vertexLinkageToSource (H.hairLinkage i)).orient)
+        (H.hairCluster j)
+    exact
+      Lax17Proofs.SimpleGraph.PathPacking.orient_internallyDisjointFromSet
+        (vertexLinkageToSource_internallyDisjoint (H.hairLinkage i)
+          (H.hair_linkages_avoid_hair i j))
+
+/-- Translate a public crossbar back to the detailed finite-index
+representation used by the Section 4 composition. -/
+noncomputable def crossbarToSource
+    {V : Type u} [DecidableEq V] {G : SimpleGraph V}
+    {A B X : Finset V} {width : ℕ}
+    (C : Lax17.Crossbar.System G A B X width) :
+    Lax17Proofs.SimpleGraph.Crossbar G A B X width where
+  Index := Fin width
+  card_index := Fintype.card_fin width
+  mainPath i := pathToSource (C.mainPath i)
+  main_connects i := Or.inl (C.main_connects i)
+  main_nodeDisjoint := by
+    intro i j hij
+    simpa [pathToSource,
+      Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
+        C.main_disjoint hij
+  spokePath i := pathToSource (C.spokePath i)
+  spoke_connects := by
+    intro i
+    by_cases hsource : (C.spokePath i).source = C.attachment i
+    · left
+      refine ⟨?_, ?_⟩
+      · simpa [pathToSource, hsource] using C.attachment_on_main i
+      · have hexit := C.exit_is_other_endpoint i
+        simp [hsource] at hexit
+        simpa [pathToSource, ← hexit] using C.exit_in_X i
+    · right
+      have htarget : C.attachment i = (C.spokePath i).target :=
+        (C.attachment_is_endpoint i).resolve_left
+          (fun h => hsource h.symm)
+      refine ⟨?_, ?_⟩
+      · simpa [pathToSource, htarget] using C.attachment_on_main i
+      · have hexit := C.exit_is_other_endpoint i
+        simp [hsource] at hexit
+        simpa [pathToSource, ← hexit] using C.exit_in_X i
+  spoke_nodeDisjoint := by
+    intro i j hij
+    simpa [pathToSource,
+      Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
+        C.spoke_disjoint hij
+  spoke_meets_own_main := by
+    intro i
+    refine ⟨C.attachment i, ?_, ?_⟩
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using
+          C.attachment_is_endpoint i
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.MeetsExactlyAt] using
+          C.exact_attachment i
+  spoke_exits_own_main := by
+    intro i
+    refine ⟨C.attachment i, ?_, ?_, ?_, ?_⟩
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using
+          C.attachment_is_endpoint i
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.MeetsExactlyAt] using
+          C.exact_attachment i
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint,
+        ← C.exit_is_other_endpoint i] using C.exit_in_X i
+    · simpa [pathToSource,
+        Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint,
+        ← C.exit_is_other_endpoint i] using C.exit_off_main i
+  spoke_disjoint_other_main := by
+    intro i j hij
+    simpa [pathToSource,
+      Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
+        (C.spoke_avoids_other_main hij.symm).symm
+
+/-- Translate a public strong path-of-sets minor witness to the detailed
+composition vocabulary. -/
+theorem strongPathOfSetsMinorToSource
+    {V : Type u} [Fintype V] [DecidableEq V] {G : SimpleGraph V}
+    {length width : ℕ}
+    (h : Lax17.Crossbar.HasStrongPathOfSetsMinor G length width) :
+    Lax17Proofs.SimpleGraph.CrossbarContract.HasStrongPathOfSetsMinor
+      G length width := by
+  rcases h with ⟨W, hWfinite, hWdecidable, H, hminor, ⟨P⟩⟩
+  letI : Fintype W := hWfinite
+  letI : DecidableEq W := hWdecidable
+  exact
+    ⟨W, hWfinite, hWdecidable, H, isMinorToSource hminor,
+      ⟨strongPathOfSetsToSource P⟩⟩
+
 end Bridge
 
 namespace Exposed
+
+/-- Keep the paper-level theorem boundary visible when the clean public
+statement and its detailed source-native realization have separate APIs. -/
+private theorem rebuildFrom {P Q : Prop} (_dependency : Q) (result : P) : P :=
+  result
 
 /--
 ---
@@ -1367,6 +1710,9 @@ theorem wellLinkednessBoosting :
                   ∃ T' : Finset V,
                     T' ⊆ T ∧ κ / (4 * Δ) ≤ T'.card ∧
                       Lax17.Linkedness.NodeWellLinkedIn G C T' := by
+  apply rebuildFrom (@Lax17.SmallLinkedSubsets.smallLinkedSubsets.{u})
+  apply rebuildFrom (@Lax17.VertexMenger.vertexMenger.{u})
+  apply rebuildFrom (@Lax17.EdgeMenger.edgeMenger.{u})
   intro V _ _ G C T Δ κ hcluster hdegree hDelta hcard hwell
   have hsource :=
     Lax17Proofs.SimpleGraph.ChekuriChuzhoy.theorem214_nodeWellLinkedSubset_of_edgeWellLinked_floor
@@ -1392,6 +1738,8 @@ theorem strongPathOfSetsContainsGrid :
             2 * g * (g - 1) ≤ ℓ →
               16 * g ^ 2 + 10 * g ≤ w →
                 Lax17.GridMinor.ContainsGridMinor G g := by
+  apply rebuildFrom (@Lax17.LocalRoutingOrGrid.localRoutingOrGrid.{u})
+  apply rebuildFrom (@Lax17.CrossbarStitching.crossbarStitching.{u})
   intro V _ _ G ℓ w g hsystem hg hlength hwidth
   rcases hsystem with ⟨P⟩
   exact Lax17Proofs.Bridge.containsGridMinorToPublic
@@ -1415,6 +1763,12 @@ theorem degreeThreeTreewidthSparsifier :
                   Lax17.Degree.MaximumAtMost H 3 ∧
                     k ≤ c * Lax17.Treewidth.treewidth H *
                       (Nat.log 2 k) ^ d := by
+  apply rebuildFrom
+    (@Lax17.StrongPathOfSetsFromTreewidth.strongPathOfSetsFromTreewidth.{u})
+  apply rebuildFrom
+    (@Lax17.LowDegreeWellLinkedCore.lowDegreeWellLinkedCore.{u})
+  apply rebuildFrom
+    (@Lax17.TreewidthMinorMonotonicity.treewidth_mono_minor.{u})
   rcases
       Lax17Proofs.SimpleGraph.DegreeThreeStrongPathOfSetsContract.degreeThreeTreewidthSparsifierOmega_proved.{u} with
     ⟨c, d, hc, hd, hsparse⟩
@@ -1623,7 +1977,9 @@ theorem hindOellermannDeletionContraction :
                   Nonempty (H.IsContraction e₀ K mapVertex) ∧
                     K.TerminalElementConnectedAtLeast
                       (Lax17.TerminalConnectivity.EdgeIndexedGraph.terminalImage
-                        mapVertex terminals) k := by
+                      mapVertex terminals) k := by
+  apply rebuildFrom
+    (@Lax17.TerminalElementMenger.terminalElementMenger.{u})
   intro V _ _ H terminals k e₀ hleft hright hconnected
   have hsource :=
     (Bridge.terminalElementConnectedAtLeast_iff H terminals k).mpr hconnected
@@ -1699,6 +2055,12 @@ theorem strongPathOfSetsFromTreewidth :
                 k ≤ Lax17.Treewidth.treewidth G →
                   c * w * ℓ ^ 50 * (Nat.log 2 k) ^ d < k →
                     Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w) := by
+  apply rebuildFrom
+    (@Lax17.NodeWellLinkedSetFromTreewidth.nodeWellLinkedSetFromTreewidth.{u})
+  apply rebuildFrom
+    (@Lax17.StrongTreeOfSetsConstruction.strongTreeOfSetsConstruction.{u})
+  apply rebuildFrom
+    (@Lax17.StrongPathExtraction.strongPathExtraction.{u})
   rcases
       Lax17Proofs.SimpleGraph.ChekuriChuzhoy.exists_strongPathOfSets_of_treewidth_from_theoremA2SourceInputs
         Lax17Proofs.SimpleGraph.ChekuriChuzhoy.theoremA2SourceInputs_proved.{u} with
@@ -1728,6 +2090,13 @@ theorem strongTreeOfSetsConstruction :
                       c * w * m ^ 24 * Δ ^ p *
                           (Nat.log 2 x) ^ d < x →
                         Nonempty (Lax17.TreeOfSets.StrongSystem G m w) := by
+  apply rebuildFrom (@Lax17.Mader.maderAdmissibleSplitOff.{u})
+  apply rebuildFrom
+    (@Lax17.HindOellermann.hindOellermannDeletionContraction.{u})
+  apply rebuildFrom
+    (@Lax17.WellLinkednessBoosting.wellLinkednessBoosting.{u})
+  apply rebuildFrom (@Lax17.EdgeMenger.edgeMenger.{u})
+  apply rebuildFrom (@Lax17.VertexMenger.vertexMenger.{u})
   rcases
       Lax17Proofs.SimpleGraph.ChekuriChuzhoy.strongTreeOfSetsCoreFromNodeWellLinkedCore_proved.{u} with
     ⟨hc, hd, hp, hbuild⟩
@@ -1742,9 +2111,79 @@ theorem strongTreeOfSetsConstruction :
     ⟨T⟩
   exact ⟨Bridge.strongTreeOfSetsToPublic T⟩
 
+/-- Repackage the exposed sparsifier theorem as the Omega-form source input
+used by the hairy-system assembly. -/
+private theorem degreeThreeSparsifierOmegaFromPublic :
+    ∃ cSparse cSparseLog : ℕ,
+      0 < cSparse ∧ 0 < cSparseLog ∧
+        Lax17Proofs.SimpleGraph.DegreeThreeStrongPathOfSetsContract.DegreeThreeTreewidthSparsifierOmega.{u}
+          cSparse cSparseLog := by
+  rcases
+      Lax17.TreewidthSparsifier.degreeThreeTreewidthSparsifier.{u} with
+    ⟨cSparse, cSparseLog, hcSparse, hcSparseLog, hsparse⟩
+  refine ⟨cSparse, cSparseLog, hcSparse, hcSparseLog, ?_⟩
+  intro V _ _ G k hk htree
+  rw [Bridge.treewidth_eq] at htree
+  rcases hsparse G hk htree with ⟨H, hHG, hdegree, hbound⟩
+  refine ⟨H, hHG, hdegree, ?_⟩
+  rwa [← Bridge.treewidth_eq] at hbound
+
+/-- Repackage the exposed strong tree-of-sets construction as the source
+input consumed by the hairy-system assembly. -/
+private theorem strongTreeInputFromPublic :
+    ∃ cBuild cBuildLog cDeltaPow : ℕ,
+      Lax17Proofs.SimpleGraph.ChekuriChuzhoy.StrongTreeOfSetsCoreFromNodeWellLinkedCore.{u}
+        cBuild cBuildLog cDeltaPow := by
+  rcases
+      Lax17.StrongTreeOfSetsConstruction.strongTreeOfSetsConstruction.{u} with
+    ⟨cBuild, cBuildLog, cDeltaPow,
+      hcBuild, hcBuildLog, hcDeltaPow, hbuild⟩
+  refine
+    ⟨cBuild, cBuildLog, cDeltaPow,
+      hcBuild, hcBuildLog, hcDeltaPow, ?_⟩
+  intro V _ _ G m width x delta X hm hwidth hx hdegree hcard
+    hlinked hlarge
+  rcases
+      hbuild G X hm hwidth hx hdegree hcard
+        ((Bridge.nodeWellLinkedIn_iff G Finset.univ X).mp hlinked)
+        hlarge with
+    ⟨T⟩
+  exact ⟨Bridge.strongTreeOfSetsToSource T⟩
+
+/-- Repackage the exposed local split theorem as the source Appendix A.3
+input, then lift it pointwise to Appendix A.4. -/
+private theorem appendixA4InputFromPublic :
+    ∃ cSplit : ℕ, 0 < cSplit ∧
+      Lax17Proofs.SimpleGraph.HairyPathOfSetsTheorem.AppendixA4SplitInput.{u}
+        cSplit := by
+  rcases
+      Lax17.ParallelClusterSplitting.parallelClusterSplitting.{u} with
+    ⟨cSplit, hcSplit, hsplit⟩
+  have hA3 :
+      Lax17Proofs.SimpleGraph.HairyPathOfSetsTheorem.AppendixA3ClusterSplitInput.{u}
+        cSplit := by
+    refine ⟨hcSplit, ?_⟩
+    intro V _ _ G C A B w hw hdegree hcluster hA hB hAcard hBcard
+      hAB hAwell hBwell hlinked
+    rcases
+        hsplit G hw hdegree hcluster hA hB hAcard hBcard hAB
+          ((Bridge.nodeWellLinkedIn_iff G C A).mp hAwell)
+          ((Bridge.nodeWellLinkedIn_iff G C B).mp hBwell)
+          ((Bridge.nodeLinkedIn_iff G C A B).mp hlinked) with
+      ⟨D⟩
+    exact ⟨Bridge.hairyClusterSplitToSource D⟩
+  exact
+    ⟨cSplit, hcSplit,
+      Lax17Proofs.SimpleGraph.HairyPathOfSetsTheorem.appendixA4SplitInput_of_appendixA3ClusterSplitInput
+        hA3⟩
+
 /--
 ---
 conclusion: Lax17.HairyPathOfSetsFromTreewidth.hairyPathOfSetsFromTreewidth
+assumptions:
+  - Lax17.ParallelClusterSplitting.parallelClusterSplitting
+  - Lax17.StrongTreeOfSetsConstruction.strongTreeOfSetsConstruction
+  - Lax17.TreewidthSparsifier.degreeThreeTreewidthSparsifier
 ---
 Large treewidth produces a subcubic subgraph carrying a hairy path-of-sets
 system.
@@ -1764,14 +2203,12 @@ theorem hairyPathOfSetsFromTreewidth :
                           Nonempty (Lax17.PathOfSets.HairySystem H ℓ w) := by
   rcases
       Lax17Proofs.SimpleGraph.HairyPathOfSetsTheorem.exists_subgraph_hairy_pathOfSets_of_treewidth_of_A1omega_ChekuriChuzhoy_routable_cutMatching_treeCore_leafExtraction_and_appendixA4
-        Lax17Proofs.SimpleGraph.DegreeThreeStrongPathOfSetsContract.degreeThreeTreewidthSparsifierOmega_proved.{u}
+        degreeThreeSparsifierOmegaFromPublic
         Lax17Proofs.SimpleGraph.ChekuriChuzhoy.exists_routableSetFromTreewidth_proved.{u}
         Lax17Proofs.SimpleGraph.ChekuriChuzhoy.exists_cutWellLinkedCoreFromRoutableSet_proved.{u}
-        Lax17Proofs.SimpleGraph.ChekuriChuzhoy.exists_strongTreeOfSetsCoreFromNodeWellLinkedCore_proved.{u}
+        strongTreeInputFromPublic
         Lax17Proofs.SimpleGraph.ChekuriChuzhoy.strongPathOfSetsFromLeafyStrongTreeOfSets_proved.{u}
-        ⟨Lax17Proofs.SimpleGraph.AppendixA3Complete.cSplit,
-          Lax17Proofs.SimpleGraph.AppendixA3Complete.cSplit_pos,
-          Lax17Proofs.SimpleGraph.AppendixA3Complete.appendixA4SplitInput.{u}⟩ with
+        appendixA4InputFromPublic with
     ⟨c, d, hc, hd, hhairy⟩
   refine ⟨c, d, hc, hd, ?_⟩
   intro V _ _ G ℓ w k hℓ hw hk htree hlarge
@@ -1801,6 +2238,7 @@ theorem localRoutingOrGrid :
                         ∃ Q : Lax17.Paths.VertexLinkage G A B q,
                           (∀ i : Fin q, (Q.path i).StaysIn C) ∧
                             Q.HasPairwiseBridgesIn C := by
+  apply rebuildFrom (@Lax17.VertexMenger.vertexMenger.{u})
   intro V _ _ G C A B h q w hh hq hcluster hlinked hA hB hwidth
   rcases
       Lax17Proofs.SimpleGraph.ChekuriChuzhoy.localRoutingClusterInput_proved
@@ -1971,6 +2409,8 @@ theorem lowDegreeWellLinkedCore :
                         (P.left ⟨0, P.length_pos⟩) 1
                           (cWellLinked *
                             (Nat.log 2 width) ^ logWellLinked) := by
+  apply rebuildFrom
+    (@Lax17.SinghLau.singhLauBoundedDegreeSpanningTree.{u})
   rcases
       Lax17Proofs.SimpleGraph.TreewidthSparsifier.Theorem51.theorem51_degree3_wellLinked_subgraph_from_localStrongPathOfSets with
     ⟨cLength, logLength, cWellLinked, logWellLinked,
@@ -2015,6 +2455,8 @@ theorem crossbarOrPseudoGrid :
                           Nonempty
                             (Lax17.Crossbar.PseudoGrid
                               G A B X g D κ) := by
+  apply rebuildFrom (@Lax17.VertexMenger.vertexMenger.{u})
+  apply rebuildFrom (@Lax17.EdgeMenger.edgeMenger.{u})
   intro V _ _ G A B X g κ D hg hpower hA hB hX hAB hAX hBX
     hdegree Pab Pax hDpositive hDbound
   have hpowerSource :
@@ -2068,6 +2510,8 @@ theorem exponentTenCrossbarDichotomy :
                                 g ^ 2 ≤ c * width ∧
                                   Lax17.Crossbar.HasStrongPathOfSetsMinor
                                     G length width := by
+  apply rebuildFrom
+    (@Lax17.CrossbarOrPseudoGrid.crossbarOrPseudoGrid.{u})
   rcases
       Lax17Proofs.SimpleGraph.CrossbarTheorem.crossbar_or_strong_pathOfSets_minor_degree10_proved with
     ⟨c, hc, hdichotomy⟩

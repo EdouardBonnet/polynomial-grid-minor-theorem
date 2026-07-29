@@ -55,9 +55,21 @@ structure System {V : Type u} [DecidableEq V]
   exact_attachment :
     ∀ i : Fin ρ,
       (mainPath i).vertices ∩ (spokePath i).vertices = {attachment i}
-  spoke_reaches_X :
+  exit : Fin ρ → V
+  attachment_is_endpoint :
     ∀ i : Fin ρ,
-      (spokePath i).source ∈ X ∨ (spokePath i).target ∈ X
+      attachment i = (spokePath i).source ∨
+        attachment i = (spokePath i).target
+  exit_is_other_endpoint :
+    ∀ i : Fin ρ,
+      exit i =
+        if (spokePath i).source = attachment i then
+          (spokePath i).target
+        else
+          (spokePath i).source
+  exit_in_X : ∀ i : Fin ρ, exit i ∈ X
+  exit_off_main :
+    ∀ i : Fin ρ, exit i ∉ (mainPath i).vertices
   spoke_avoids_other_main :
     ∀ ⦃i j : Fin ρ⦄, i ≠ j →
       Disjoint (spokePath i).vertices (mainPath j).vertices

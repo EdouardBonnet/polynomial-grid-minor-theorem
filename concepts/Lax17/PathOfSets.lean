@@ -94,6 +94,9 @@ structure HairySystem {V : Type u} [DecidableEq V]
     ∀ ⦃i j : Fin ℓ⦄, i ≠ j → Disjoint (hairCluster i) (hairCluster j)
   hair_disjoint_base :
     ∀ i j : Fin ℓ, Disjoint (hairCluster i) (base.cluster j)
+  hair_disjoint_connectors :
+    ∀ i j : Fin ℓ, ∀ (hj : j.1 + 1 < ℓ), ∀ a : Fin w,
+      Disjoint (hairCluster i) ((base.connector j hj).path a).vertices
   baseEndpoint : Fin ℓ → Finset V
   hairEndpoint : Fin ℓ → Finset V
   baseEndpoint_subset :
@@ -108,6 +111,9 @@ structure HairySystem {V : Type u} [DecidableEq V]
   hairEndpoint_well_linked :
     ∀ i : Fin ℓ,
       NodeWellLinkedIn G (hairCluster i) (hairEndpoint i)
+  baseEndpoint_linked :
+    ∀ i : Fin ℓ,
+      NodeLinkedIn G (base.cluster i) (base.left i) (baseEndpoint i)
   hairLinkage :
     ∀ i : Fin ℓ,
       VertexLinkage G (baseEndpoint i) (hairEndpoint i) w
@@ -115,6 +121,16 @@ structure HairySystem {V : Type u} [DecidableEq V]
     ∀ ⦃i j : Fin ℓ⦄, i ≠ j → ∀ a b : Fin w,
       Disjoint ((hairLinkage i).path a).vertices
         ((hairLinkage j).path b).vertices
+  hair_linkages_disjoint_connectors :
+    ∀ i j : Fin ℓ, ∀ (hj : j.1 + 1 < ℓ), ∀ a b : Fin w,
+      Disjoint ((hairLinkage i).path a).vertices
+        ((base.connector j hj).path b).vertices
+  hair_linkages_avoid_base :
+    ∀ i j : Fin ℓ, ∀ a : Fin w,
+      ((hairLinkage i).path a).InternallyAvoids (base.cluster j)
+  hair_linkages_avoid_hair :
+    ∀ i j : Fin ℓ, ∀ a : Fin w,
+      ((hairLinkage i).path a).InternallyAvoids (hairCluster j)
 
 /-- The output of splitting one connected cluster into three disjoint
 connected subclusters while retaining prescribed terminal subsets. -/
