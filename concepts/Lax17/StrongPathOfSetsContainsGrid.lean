@@ -1,4 +1,3 @@
-import Mathlib.Data.Nat.Log
 import Lax17.GridMinor
 import Lax17.PathOfSets
 
@@ -15,15 +14,15 @@ namespace Lax17.StrongPathOfSetsContainsGrid
 
 universe u
 
-/-- A sufficiently long and wide strong path-of-sets system contains a
-prescribed square grid minor. -/
+/-- A strong path-of-sets system of length at least `2g(g-1)` and width at
+least `16g² + 10g` contains the `g × g` grid as a minor. -/
 axiom strongPathOfSetsContainsGrid :
-  ∃ c d : ℕ, 0 < c ∧ 0 < d ∧
-    ∀ {V : Type u} [Fintype V] [DecidableEq V]
-      (G : SimpleGraph V) {ℓ w g : ℕ},
-        Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w) →
-          2 ≤ g → c * g ≤ ℓ →
-            c * g ^ 2 * (Nat.log 2 g) ^ d ≤ w →
+  ∀ {V : Type u} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) {ℓ w g : ℕ},
+      Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w) →
+        2 ≤ g →
+          2 * g * (g - 1) ≤ ℓ →
+            16 * g ^ 2 + 10 * g ≤ w →
               Lax17.GridMinor.ContainsGridMinor G g
 
 end Lax17.StrongPathOfSetsContainsGrid

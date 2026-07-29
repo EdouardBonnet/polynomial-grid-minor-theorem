@@ -5,16 +5,16 @@ import Lax17.TerminalConnectivity
 title: Terminal element-Menger theorem
 type: theorem
 ---
-For a named-edge multigraph, terminal element-connectivity is equivalent to
-the existence of paths disjoint in both internal vertices and named edge
-copies between every pair of terminals.
+For a named-edge multigraph, the canonical available-boundary formulation of
+terminal element-connectivity is equivalent to the usual formulation by
+arbitrary terminal element cuts.
 -/
 
 namespace Lax17.TerminalElementMenger
 
 universe u
 
-/-- Terminal element-Menger for named-edge multigraphs. -/
+/-- Terminal element-connectivity in arbitrary-cut form. -/
 axiom terminalElementMenger :
   ∀ {V : Type u} [Fintype V] [DecidableEq V]
     (H : Lax17.TerminalConnectivity.EdgeIndexedGraph V)
@@ -22,6 +22,6 @@ axiom terminalElementMenger :
       H.TerminalElementConnectedAtLeast terminals k ↔
         ∀ ⦃a : V⦄, a ∈ terminals →
           ∀ ⦃b : V⦄, b ∈ terminals → a ≠ b →
-            Nonempty (H.ElementLinkage a b k)
+            ∀ C : H.ElementCut terminals a b, k ≤ C.order
 
 end Lax17.TerminalElementMenger

@@ -1,3 +1,4 @@
+import Lax17Proofs.Exposed
 import Lax17Proofs.Public
 import Lax17Proofs.Source.AppendixA3AugmentedBoundary
 import Lax17Proofs.Source.AppendixA3BalancedCut

@@ -19,7 +19,8 @@ internal clusters. -/
 axiom strongPathExtraction :
   ∀ {V : Type u} [DecidableEq V] {G : SimpleGraph V}
     {m w ℓ : ℕ} (T : Lax17.TreeOfSets.StrongSystem G m w),
-      Lax17.TreeOfSets.HasMetaPath T (ℓ + 2) →
-        Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w)
+      0 < ℓ →
+        Lax17.TreeOfSets.HasMetaPath T (ℓ + 2) →
+          Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w)
 
 end Lax17.StrongPathExtraction

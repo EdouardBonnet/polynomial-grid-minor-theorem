@@ -55,6 +55,13 @@ structure System {V : Type u} [DecidableEq V]
     ∀ (i j : Fin m) (hij : metaTree.Adj i j)
       (r : Fin m) (a : Fin w),
         ((connector i j hij).path a).InternallyAvoids (cluster r)
+  connectors_disjoint :
+    ∀ (i j : Fin m) (hij : metaTree.Adj i j)
+      (p q : Fin m) (hpq : metaTree.Adj p q),
+        s(i, j) ≠ s(p, q) →
+          ∀ a b : Fin w,
+            Disjoint ((connector i j hij).path a).vertices
+              ((connector p q hpq).path b).vertices
 
 /-- A strong tree-of-sets system. -/
 structure StrongSystem {V : Type u} [DecidableEq V]

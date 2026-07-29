@@ -1,6 +1,5 @@
 import Mathlib.Data.Finset.Sym
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Tactic
+import Mathlib.Data.Fintype.Sum
 
 /-!
 ---
@@ -40,13 +39,12 @@ instance {V : Type u} (H : EdgeIndexedGraph V) : DecidableEq H.Edge :=
   H.edgeDecidableEq
 
 /-- Named edge copies incident with `x`. -/
-noncomputable def incidentEdges {V : Type u} [Fintype V] [DecidableEq V]
-    (H : EdgeIndexedGraph V) (x : V) : Finset H.Edge := by
-  classical
-  exact Finset.univ.filter fun e => H.left e = x ∨ H.right e = x
+def incidentEdges {V : Type u} [Fintype V] [DecidableEq V]
+    (H : EdgeIndexedGraph V) (x : V) : Finset H.Edge :=
+  Finset.univ.filter fun e => H.left e = x ∨ H.right e = x
 
 /-- Degree, counting parallel copies separately. -/
-noncomputable def degree {V : Type u} [Fintype V] [DecidableEq V]
+def degree {V : Type u} [Fintype V] [DecidableEq V]
     (H : EdgeIndexedGraph V) (x : V) : ℕ :=
   (H.incidentEdges x).card
 
@@ -58,17 +56,45 @@ def Crosses {V : Type u} [DecidableEq V]
 
 /-- The named edge boundary of `S`. -/
 noncomputable def boundary {V : Type u} [Fintype V] [DecidableEq V]
-    (H : EdgeIndexedGraph V) (S : Finset V) : Finset H.Edge := by
-  classical
-  exact Finset.univ.filter (H.Crosses S)
+    (H : EdgeIndexedGraph V) (S : Finset V) : Finset H.Edge :=
+  @Finset.filter H.Edge (H.Crosses S) (Classical.decPred _) Finset.univ
 
 /-- Boundary edges whose endpoints survive deletion of `removed`. -/
 noncomputable def availableBoundary
     {V : Type u} [Fintype V] [DecidableEq V]
-    (H : EdgeIndexedGraph V) (removed S : Finset V) : Finset H.Edge := by
-  classical
-  exact (H.boundary S).filter fun e =>
+    (H : EdgeIndexedGraph V) (removed S : Finset V) : Finset H.Edge :=
+  (H.boundary S).filter fun e =>
     H.left e ∉ removed ∧ H.right e ∉ removed
+
+/-- A terminal-separating cut made from nonterminal vertices and named edge
+copies. -/
+structure ElementCut
+    {V : Type u} [Fintype V] [DecidableEq V]
+    (H : EdgeIndexedGraph V) (terminals : Finset V) (a b : V) where
+  removedVertices : Finset V
+  removedVertices_nonterminal : Disjoint removedVertices terminals
+  removedEdges : Finset H.Edge
+  side : Finset V
+  source_mem : a ∈ side
+  target_not_mem : b ∉ side
+  side_disjoint_removed : Disjoint side removedVertices
+  crossing_removed :
+    ∀ e : H.Edge,
+      H.left e ∉ removedVertices →
+        H.right e ∉ removedVertices →
+          H.Crosses side e →
+            e ∈ removedEdges
+
+namespace ElementCut
+
+/-- Number of removed vertices and named edge copies. -/
+def order
+    {V : Type u} [Fintype V] [DecidableEq V]
+    {H : EdgeIndexedGraph V} {terminals : Finset V} {a b : V}
+    (C : ElementCut H terminals a b) : ℕ :=
+  C.removedVertices.card + C.removedEdges.card
+
+end ElementCut
 
 /-- Every two distinct terminals need at least `k` nonterminal vertices and
 edge copies to separate them. -/
@@ -134,50 +160,30 @@ structure SplitPair {V : Type u} (H : EdgeIndexedGraph V) (s : V) where
     (H.left second = s ∧ H.right second = secondOther) ∨
       (H.right second = s ∧ H.left second = secondOther)
 
-/-- The old edge copies surviving a split-off. -/
-noncomputable def splitSurvivingEdges
-    {V : Type u} {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) : Finset H.Edge := by
-  classical
-  exact (Finset.univ.erase p.first).erase p.second
-
-/-- The singleton new-edge index, empty exactly when splitting would create a
-loop. -/
-noncomputable def splitNewEdges
-    {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) : Finset Unit :=
-  if p.firstOther = p.secondOther then ∅ else {()}
-
-/-- Edge names surviving or created by a split-off. -/
-noncomputable def SplitEdge
+/-- Edge names surviving or created by a split-off.  The right summand is
+inhabited exactly when the newly created edge is not a loop. -/
+def SplitEdge
     {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
     (p : H.SplitPair s) : Type :=
-  Fin (splitSurvivingEdges p).card ⊕ Fin (splitNewEdges p).card
+  {e : H.Edge // e ≠ p.first ∧ e ≠ p.second} ⊕
+    {_unit : Unit // p.firstOther ≠ p.secondOther}
 
 noncomputable instance splitEdgeFintype
     {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) : Fintype (SplitEdge p) := by
-  unfold SplitEdge
-  infer_instance
+    (p : H.SplitPair s) : Fintype (SplitEdge p) :=
+  letI : Fintype {e : H.Edge // e ≠ p.first ∧ e ≠ p.second} :=
+    Fintype.ofInjective Subtype.val Subtype.val_injective
+  letI : Fintype {_unit : Unit // p.firstOther ≠ p.secondOther} :=
+    Fintype.ofInjective Subtype.val Subtype.val_injective
+  inferInstanceAs
+    (Fintype
+      ({e : H.Edge // e ≠ p.first ∧ e ≠ p.second} ⊕
+        {_unit : Unit // p.firstOther ≠ p.secondOther}))
 
 noncomputable instance splitEdgeDecidableEq
     {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) : DecidableEq (SplitEdge p) := by
-  unfold SplitEdge
-  infer_instance
-
-/-- The old named edge represented by a surviving split-edge index. -/
-noncomputable def splitOldEdge
-    {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) (i : Fin (splitSurvivingEdges p).card) : H.Edge :=
-  ((splitSurvivingEdges p).equivFin.symm i).1
-
-/-- The membership witness represented by a new split-edge index. -/
-noncomputable def splitNewEdgeWitness
-    {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V} {s : V}
-    (p : H.SplitPair s) (i : Fin (splitNewEdges p).card) :
-      ((): Unit) ∈ splitNewEdges p :=
-  ((splitNewEdges p).equivFin.symm i).2
+    (p : H.SplitPair s) : DecidableEq (SplitEdge p) :=
+  Classical.decEq (SplitEdge p)
 
 /-- Split off a pair of edges at `s`, discarding a newly created loop. -/
 noncomputable def splitOff {V : Type u} [DecidableEq V]
@@ -185,18 +191,14 @@ noncomputable def splitOff {V : Type u} [DecidableEq V]
     (p : H.SplitPair s) : EdgeIndexedGraph V where
   Edge := SplitEdge p
   left
-    | Sum.inl e => H.left (splitOldEdge p e)
+    | Sum.inl e => H.left e.1
     | Sum.inr _ => p.firstOther
   right
-    | Sum.inl e => H.right (splitOldEdge p e)
+    | Sum.inl e => H.right e.1
     | Sum.inr _ => p.secondOther
   end_ne
-    | Sum.inl e => H.end_ne (splitOldEdge p e)
-    | Sum.inr e => by
-        classical
-        intro h
-        have he := splitNewEdgeWitness p e
-        simp [splitNewEdges, h] at he
+    | Sum.inl e => H.end_ne e.1
+    | Sum.inr e => e.2
 
 /-- `u` and `v` cannot be separated by fewer than `k` edge copies. -/
 def PairEdgeConnectedAtLeast
@@ -229,31 +231,29 @@ structure Path {V : Type u} [DecidableEq V]
   length : ℕ
   vertex : Fin (length + 1) → V
   edge : Fin length → H.Edge
-  source_eq : vertex ⟨0, by omega⟩ = source
-  target_eq : vertex ⟨length, by omega⟩ = target
+  source_eq : vertex 0 = source
+  target_eq : vertex (Fin.last length) = target
   edge_ends :
     ∀ i : Fin length,
-      (H.left (edge i) = vertex ⟨i.1, by omega⟩ ∧
-        H.right (edge i) = vertex ⟨i.1 + 1, by omega⟩) ∨
-      (H.right (edge i) = vertex ⟨i.1, by omega⟩ ∧
-        H.left (edge i) = vertex ⟨i.1 + 1, by omega⟩)
+      (H.left (edge i) = vertex i.castSucc ∧
+        H.right (edge i) = vertex i.succ) ∨
+      (H.right (edge i) = vertex i.castSucc ∧
+        H.left (edge i) = vertex i.succ)
   vertex_injective : Function.Injective vertex
 
 namespace Path
 
 /-- The internal vertices of an edge-indexed path. -/
-noncomputable def internalVertices
+def internalVertices
     {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V}
-    {source target : V} (P : Path H source target) : Finset V := by
-  classical
-  exact (Finset.univ.image P.vertex).erase source |>.erase target
+    {source target : V} (P : Path H source target) : Finset V :=
+  ((Finset.univ.image P.vertex).erase source).erase target
 
 /-- The named edge copies used by an edge-indexed path. -/
-noncomputable def edgeSet
+def edgeSet
     {V : Type u} [DecidableEq V] {H : EdgeIndexedGraph V}
-    {source target : V} (P : Path H source target) : Finset H.Edge := by
-  classical
-  exact Finset.univ.image P.edge
+    {source target : V} (P : Path H source target) : Finset H.Edge :=
+  Finset.univ.image P.edge
 
 end Path
 

@@ -14,19 +14,21 @@ namespace Lax17.LocalRoutingOrGrid
 
 universe u
 
-/-- In one strong cluster, large equal terminal sets either admit the desired
-local routing or force the target grid minor. -/
+/-- In one connected cluster, large linked terminal sets either force an
+`h × h` grid minor or admit `q` disjoint routes with pairwise bridges. -/
 axiom localRoutingOrGrid :
-  ∃ c : ℕ, 0 < c ∧
-    ∀ {V : Type u} [Fintype V] [DecidableEq V]
-      (G : SimpleGraph V) {ℓ w g k : ℕ}
-      (P : Lax17.PathOfSets.StrongSystem G ℓ w)
-      (i : Fin ℓ) (A B : Finset V),
-        A ⊆ P.cluster i → B ⊆ P.cluster i →
-          Disjoint A B → A.card = k → B.card = k →
-            2 ≤ g → c * g ^ 2 ≤ k →
-              Lax17.GridMinor.ContainsGridMinor G g ∨
-                ∃ Q : Lax17.Paths.VertexLinkage G A B k,
-                  ∀ j : Fin k, (Q.path j).StaysIn (P.cluster i)
+  ∀ {V : Type u} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) {C A B : Finset V} {h q w : ℕ},
+      1 < h →
+        1 < q →
+          Lax17.PathOfSets.IsCluster G C →
+            Lax17.Linkedness.NodeLinkedIn G C A B →
+              A.card = w →
+                B.card = w →
+                  (16 * h + 10) * q ≤ w →
+                    Lax17.GridMinor.ContainsGridMinor G h ∨
+                      ∃ Q : Lax17.Paths.VertexLinkage G A B q,
+                        (∀ i : Fin q, (Q.path i).StaysIn C) ∧
+                          Q.HasPairwiseBridgesIn C
 
 end Lax17.LocalRoutingOrGrid

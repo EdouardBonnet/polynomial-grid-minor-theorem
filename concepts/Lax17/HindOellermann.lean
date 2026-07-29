@@ -11,7 +11,7 @@ element-connectivity.
 
 namespace Lax17.HindOellermann
 
-universe u v
+universe u
 
 /-- Hind--Oellermann deletion--contraction for terminal element
 connectivity. -/
@@ -22,7 +22,7 @@ axiom hindOellermannDeletionContraction :
       H.left e₀ ∉ terminals → H.right e₀ ∉ terminals →
         H.TerminalElementConnectedAtLeast terminals k →
           (H.deleteEdge e₀).TerminalElementConnectedAtLeast terminals k ∨
-            ∃ (W : Type v) (_ : Fintype W) (_ : DecidableEq W)
+            ∃ (W : Type u) (_ : Fintype W) (_ : DecidableEq W)
               (K : Lax17.TerminalConnectivity.EdgeIndexedGraph W)
               (mapVertex : V → W),
                 Nonempty (H.IsContraction e₀ K mapVertex) ∧

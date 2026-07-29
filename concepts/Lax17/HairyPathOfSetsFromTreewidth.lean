@@ -1,4 +1,5 @@
 import Mathlib.Data.Nat.Log
+import Lax17.Degree
 import Lax17.PathOfSets
 import Lax17.Treewidth
 
@@ -19,10 +20,15 @@ system. -/
 axiom hairyPathOfSetsFromTreewidth :
   ∃ c d : ℕ, 0 < c ∧ 0 < d ∧
     ∀ {V : Type u} [Fintype V] [DecidableEq V]
-      (G : SimpleGraph V) (ℓ w : ℕ),
-        2 ≤ ℓ → 2 ≤ w →
-          c * ℓ * w * (Nat.log 2 (ℓ * w)) ^ d ≤
-              Lax17.Treewidth.treewidth G →
-            Nonempty (Lax17.PathOfSets.HairySystem G ℓ w)
+      (G : SimpleGraph V) {ℓ w k : ℕ},
+        1 < ℓ →
+          1 < w →
+            1 < k →
+              k ≤ Lax17.Treewidth.treewidth G →
+                c * w * ℓ ^ 50 * (Nat.log 2 k) ^ d < k →
+                  ∃ H : SimpleGraph V,
+                    H ≤ G ∧
+                      Lax17.Degree.MaximumAtMost H 3 ∧
+                        Nonempty (Lax17.PathOfSets.HairySystem H ℓ w)
 
 end Lax17.HairyPathOfSetsFromTreewidth

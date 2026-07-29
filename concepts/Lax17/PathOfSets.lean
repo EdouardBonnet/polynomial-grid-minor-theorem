@@ -58,6 +58,22 @@ structure System {V : Type u} [DecidableEq V]
         Disjoint ((connector i hi).path a).vertices
           ((connector j hj).path b).vertices
 
+namespace System
+
+/-- The first cluster index. -/
+def firstIndex {V : Type u} [DecidableEq V]
+    {G : SimpleGraph V} {ℓ w : ℕ}
+    (P : System G ℓ w) : Fin ℓ :=
+  ⟨0, P.length_pos⟩
+
+/-- The last cluster index. -/
+def lastIndex {V : Type u} [DecidableEq V]
+    {G : SimpleGraph V} {ℓ w : ℕ}
+    (P : System G ℓ w) : Fin ℓ :=
+  ⟨ℓ - 1, Nat.sub_lt P.length_pos Nat.zero_lt_one⟩
+
+end System
+
 /-- A strong path-of-sets system. -/
 structure StrongSystem {V : Type u} [DecidableEq V]
     (G : SimpleGraph V) (ℓ w : ℕ) extends System G ℓ w where
@@ -134,5 +150,50 @@ structure ThreeWayClusterSplit {V : Type u} [DecidableEq V]
     NodeWellLinkedIn G secondCluster secondTerminals
   third_well_linked :
     NodeWellLinkedIn G thirdCluster thirdTerminals
+
+/-- The Appendix A.3 split of one cluster into a new base cluster and a
+disjoint hair cluster, together with the retained interfaces and hair
+linkage. -/
+structure HairyClusterSplit {V : Type u} [DecidableEq V]
+    (G : SimpleGraph V) (C A B : Finset V) (w : ℕ) where
+  baseCluster : Finset V
+  hairCluster : Finset V
+  left : Finset V
+  right : Finset V
+  baseEndpoint : Finset V
+  hairEndpoint : Finset V
+  base_subset : baseCluster ⊆ C
+  hair_subset : hairCluster ⊆ C
+  base_connected : IsCluster G baseCluster
+  hair_connected : IsCluster G hairCluster
+  clusters_disjoint : Disjoint baseCluster hairCluster
+  left_subset_base : left ⊆ baseCluster
+  right_subset_base : right ⊆ baseCluster
+  baseEndpoint_subset : baseEndpoint ⊆ baseCluster
+  hairEndpoint_subset : hairEndpoint ⊆ hairCluster
+  left_subset_original : left ⊆ A
+  right_subset_original : right ⊆ B
+  left_card : left.card = w
+  right_card : right.card = w
+  baseEndpoint_card : baseEndpoint.card = w
+  hairEndpoint_card : hairEndpoint.card = w
+  interfaces_disjoint : Disjoint left right
+  baseEndpoint_disjoint_interfaces :
+    Disjoint baseEndpoint (left ∪ right)
+  left_well_linked : NodeWellLinkedIn G baseCluster left
+  right_well_linked : NodeWellLinkedIn G baseCluster right
+  interfaces_linked : NodeLinkedIn G baseCluster left right
+  left_baseEndpoint_linked :
+    NodeLinkedIn G baseCluster left baseEndpoint
+  hairEndpoint_well_linked :
+    NodeWellLinkedIn G hairCluster hairEndpoint
+  hairLinkage :
+    VertexLinkage G baseEndpoint hairEndpoint w
+  hairLinkage_stays_in_cluster :
+    ∀ i : Fin w, (hairLinkage.path i).StaysIn C
+  hairLinkage_avoids_base :
+    ∀ i : Fin w, (hairLinkage.path i).InternallyAvoids baseCluster
+  hairLinkage_avoids_hair :
+    ∀ i : Fin w, (hairLinkage.path i).InternallyAvoids hairCluster
 
 end Lax17.PathOfSets

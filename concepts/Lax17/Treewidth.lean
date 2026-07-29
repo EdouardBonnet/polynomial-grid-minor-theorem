@@ -66,8 +66,8 @@ because the decomposition with one bag containing every vertex always exists.
 -/
 noncomputable def treewidth {V : Type u} [Fintype V] [DecidableEq V]
     (G : SimpleGraph V) : ℕ :=
-  by
-    classical
-    exact if h : ∃ k, HasTreewidthAtMost G k then Nat.find h else 0
+  letI := Classical.decPred (HasTreewidthAtMost G)
+  letI := Classical.propDecidable (∃ k, HasTreewidthAtMost G k)
+  if h : ∃ k, HasTreewidthAtMost G k then Nat.find h else 0
 
 end Lax17.Treewidth

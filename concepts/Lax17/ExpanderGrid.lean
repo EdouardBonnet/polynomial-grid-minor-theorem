@@ -5,29 +5,26 @@ import Lax17.GridMinor
 
 /-!
 ---
-title: Grid minors in bounded-degree expanders
+title: Grid minors from separator expansion
 type: theorem
 ---
-A sufficiently large bounded-degree constant edge-expander contains a
-prescribed square grid as a minor.  The size threshold is polynomial in the
-grid order and maximum degree, with a polylogarithmic factor in the number of
-vertices.
+A graph with no small balanced separator contains every square grid whose
+vertices-plus-edges complexity fits the explicit Theorem 8.1 budget.
 -/
 
 namespace Lax17.ExpanderGrid
 
 universe u
 
-/-- The bounded-degree expander-to-grid theorem. -/
+/-- The expander-to-grid handoff in the no-small-balanced-separator form. -/
 axiom expanderContainsGrid :
-  ∃ c d : ℕ, 0 < c ∧ 0 < d ∧
-    ∀ {V : Type u} [Fintype V] [DecidableEq V]
-      (G : SimpleGraph V) (Δ g : ℕ),
-        Lax17.Expansion.IsEdgeExpander G 1 4 →
-          Lax17.Degree.MaximumAtMost G Δ →
-            2 ≤ g →
-              c * (Δ + 1) ^ 2 * g ^ 2 *
-                  (Nat.log 2 (Fintype.card V)) ^ d ≤ Fintype.card V →
-                Lax17.GridMinor.ContainsGridMinor G g
+  ∀ {V : Type u} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (d g : ℕ),
+      2 ≤ Fintype.card V →
+        Lax17.Expansion.NoSmallBalancedSeparator G d →
+          ((3 * (d + 1) * (15 * (d + 1))) * 8) *
+              (5 * g ^ 2) * Nat.log 2 (Fintype.card V) ≤
+                Fintype.card V →
+            Lax17.GridMinor.ContainsGridMinor G g
 
 end Lax17.ExpanderGrid

@@ -20,10 +20,12 @@ prescribed length and width. -/
 axiom strongPathOfSetsFromTreewidth :
   ∃ c d : ℕ, 0 < c ∧ 0 < d ∧
     ∀ {V : Type u} [Fintype V] [DecidableEq V]
-      (G : SimpleGraph V) (ℓ w : ℕ),
-        2 ≤ ℓ → 2 ≤ w →
-          c * ℓ * w * (Nat.log 2 (ℓ * w)) ^ d ≤
-              Lax17.Treewidth.treewidth G →
-            Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w)
+      (G : SimpleGraph V) {ℓ w k : ℕ},
+        1 < ℓ →
+          1 < w →
+            1 < k →
+              k ≤ Lax17.Treewidth.treewidth G →
+                c * w * ℓ ^ 50 * (Nat.log 2 k) ^ d < k →
+                  Nonempty (Lax17.PathOfSets.StrongSystem G ℓ w)
 
 end Lax17.StrongPathOfSetsFromTreewidth
