@@ -21,6 +21,7 @@ import Lax17.ParallelClusterSplitting
 import Lax17.PathOfSets
 import Lax17.Paths
 import Lax17.PolynomialGridMinor
+import Lax17.PowerRoot
 import Lax17.SinghLau
 import Lax17.SmallLinkedSubsets
 import Lax17.SpanningTreeRounding

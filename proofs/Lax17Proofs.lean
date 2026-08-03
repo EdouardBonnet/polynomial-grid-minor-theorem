@@ -206,6 +206,7 @@ import Lax17Proofs.Source.HairyCrossbarGridIndex
 import Lax17Proofs.Source.HairyPathOfSets
 import Lax17Proofs.Source.HairyPathOfSetsContract
 import Lax17Proofs.Source.HairyPathOfSetsTheorem
+import Lax17Proofs.Source.HairyPathOfSetsComplete
 import Lax17Proofs.Source.HappyClusterCore
 import Lax17Proofs.Source.HindOellermann
 import Lax17Proofs.Source.HindOellermannCombinatorics
@@ -344,3 +345,39 @@ import Lax17Proofs.Source.TreewidthSparsifierThinningUnion
 import Lax17Proofs.Source.TreewidthSparsifierTwoRoutingMinimal
 import Lax17Proofs.Source.UniqueLinkageOrdering
 import Lax17Proofs.Source.WellLinkedComponent
+
+-- Axiom-free recursive-slicing infrastructure used by the improved bound.
+import Lax17Proofs.Source.Exponent8.AllHappyClusters
+import Lax17Proofs.Source.Exponent8.Case1Section45Assembly
+import Lax17Proofs.Source.Exponent8.Claim53Strong
+import Lax17Proofs.Source.Exponent8.DyadicClusterClass
+import Lax17Proofs.Source.Exponent8.GlobalDichotomy
+import Lax17Proofs.Source.Exponent8.LastHitCrossbar
+import Lax17Proofs.Source.Exponent8.LastHitSelection
+import Lax17Proofs.Source.Exponent8.Lemma48Additive
+import Lax17Proofs.Source.Exponent8.LocalDichotomy
+import Lax17Proofs.Source.Exponent8.NumericalEndpoint
+import Lax17Proofs.Source.Exponent8.Observation44RootProvenance
+import Lax17Proofs.Source.Exponent8.Observation54Cleanup
+import Lax17Proofs.Source.Exponent8.Observation54Composition
+import Lax17Proofs.Source.Exponent8.Observation54Recursive
+import Lax17Proofs.Source.Exponent8.Observation54Refinement
+import Lax17Proofs.Source.Exponent8.Observation54Support
+import Lax17Proofs.Source.Exponent8.Observation54Type2
+import Lax17Proofs.Source.Exponent8.Observation54Unique
+import Lax17Proofs.Source.Exponent8.ParentedClusterTable
+import Lax17Proofs.Source.Exponent8.RecursiveSlicing
+import Lax17Proofs.Source.Exponent8.RootedSection42
+import Lax17Proofs.Source.Exponent8.Section5Assembly
+import Lax17Proofs.Source.Exponent8.ThreeRoundParameters
+import Lax17Proofs.Source.Exponent8.ThreeRoundRecursion
+
+-- Arbitrarily many fixed rounds and the exact `8 + epsilon` endpoint.
+import Lax17Proofs.Source.Exponent8Epsilon.AsymptoticCorollary
+import Lax17Proofs.Source.Exponent8Epsilon.CeilingPowerRoot
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundGlobalDichotomy
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundLocalDichotomy
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundNumericalEndpoint
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundParameters
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundRecursion
+import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundSection5Assembly

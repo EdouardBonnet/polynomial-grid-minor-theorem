@@ -4,8 +4,6 @@ import Lax17Proofs.Source.Theorem214Nonconstructive
 
 namespace Lax17Proofs
 
-universe u v w
-
 /-!
 # Chuzhoy--Tan Section 4: paper-specific assembly
 
@@ -20,6 +18,7 @@ path indices, and Theorem 4.21 supplies the within-cluster linkedness.
 
 namespace SimpleGraph
 
+universe u
 
 namespace Section4Assembly
 
@@ -335,7 +334,7 @@ gap.  Connectedness of the clusters makes singleton nail sets node-well-linked,
 and edge-well-linkedness of the old nail union links the two retained
 singletons. -/
 noncomputable def singletonStrongificationData
-    {ell : ℕ} (P : WeakPathOfSetsSystem G ell ell) :
+    {ell w : ℕ} (P : WeakPathOfSetsSystem G ell w) :
     Section46.StrongificationData
       (G := G) (P := P.toPathOfSetsSystem) (w' := 1) := by
   let P0 := P.toPathOfSetsSystem
@@ -528,20 +527,20 @@ theorem exists_boostedSetData_maxDegreeFour
 performed on the right nails of cluster `i`; its path indices transport the
 chosen nails to cluster `i+1`, where the second boost is performed. -/
 theorem exists_boostedGapStrongData
-    {ell : ℕ} (P : WeakPathOfSetsSystem G ell ell)
+    {ell w : ℕ} (P : WeakPathOfSetsSystem G ell w)
     (hdegree : MaxDegreeAtMost G 4)
-    (hlarge : ¬ ell < 20000)
+    (hlarge : ¬ w < 20000)
     (i : Fin ell) (hi : i.1 + 1 < ell) :
-    Nonempty (GapStrongData (G := G) (w' := strongifiedWidth ell)
+    Nonempty (GapStrongData (G := G) (w' := strongifiedWidth w)
       P.toPathOfSetsSystem i hi) := by
   let P0 := P.toPathOfSetsSystem
-  let a := (3 * ell) / 40
-  have hfirstScale : 8 * strongifiedWidth ell ≤ (3 * ell) / 40 := by
+  let a := (3 * w) / 40
+  have hfirstScale : 8 * strongifiedWidth w ≤ (3 * w) / 40 := by
     have hsecond := eight_mul_strongifiedWidth_le_secondBoost hlarge
     omega
   rcases exists_boostedSetData_maxDegreeFour
       (G := G) (C := P0.cluster i) (T := P0.right i)
-      (κ := ell) (w' := strongifiedWidth ell)
+      (κ := w) (w' := strongifiedWidth w)
       (P0.cluster_connected i) hdegree (P0.right_card i)
       (EdgeWellLinkedIn.mono_terminals (P.nails_edgeWellLinked i)
         (Finset.subset_union_right (s₁ := P0.left i) (s₂ := P0.right i)))
@@ -565,9 +564,9 @@ theorem exists_boostedGapStrongData
         (s₁ := P0.left ⟨i.1 + 1, hi⟩)
         (s₂ := P0.right ⟨i.1 + 1, hi⟩))
   have hsecondScale :
-      8 * strongifiedWidth ell ≤ (3 * Atemp.card) / 40 := by
+      8 * strongifiedWidth w ≤ (3 * Atemp.card) / 40 := by
     have hbase :
-        8 * strongifiedWidth ell ≤ (3 * a) / 40 := by
+        8 * strongifiedWidth w ≤ (3 * a) / 40 := by
       simpa [a] using eight_mul_strongifiedWidth_le_secondBoost hlarge
     have ha : a ≤ Atemp.card := by
       rw [hAtempCard]
@@ -575,7 +574,7 @@ theorem exists_boostedGapStrongData
     omega
   rcases exists_boostedSetData_maxDegreeFour
       (G := G) (C := P0.cluster ⟨i.1 + 1, hi⟩) (T := Atemp)
-      (κ := Atemp.card) (w' := strongifiedWidth ell)
+      (κ := Atemp.card) (w' := strongifiedWidth w)
       (P0.cluster_connected ⟨i.1 + 1, hi⟩) hdegree rfl
       hAtempWell hsecondScale with ⟨Adata⟩
   let Ifinal :=
@@ -618,38 +617,38 @@ theorem exists_boostedGapStrongData
   calc
     Ifinal.card = Adata.selected.card :=
       (P0.connector i hi).targetIndexSetOfSubset_card hAfinalRight
-    _ = strongifiedWidth ell := Adata.selected_card
+    _ = strongifiedWidth w := Adata.selected_card
 
 /-- Boost an endpoint nail set and retain the envelope used by Theorem 4.21. -/
 theorem exists_boostedEndpointSet
-    {ell : ℕ} (P : WeakPathOfSetsSystem G ell ell)
+    {ell w : ℕ} (P : WeakPathOfSetsSystem G ell w)
     (hdegree : MaxDegreeAtMost G 4)
-    (hlarge : ¬ ell < 20000)
+    (hlarge : ¬ w < 20000)
     (i : Fin ell) (T : Finset V)
-    (hTcard : T.card = ell)
+    (hTcard : T.card = w)
     (hTwell : EdgeWellLinkedIn G (P.cluster i) T) :
     Nonempty (BoostedSetData (G := G) (P.cluster i) T
-      (strongifiedWidth ell)) := by
-  have hw : 8 * strongifiedWidth ell ≤ (3 * ell) / 40 := by
+      (strongifiedWidth w)) := by
+  have hw : 8 * strongifiedWidth w ≤ (3 * w) / 40 := by
     have hsecond := eight_mul_strongifiedWidth_le_secondBoost hlarge
     omega
   exact exists_boostedSetData_maxDegreeFour
       (G := G) (C := P.cluster i) (T := T)
-      (κ := ell) (w' := strongifiedWidth ell)
+      (κ := w) (w' := strongifiedWidth w)
       (P.cluster_connected i) hdegree hTcard hTwell hw
 
 /-- Chuzhoy--Tan Section 4.6 for a maximum-degree-four weak
 Path-of-Sets System.  The output has the same length and width within the
 universal factor `20000`. -/
 noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
-    {ell : ℕ} (P : WeakPathOfSetsSystem G ell ell)
+    {ell w : ℕ} (P : WeakPathOfSetsSystem G ell w)
     (hdegree : MaxDegreeAtMost G 4) :
     Section46.StrongificationData
       (G := G) (P := P.toPathOfSetsSystem)
-      (w' := strongifiedWidth ell) := by
+      (w' := strongifiedWidth w) := by
   classical
-  by_cases hlarge : ell < 20000
-  · have hwidth : strongifiedWidth ell = 1 := by
+  by_cases hlarge : w < 20000
+  · have hwidth : strongifiedWidth w = 1 := by
       simp [strongifiedWidth, hlarge]
     simpa [hwidth] using singletonStrongificationData P
   · let P0 := P.toPathOfSetsSystem
@@ -658,7 +657,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
     let last : Fin ell := ⟨ell - 1, by omega⟩
     let Gap :
         (i : Fin ell) → (hi : i.1 + 1 < ell) →
-          GapStrongData (G := G) (w' := strongifiedWidth ell) P0 i hi :=
+          GapStrongData (G := G) (w' := strongifiedWidth w) P0 i hi :=
       fun i hi => Classical.choice
         (exists_boostedGapStrongData P hdegree hlarge i hi)
     let LeftEnd :=
@@ -710,8 +709,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
           apply Fin.ext
           dsimp [j]
           omega
-        rw [← hnext]
-        exact (Gap j hj).target_subset
+        simpa only [hnext] using (Gap j hj).target_subset
     have hright_subset : ∀ i : Fin ell, right i ⊆ P0.right i := by
       intro i
       dsimp [right]
@@ -725,14 +723,14 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
           (subset_trans RightEnd.selected_subset_envelope
             RightEnd.envelope_subset)
     have hleft_card :
-        ∀ i : Fin ell, (left i).card = strongifiedWidth ell := by
+        ∀ i : Fin ell, (left i).card = strongifiedWidth w := by
       intro i
       dsimp [left]
       split_ifs with h0
       · exact LeftEnd.selected_card
       · exact (Gap _ _).target_card
     have hright_card :
-        ∀ i : Fin ell, (right i).card = strongifiedWidth ell := by
+        ∀ i : Fin ell, (right i).card = strongifiedWidth w := by
       intro i
       dsimp [right]
       split_ifs with hi
@@ -778,8 +776,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
           apply Fin.ext
           dsimp [j]
           omega
-        rw [← hnext]
-        exact (Gap j hj).targetEnvelope_subset
+        simpa only [hnext] using (Gap j hj).targetEnvelope_subset
     have hrightEnvelope_subset :
         ∀ i : Fin ell, rightEnvelope i ⊆ P0.right i := by
       intro i
@@ -807,7 +804,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
       · exact RightEnd.selected_subset_envelope
     have hleftEnvelope_large :
         ∀ i : Fin ell,
-          8 * strongifiedWidth ell ≤ (leftEnvelope i).card := by
+          8 * strongifiedWidth w ≤ (leftEnvelope i).card := by
       intro i
       dsimp [leftEnvelope]
       split_ifs
@@ -815,7 +812,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
       · exact (Gap _ _).targetEnvelope_large
     have hrightEnvelope_large :
         ∀ i : Fin ell,
-          8 * strongifiedWidth ell ≤ (rightEnvelope i).card := by
+          8 * strongifiedWidth w ≤ (rightEnvelope i).card := by
       intro i
       dsimp [rightEnvelope]
       split_ifs with hi
@@ -849,7 +846,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
           omega
         simpa [hilast] using RightEnd.envelope_nodeWellLinked
     refine
-      { width_pos := strongifiedWidth_pos hell
+      { width_pos := strongifiedWidth_pos P0.width_pos
         left := left
         right := right
         left_subset_left := hleft_subset
@@ -875,7 +872,7 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
         (G := G) (C := P0.cluster i)
         (T1 := leftEnvelope i) (T2 := rightEnvelope i)
         (T1' := left i) (T2' := right i)
-        (κ := 8 * strongifiedWidth ell)
+        (κ := 8 * strongifiedWidth w)
         hdegree (by norm_num)
         ((P0.left_right_disjoint i).mono
           (hleftEnvelope_subset i) (hrightEnvelope_subset i))
@@ -889,8 +886,8 @@ noncomputable def strongificationData_of_weakPathOfSetsSystem_maxDegreeFour
         (by rw [hleft_card i])
 
 theorem strongification_width_bound
-    {ell : ℕ} (P : WeakPathOfSetsSystem G ell ell) :
-    ell ≤ 20000 * strongifiedWidth ell :=
+    {ell w : ℕ} (P : WeakPathOfSetsSystem G ell w) :
+    w ≤ 20000 * strongifiedWidth w :=
   le_twentyThousand_mul_strongifiedWidth P.toPathOfSetsSystem.width_pos
 
 end Section4Assembly
