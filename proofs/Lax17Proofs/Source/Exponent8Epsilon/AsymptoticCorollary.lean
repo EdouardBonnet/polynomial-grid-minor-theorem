@@ -18,6 +18,21 @@ namespace Exponent8Epsilon
 
 universe u
 
+/-- The exact fixed-round endpoint, abstracted as an input to the purely
+analytic conversion from `8 + 2/t` (up to logarithms) to `8 + epsilon`.
+
+Keeping this input explicit lets the public submission expose the fixed-round
+theorem as a genuine intermediate node in its proof graph. -/
+def FixedRoundGridMinorInput : Prop :=
+  ∀ rounds : ℕ, 1 ≤ rounds →
+    ∃ K b : ℕ, 0 < K ∧ 0 < b ∧
+      ∀ {V : Type u} [Fintype V] [DecidableEq V]
+        (G : _root_.SimpleGraph V) {target : ℕ},
+          2 ≤ target →
+          K * target ^ 8 * fixedRoundFanout rounds target *
+              (Nat.log 2 target) ^ b ≤ treewidth G →
+          ContainsGridMinor G target
+
 /-- The least integral fanout is at most twice the corresponding real root. -/
 theorem fixedRoundFanout_cast_le
     {rounds g : ℕ} (hg : 2 ≤ g) :
@@ -136,11 +151,10 @@ theorem exists_rounds_rootExponent_le_half
   rw [hcast]
   nlinarith
 
-/-- The usual analytic corollary: for every positive real `epsilon`, one
-constant (depending only on `epsilon`) makes the exponent `8 + epsilon`
-sufficient for all finite simple graphs and all grid orders at least two. -/
-theorem polynomial_grid_minor_theorem_exponent_eight_add_epsilon
-    (ε : ℝ) (hε : 0 < ε) :
+/-- The analytic conversion with the exact fixed-round theorem supplied as an
+explicit input. -/
+theorem polynomial_grid_minor_theorem_exponent_eight_add_epsilon_of_input
+    (hfixedInput : FixedRoundGridMinorInput.{u}) (ε : ℝ) (hε : 0 < ε) :
     ∃ C : ℝ, 0 < C ∧
       ∀ {V : Type u} [Fintype V] [DecidableEq V]
         (G : _root_.SimpleGraph V) {target : ℕ},
@@ -150,7 +164,7 @@ theorem polynomial_grid_minor_theorem_exponent_eight_add_epsilon
           ContainsGridMinor G target := by
   rcases exists_rounds_rootExponent_le_half hε with
     ⟨rounds, hrounds, hrootExp⟩
-  rcases polynomial_grid_minor_theorem_fixed_rounds rounds hrounds with
+  rcases hfixedInput rounds hrounds with
     ⟨K, b, hK, hb, hfixed⟩
   have hhalf : 0 < ε / 2 := by positivity
   rcases exists_natLog_pow_le_const_mul_rpow b hhalf with
@@ -210,6 +224,23 @@ theorem polynomial_grid_minor_theorem_exponent_eight_add_epsilon
           (Nat.log 2 target) ^ b ≤ treewidth G := by
     exact_mod_cast hboundCast.trans htw
   exact hfixed G htarget hnat
+
+/-- The usual closed analytic corollary: for every positive real `epsilon`,
+one constant (depending only on `epsilon`) makes the exponent `8 + epsilon`
+sufficient for all finite simple graphs and all grid orders at least two. -/
+theorem polynomial_grid_minor_theorem_exponent_eight_add_epsilon
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ C : ℝ, 0 < C ∧
+      ∀ {V : Type u} [Fintype V] [DecidableEq V]
+        (G : _root_.SimpleGraph V) {target : ℕ},
+          2 ≤ target →
+          C * (target : ℝ) ^ ((8 : ℝ) + ε) ≤
+            (treewidth G : ℝ) →
+          ContainsGridMinor G target :=
+  polynomial_grid_minor_theorem_exponent_eight_add_epsilon_of_input
+    (fun rounds hrounds =>
+      polynomial_grid_minor_theorem_fixed_rounds rounds hrounds)
+    ε hε
 
 end Exponent8Epsilon
 end SimpleGraph

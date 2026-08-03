@@ -4,12 +4,12 @@ import Lax17.Treewidth
 
 /-!
 ---
-title: Polynomial grid-minor theorem with exponent 8 + epsilon
+title: 'Polynomial grid-minor theorem with exponent $8+\varepsilon$'
 type: theorem
 ---
-For every real \(\varepsilon>0\), there is a positive constant
-\(C_\varepsilon\) such that every finite simple graph of treewidth at least
-\(C_\varepsilon g^{8+\varepsilon}\) contains the \(g\times g\) square grid
+For every real $\varepsilon>0$, there is a positive constant
+$C_\varepsilon$ such that every finite simple graph of treewidth at least
+$C_\varepsilon g^{8+\varepsilon}$ contains the $g\times g$ square grid
 as a minor.
 
 Treewidth is the parameter defined by the `Lax17.Treewidth` concept. The

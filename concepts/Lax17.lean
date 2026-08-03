@@ -7,6 +7,7 @@ import Lax17.EdgeMenger
 import Lax17.ExpanderGrid
 import Lax17.ExponentTenCrossbarDichotomy
 import Lax17.Expansion
+import Lax17.FixedRoundGridMinor
 import Lax17.Grid
 import Lax17.GridMinor
 import Lax17.HairyPathOfSetsFromTreewidth
@@ -21,6 +22,7 @@ import Lax17.ParallelClusterSplitting
 import Lax17.PathOfSets
 import Lax17.Paths
 import Lax17.PolynomialGridMinor
+import Lax17.PowerRoot
 import Lax17.SinghLau
 import Lax17.SmallLinkedSubsets
 import Lax17.SpanningTreeRounding
