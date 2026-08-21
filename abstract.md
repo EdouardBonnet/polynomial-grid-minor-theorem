@@ -1,29 +1,22 @@
-This submission formalizes an improved polynomial excluded-grid theorem. It
-proves that, for every real $\varepsilon>0$, there is a positive constant
-$C_\varepsilon$ such that every finite simple graph of treewidth at least
+This submission formalizes an exponent-eight polynomial excluded-grid
+theorem. It proves that there are positive integers $K$ and $b$ such that
+every finite simple graph of treewidth at least
 $$
-  C_\varepsilon g^{8+\varepsilon}
+  K g^8(\log_2 g)^b
 $$
-contains the $g\times g$ square grid as a minor.
-
-The proof first establishes a division-free natural-number statement. For
-each integer $t\geq2$, let $\rho_t(g)$ be the least natural number with
-$g^2\leq\rho_t(g)^t$. There are positive integers $K_t,b_t$, depending
-only on $t$, for which treewidth at least
-$$
-  K_t g^8\rho_t(g)(\log_2 g)^{b_t}
-$$
-forces the same grid minor. The estimate
-$\rho_t(g)\leq2g^{2/t}$, followed by a choice of fixed $t$, gives the
-stated $8+\varepsilon$ result.
+contains the $g\times g$ square grid as a minor. Thus the polynomial loss is
+exactly $g^8$; the remaining loss is polylogarithmic. This strengthens the
+previous exponent-$8+\varepsilon$ endpoint, which is retained as a corollary.
 
 Treewidth is defined through finite tree decompositions, with width equal to
 the largest bag cardinality minus one. The grid is the box product of two
 finite path graphs, and the minor relation is the standard branch-set model.
-The improvement comes from a finite, parameterized iteration of the recursive
-slicing argument in Section 5 of Chuzhoy--Tan. All combinatorial producers,
-the finite controller, the explicit parameter inequalities, and the final
-real-exponent conversion are checked in Lean.
+The improvement comes from a logarithmic-depth amortized controller for the
+recursive slicing argument in Section 5 of Chuzhoy--Tan. It produces a square
+strong Path-of-Sets system with width and length $g^2$ from a local threshold
+of order $g^8\operatorname{polylog}(g)$. All combinatorial producers, the
+controller, the explicit natural-number inequalities, and the final global
+composition are checked in Lean.
 
 Algorithmic running times and probability guarantees are deliberately
 omitted; the submitted graph-theoretic claims are finite existential

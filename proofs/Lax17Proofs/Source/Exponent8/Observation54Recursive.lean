@@ -136,6 +136,53 @@ theorem observation54GoodQ_meets_retained
   rw [L.sigma.mem_segmentIntersectingLeftIndices] at hr
   exact ⟨r, hr.1, hr.2⟩
 
+/-- A row retained by the recursive cleanup has a nontrivial parent-slice
+interval.
+
+Theorem 4.5 permits two consecutive cuts to coincide. Such a zero-edge
+interval cannot enter a recursive child: every retained row meets at least
+`wHat` localized auxiliary paths, and the recursive specialization has
+positive `wHat = 4 * g^2`. This theorem records that support restriction
+explicitly, before the row is transported to the Observation 5.4 subtype. -/
+theorem cleanup_sliceRowPath_source_ne_target
+    (g : ℕ)
+    (L : RecursiveSliceLayer
+      G H A B X P Q Rbar Qbar m width (4 * g ^ 2) Dhat)
+    (i : Fin m) (hg : 0 < g)
+    {r : Rbar.Index} (hr : r ∈ (L.cleanup i).rows) :
+    (L.sigma.sliceRowPath i r).source ≠
+      (L.sigma.sliceRowPath i r).target := by
+  classical
+  have hpos :
+      0 <
+        (L.sigma.segmentIntersectingRightIndices
+          Qbar i (L.cleanup i).paths r).card := by
+    have h := (L.cleanup i).intersecting.1 r hr
+    have hw : 0 < 4 * g ^ 2 := by positivity
+    exact hw.trans_le h
+  obtain ⟨q, hq⟩ := Finset.card_pos.mp hpos
+  have hqCleanup : q ∈ (L.cleanup i).paths :=
+    ((L.sigma.mem_segmentIntersectingRightIndices
+      Qbar i (L.cleanup i).paths r q).1 hq).1
+  have hmeet :
+      PathPacking.PathsIntersect
+        (L.sigma.sliceRowPath i r) (Qbar.path q) :=
+    (L.sigma.sliceSegmentIntersectsPath_iff_sliceRowPath_intersects
+      Qbar ((L.cleanup i).paths_subset hqCleanup)).1
+      ((L.sigma.mem_segmentIntersectingRightIndices
+        Qbar i (L.cleanup i).paths r q).1 hq).2
+  rcases Finset.not_disjoint_iff.1 hmeet with ⟨v, hvRow, hvQ⟩
+  have hvSlice : L.sigma.SliceInterior r i v :=
+    (L.sigma.mem_pathsInSlice Qbar i q).1
+      ((L.cleanup i).paths_subset hqCleanup)
+      hvQ (L.sigma.sliceRowPath_vertexSet_subset i r hvRow)
+  intro hendpoints
+  have hvEq :=
+    GraphPath.eq_source_of_source_eq_target_of_mem_vertexSet
+      (L.sigma.sliceRowPath i r) hendpoints hvRow
+  exact hvSlice.2.2.2.1 (by
+    simpa [L.sigma.sliceRowPath_source] using hvEq)
+
 /-- The exact-support retained-row packing produced from one recursive
 slice. -/
 noncomputable def observation54Rows

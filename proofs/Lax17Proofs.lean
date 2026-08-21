@@ -372,6 +372,36 @@ import Lax17Proofs.Source.Exponent8.Section5Assembly
 import Lax17Proofs.Source.Exponent8.ThreeRoundParameters
 import Lax17Proofs.Source.Exponent8.ThreeRoundRecursion
 
+-- Logarithmic-depth amortized Section 5 controller.
+import Lax17Proofs.Source.Exponent7.AlternatingMatchingGrid
+import Lax17Proofs.Source.Exponent7.AlternatingMatchingRows
+import Lax17Proofs.Source.Exponent7.AmortizedController
+import Lax17Proofs.Source.Exponent7.AmortizedParameters
+import Lax17Proofs.Source.Exponent7.AmortizedPipeline
+import Lax17Proofs.Source.Exponent7.AmortizedRecursiveSlicing
+import Lax17Proofs.Source.Exponent7.CleanBridgeBatch
+import Lax17Proofs.Source.Exponent7.CleanMatchingDichotomy
+import Lax17Proofs.Source.Exponent7.ConditionalSection5Grid
+import Lax17Proofs.Source.Exponent7.GlobalDichotomy
+import Lax17Proofs.Source.Exponent7.GlobalRowThreading
+import Lax17Proofs.Source.Exponent7.LocalDichotomy
+import Lax17Proofs.Source.Exponent7.NumericalBounds
+import Lax17Proofs.Source.Exponent7.OrderedBridgeGridGeometry
+import Lax17Proofs.Source.Exponent7.PseudoGridAmortized
+import Lax17Proofs.Source.Exponent7.RectangularCase1Assembly
+import Lax17Proofs.Source.Exponent7.RectangularDyadicClusterClass
+import Lax17Proofs.Source.Exponent7.RectangularPaperRows
+import Lax17Proofs.Source.Exponent7.RectangularParentedClusterTable
+import Lax17Proofs.Source.Exponent7.RectangularSection45Input
+import Lax17Proofs.Source.Exponent7.RectangularSection5Assembly
+import Lax17Proofs.Source.Exponent7.RectangularTheorem415
+import Lax17Proofs.Source.Exponent7.ShortWideGrid
+
+-- Exact exponent-eight polylogarithmic endpoint.
+import Lax17Proofs.Source.Exponent8Polylog.GlobalDichotomy
+import Lax17Proofs.Source.Exponent8Polylog.LocalDichotomy
+import Lax17Proofs.Source.Exponent8Polylog.NumericalEndpoint
+
 -- Arbitrarily many fixed rounds and the exact `8 + epsilon` endpoint.
 import Lax17Proofs.Source.Exponent8Epsilon.AsymptoticCorollary
 import Lax17Proofs.Source.Exponent8Epsilon.CeilingPowerRoot
