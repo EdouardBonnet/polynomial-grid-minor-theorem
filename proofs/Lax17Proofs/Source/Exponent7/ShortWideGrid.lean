@@ -6,12 +6,10 @@ namespace Lax17Proofs
 /-!
 # Short-wide weak path-of-sets systems
 
-This module composes the proved Section 4.6 strongification with the
-conditional prescribed-matching grid construction.
-
-`CleanMatchingDichotomyStatement reserve` is an explicit ordinary hypothesis,
-not an axiom.  All other steps below are proved in Lean.  The factor `20000`
-is the exact universal loss in the existing Section 4.6 implementation.
+Section 4.6 strongification is combined with the prescribed-matching grid
+construction under the hypothesis
+`CleanMatchingDichotomyStatement reserve`. The strongification loses a factor
+of `20000` in width.
 -/
 
 namespace SimpleGraph

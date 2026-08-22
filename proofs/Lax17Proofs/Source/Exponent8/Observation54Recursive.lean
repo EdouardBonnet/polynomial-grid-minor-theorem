@@ -5,19 +5,17 @@ namespace Lax17Proofs
 /-!
 # Observation 5.4 for one recursive-slicing layer
 
-This module applies the graph-theoretic Observation 5.4 theorem to the
-concrete additive cleanup and localization data stored in
-`RecursiveSliceLayer`.
+The graph-theoretic Observation 5.4 theorem is applied to the additive cleanup
+and localization data in `RecursiveSliceLayer`.
 
 For one parent slice, the bad rows are the rows discarded by Lemma 4.8 and
 the good auxiliary paths are the paths surviving the strengthened Claim 5.3
-filter.  Membership in that filter proves that every good path avoids every
-discarded row segment.  The positive `Dhat` lower bound in the additive
-cleanup supplies an actual retained row met by each good path.
+filter. Membership in that filter proves that every good path avoids every
+discarded row segment. The positive `Dhat` lower bound supplies a retained row
+met by each good path.
 
-The resulting row and auxiliary packings live in the exact retained-row
-support subtype.  Thus the output is a proof-producing, axiom-free version of
-the type-two part of Chuzhoy--Tan Observation 5.4.
+The resulting row and auxiliary packings lie in the retained-row support
+subtype and establish the type-two part of Chuzhoy--Tan Observation 5.4.
 -/
 
 namespace SimpleGraph

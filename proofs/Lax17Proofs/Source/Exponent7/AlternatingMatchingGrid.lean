@@ -4,18 +4,14 @@ import Lax17Proofs.Source.Exponent7.OrderedBridgeGridGeometry
 namespace Lax17Proofs
 
 /-!
-# Grid geometry from alternating prescribed matchings
+# Grid minors from alternating prescribed matchings
 
 For column `c`, the short-wide construction uses clusters `2c` and `2c+1`.
-On each selected global row we take the exact row segment from the source of
-its local trace in cluster `2c` to the target of its local trace in cluster
-`2c+1`.  These segments are connected, pairwise disjoint, and occur in column
-order.  Every endpoint of either prescribed matching realization lies in the
-corresponding segment.
-
-This module is the deterministic implication from simultaneous alternating
-matching realizations to a grid minor.  The clean matching dichotomy remains
-an explicit theorem hypothesis upstream; no axiom is introduced here.
+On each selected global row, take the segment from the source of its local
+trace in cluster `2c` to the target of its local trace in cluster `2c+1`.
+These segments are connected, pairwise disjoint, and ordered by column. Their
+endpoints include those of the prescribed matching bridges. Simultaneous
+alternating matching realizations therefore yield a grid minor.
 -/
 
 namespace SimpleGraph

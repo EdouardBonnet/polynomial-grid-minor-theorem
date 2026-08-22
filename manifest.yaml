@@ -2,7 +2,7 @@ specVersion: "1"
 id: Lax17
 leanVersion: "v4.30.0"
 mathlibVersion: "c5ea00351c28e24afc9f0f84379aa41082b1188f"
-title: 'An Exponent $8$ Polylogarithmic Bound for the Grid-Minor Theorem'
+title: 'Exponent 8 ($\times$ Polylogarithmic) Bound for the Grid-Minor Theorem'
 authors:
   - name: Édouard Bonnet
   - name: Codex 5.5

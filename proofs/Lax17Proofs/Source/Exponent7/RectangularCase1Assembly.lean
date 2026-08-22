@@ -8,8 +8,7 @@ namespace Lax17Proofs
 
 This is the graph-realization part of Chuzhoy--Tan Section 5.1 with the
 selected chain length `ell` separated from its overlap and connector width
-`g^2`.  It reuses the existing row-gap paths and cleaned-support separation
-lemmas unchanged.
+`g^2`. It uses the row-gap paths and cleaned-support separation lemmas.
 -/
 
 namespace SimpleGraph
@@ -38,9 +37,8 @@ variable
       G H A B X P Q Rbar Qbar
       m width (4 * g ^ 2) (32 * g ^ 4)}
 
-/-- A parent-ordered rectangular happy-cluster table supplies the complete
-proof-facing input to rectangular Theorem 4.15 and the path-of-sets graph
-assembly. -/
+/-- A parent-ordered rectangular happy-cluster table determines the input to
+rectangular Theorem 4.15 and the path-of-sets assembly. -/
 theorem rectangularSection45Input
     (T : RectangularParentedHappyClusterTable
       Rbar Qbar L ell C Dclass)

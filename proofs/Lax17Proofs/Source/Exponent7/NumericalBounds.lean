@@ -6,18 +6,17 @@ namespace Lax17Proofs
 /-!
 # Numerical bounds for the exponent-seven local threshold
 
-The amortized controller has a row-independent number of initial slices.
-This file expands that exact expression and proves that the complete local
-cost is bounded by
+The amortized controller has a row-independent number of initial slices. Its
+complete local cost is bounded by
 
 `2^37 * q^6 * ell * (log_2 q + 1)^3`.
 
 At a rounded scale `q = powTwoFloor n` and requested length `ell = 2*g`, the
-slightly larger normalization
+normalization
 
 `2^38 * n^6 * g * (log_2 n + 1)^3`
 
-therefore pays for the entire local theorem.
+suffices for the local theorem.
 -/
 
 namespace SimpleGraph

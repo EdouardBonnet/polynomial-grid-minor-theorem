@@ -397,17 +397,7 @@ import Lax17Proofs.Source.Exponent7.RectangularSection5Assembly
 import Lax17Proofs.Source.Exponent7.RectangularTheorem415
 import Lax17Proofs.Source.Exponent7.ShortWideGrid
 
--- Exact exponent-eight polylogarithmic endpoint.
+-- Exponent-eight endpoint with a polylogarithmic factor.
 import Lax17Proofs.Source.Exponent8Polylog.GlobalDichotomy
 import Lax17Proofs.Source.Exponent8Polylog.LocalDichotomy
 import Lax17Proofs.Source.Exponent8Polylog.NumericalEndpoint
-
--- Arbitrarily many fixed rounds and the exact `8 + epsilon` endpoint.
-import Lax17Proofs.Source.Exponent8Epsilon.AsymptoticCorollary
-import Lax17Proofs.Source.Exponent8Epsilon.CeilingPowerRoot
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundGlobalDichotomy
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundLocalDichotomy
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundNumericalEndpoint
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundParameters
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundRecursion
-import Lax17Proofs.Source.Exponent8Epsilon.FixedRoundSection5Assembly

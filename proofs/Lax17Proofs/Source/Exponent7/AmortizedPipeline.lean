@@ -6,9 +6,8 @@ namespace Lax17Proofs
 /-!
 # Explicit amortized Section 5 pipeline
 
-The theorems in this module instantiate the generic finite-fuel controller
-with logarithmic depth, row-count initial width, and the explicit terminal
-scale `16*q^4`.
+The finite-fuel controller is instantiated with logarithmic depth, initial
+width equal to the row count, and terminal scale `16*q^4`.
 -/
 
 namespace SimpleGraph
@@ -188,7 +187,7 @@ theorem weakPathOfSetsSystem_of_uniformAmortizedPipeline
       (exponentSeven_uniform_terminal_budget
         q Rbar.card ell)
 
-/-- Uniform source-facing amortized pipeline. -/
+/-- Uniform amortized pipeline. -/
 theorem gridMinor_of_uniformAmortizedPipeline
     (hD : CleanMatchingDichotomyStatement.{v} reserve)
     (C : RecursiveSlicingContext

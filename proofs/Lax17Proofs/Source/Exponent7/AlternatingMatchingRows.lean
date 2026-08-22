@@ -4,15 +4,12 @@ import Lax17Proofs.Source.Exponent7.CleanMatchingDichotomy
 namespace Lax17Proofs
 
 /-!
-# Alternating prescribed matchings on globally threaded rows
+# Alternating matchings on globally threaded rows
 
-This module applies the proposed clean matching dichotomy in the `2g`
-consecutive clusters used by the short-wide construction.  Global rows and
-their exact local traces are produced by `GlobalRowThreading`; no stitching
-input is assumed.
-
-The output is conditional only on `CleanMatchingDichotomyStatement reserve`.
-It is an ordinary theorem parameter, not an axiom.
+The clean matching dichotomy is applied in the `2g` consecutive clusters used
+by the short-wide construction. `GlobalRowThreading` supplies the global rows
+and their local traces. The result assumes
+`CleanMatchingDichotomyStatement reserve`.
 -/
 
 namespace SimpleGraph

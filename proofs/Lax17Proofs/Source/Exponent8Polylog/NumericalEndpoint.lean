@@ -5,17 +5,20 @@ namespace Lax17Proofs
 /-!
 # Exact exponent-eight numerical endpoint
 
-This file propagates the proved local threshold
+The local threshold
 
-`2^37 * q^8 * (log_2 q + 1)^3`
+$$
+2^{37} q^8 (\log_2 q + 1)^3
+$$
 
-through the existing hairy Path-of-Sets and grid consumers.  The final theorem
-has the explicit natural-number form
+is propagated through the hairy Path-of-Sets and grid constructions. The final
+theorem has the natural-number form
 
-`K * target^8 * (log_2 target)^b <= treewidth G`.
+$$
+K g^8 (\log_2 g)^b \leq \operatorname{tw}(G).
+$$
 
-All constants and logarithmic powers are chosen below.  In particular, the
-result is not an asymptotic wrapper and has no theorem-valued parameter.
+The constants and logarithmic exponent are explicit.
 -/
 
 namespace SimpleGraph
@@ -33,7 +36,7 @@ rounded crossbar width. -/
 def exponentEightPolylogNormalizedLocalThreshold (n : ℕ) : ℕ :=
   (2 ^ 38) * n ^ 8 * (Nat.log 2 n + 1) ^ 3
 
-/-- The rounded exact local threshold is paid for by the unrounded monomial. -/
+/-- The rounded local threshold is bounded by the unrounded monomial. -/
 theorem rounded_exponentEightPolylogLocalThreshold_le
     {n : ℕ} (hn : 2 ≤ n) :
     exponentEightPolylogLocalThreshold
@@ -309,7 +312,7 @@ theorem hairy_large_threshold8_of_coeff
     _ = polynomialGridMinorTreewidthBound8 K b target := by
       simp [polynomialGridMinorTreewidthBound8, L]
 
-/-- Fully explicit numerical parameters consumed by the global graph theorem. -/
+/-- Numerical parameters for the global graph theorem. -/
 structure ParameterChoice8
     (cHair cHairLog cGrid cStrong target tw : ℕ) where
   ell : ℕ
@@ -334,7 +337,7 @@ structure ParameterChoice8
   target_direct : cGrid * target * (Nat.log 2 g) ^ 2 ≤ g
   target_strong : cStrong * target ≤ r
 
-/-- Target-independent coefficient package for the exact endpoint. -/
+/-- Target-independent coefficients for the exponent-eight endpoint. -/
 structure PolynomialThresholdTemplate8
     (cHair cHairLog cGrid cStrong : ℕ) where
   K : ℕ
@@ -448,7 +451,7 @@ def toParameterChoice
           PolynomialGridMinor.target_direct_logProduct_of_coeff
             htarget T.p_ge_two T.direct_coeff
 
-/-- Canonical constants satisfying every coefficient budget. -/
+/-- Fixed constants satisfying every coefficient budget. -/
 def canonical
     (cHair cHairLog cGrid cStrong : ℕ) :
     PolynomialThresholdTemplate8 cHair cHairLog cGrid cStrong := by
@@ -488,7 +491,7 @@ def canonical
 
 end PolynomialThresholdTemplate8
 
-/-- Consume a bundled numerical choice with the fully proved graph theorem. -/
+/-- Apply the graph theorem to a bundled numerical choice. -/
 theorem containsGridMinor_of_parameterChoice8 :
     ∃ cHair cHairLog cGrid cStrong : ℕ,
       0 < cHair ∧ 0 < cHairLog ∧ 0 < cGrid ∧ 0 < cStrong ∧
@@ -508,7 +511,7 @@ theorem containsGridMinor_of_parameterChoice8 :
     P.g_powerOfTwo P.grid_length P.grid_width P.local_width
     P.strong_scale P.target_direct P.target_strong
 
-/-- Closed excluded-grid theorem with exact polynomial exponent eight. -/
+/-- Excluded-grid theorem with polynomial exponent eight. -/
 theorem polynomial_grid_minor_theorem_exponentEightPolylog :
     ∃ K b : ℕ, 0 < K ∧ 0 < b ∧
       ∀ {V : Type u} [Fintype V] [DecidableEq V]

@@ -3,19 +3,12 @@ import Lax17Proofs.Source.Exponent8.ThreeRoundRecursion
 namespace Lax17Proofs
 
 /-!
-# Additive-loss and amortized recursive slicing
+# Additive-loss amortized recursive slicing
 
-This module begins the logarithmic-depth replacement for the fixed
-three-round controller in Chuzhoy--Tan Section 5.
-
-The first theorem is the essential interface improvement: it uses the
-*additive* conclusion of Lemma 4.8 directly.  Consequently, one refinement
-does not pay the factor-two loss used by the fixed-round controller.
-
-The numerical definitions below use the binary fanout proposed for the
-amortized recursion.  They prove the exact Theorem 4.6 budget and a
-division-free one-step potential inequality.  No asymptotic notation and no
-project axiom are used.
+The logarithmic-depth recursion uses the additive conclusion of Lemma 4.8,
+avoiding a factor-two loss at each refinement. The definitions below specify
+the binary refinement thresholds and prove the Theorem 4.6 budget together
+with division-free one-step and cumulative potential bounds.
 -/
 
 namespace SimpleGraph
@@ -41,8 +34,8 @@ variable
 
 /-- Additive Lemma 4.8 bounds the number of paths discarded by cleanup.
 
-`additiveCap` is deliberately abstract here.  In the exponent-seven
-specialization it is `8 * g^4`; the source bounds
+`additiveCap` is a parameter. In the exponent-seven specialization it is
+`8 * g^4`; the bounds
 `Rbar.card <= 64 * g^6` and `Dhat = 32 * g^4` prove `hscale`.
 -/
 theorem cleanup_discarded_paths_le
@@ -108,14 +101,11 @@ theorem pathsInSlice_card_le_goodQ_add_loss
       L.claim53Strong_cleanup i hg hnoCrossbar
   omega
 
-/-- Safe uniform form of the additive cleanup loss used by the
-logarithmic-depth recursion.
+/-- Uniform additive cleanup bound for the logarithmic-depth recursion.
 
-Under the source bounds, additive Lemma 4.8 discards at most `8 * g^4`
-paths and the provenance-aware last-hit version of Claim 5.3 discards at
-most another `4 * g^4`.  We deliberately expose the round bound as
-`16 * g^4`: this avoids any dependence on a sharp ceiling identity while
-leaving four units of `g^4` as integer-rounding slack. -/
+Additive Lemma 4.8 discards at most `8 * g^4` paths, and the last-hit form of
+Claim 5.3 discards at most another `4 * g^4`. The bound `16 * g^4` leaves
+`4 * g^4` for integer rounding. -/
 theorem pathsInSlice_card_le_goodQ_add_sixteen_mul_g_pow_four
     (L : RecursiveSliceLayer
       G H A B X P Q Rbar Qbar

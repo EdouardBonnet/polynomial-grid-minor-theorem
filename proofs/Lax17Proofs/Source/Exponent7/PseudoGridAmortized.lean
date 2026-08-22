@@ -7,10 +7,9 @@ namespace Lax17Proofs
 /-!
 # Amortized pseudo-grid exit
 
-This is the source-facing no-crossbar branch.  It runs rooted Observation 4.4,
-constructs the initial slicing by Theorem 4.6, executes the amortized Section 5
-controller, and transfers the resulting grid minor back through the
-contraction minor model.
+In the no-crossbar branch, rooted Observation 4.4 and Theorem 4.6 construct
+the initial slicing. The amortized Section 5 controller then produces a grid
+minor, which is transferred through the contraction minor model.
 -/
 
 namespace SimpleGraph

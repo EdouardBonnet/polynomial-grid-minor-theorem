@@ -5,10 +5,10 @@ namespace Lax17Proofs
 /-!
 # Explicit logarithmic-depth parameters
 
-These are the arithmetic parameters for the exponent-seven amortized slicing
-controller.  If `N` is the pseudo-grid row count, the initial slicing has
-width `N` and `O(ell * log(N)^2 * log(q))` slices.  Consequently its
-Theorem 4.6 cost is `O(N * ell * polylog(q))`.
+These parameters specialize the amortized slicing controller. If `N` is the
+pseudo-grid row count, the initial slicing has width `N` and
+`O(ell * log(N)^2 * log(q))` slices. Its Theorem 4.6 cost is therefore
+`O(N * ell * polylog(q))`.
 -/
 
 namespace SimpleGraph
@@ -23,8 +23,8 @@ Claim 5.3 loss. -/
 def exponentSevenDstar (q : ℕ) : ℕ :=
   16 * q ^ 4
 
-/-- Number of initial slices.  The factors are deliberately left in the same
-division-free form as the productive-potential inequality. -/
+/-- Number of initial slices, in the division-free form used by the
+productive-potential inequality. -/
 def exponentSevenInitialSlices (q N ell : ℕ) : ℕ :=
   (16 * (amortizedDepth N + 1) * (2048 * amortizedDepth N)) *
     (32 * ell * (Nat.log 2 q + 1))
@@ -34,7 +34,7 @@ def exponentSevenInitialSlices (q N ell : ℕ) : ℕ :=
 def exponentSevenUniformDepth (q : ℕ) : ℕ :=
   6 * (Nat.log 2 q + 1)
 
-/-- Uniform initial slice count used by the source-facing local theorem. -/
+/-- Uniform initial slice count for the local theorem. -/
 def exponentSevenUniformSlices (q ell : ℕ) : ℕ :=
   (16 * (exponentSevenUniformDepth q + 1) *
       (2048 * exponentSevenUniformDepth q)) *

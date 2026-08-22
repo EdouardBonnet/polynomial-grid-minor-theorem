@@ -9,23 +9,23 @@ namespace Lax17Proofs
 /-!
 # Exact exponent-eight local crossbar dichotomy
 
-This module specializes the proved logarithmic-depth additive slicing
-controller to a square Path-of-Sets output.  The controller's general local
-cost is
+The logarithmic-depth additive slicing controller is specialized to a square
+Path-of-Sets output. Its general local cost is
 
-`O(q^6 * ell * (log_2 q + 1)^3)`.
+$$
+O\bigl(q^6 \ell (\log_2 q + 1)^3\bigr).
+$$
 
-Taking `ell = q^2` therefore gives an explicit
-`O(q^8 * (log_2 q + 1)^3)` threshold.  No short-wide path-of-sets theorem and
-no clean-matching hypothesis is used: the output is the original square
-weak Path-of-Sets System, which is then strongified by the proved Section 4.6
-construction.
+Taking $\ell = q^2$ gives the threshold
 
-The recursive cleanup is source-faithful.  It uses
-`SliceLocalizationInvariant.lastHitCrossbar_direct`, whose spokes are suffixes
-of rooted original `A`--`X` paths after their last hit of the selected full
-original `A`--`B` rows.  Thus the crossbar branch does not infer global
-cleanliness from contracted interval incidence.
+$$
+O\bigl(q^8 (\log_2 q + 1)^3\bigr).
+$$
+
+The weak square system is strongified by Section 4.6. In the crossbar branch,
+`SliceLocalizationInvariant.lastHitCrossbar_direct` constructs each spoke as
+a suffix of an original rooted `A`--`X` path after its last visit to a selected
+full `A`--`B` row.
 -/
 
 namespace SimpleGraph
@@ -42,10 +42,10 @@ open Exponent7
 def exponentEightPolylogLocalThreshold (q : ℕ) : ℕ :=
   Exponent7.exponentSevenLocalThreshold q (q ^ 2)
 
-/-- Convenient explicit coefficient in the monomial local bound. -/
+/-- Explicit coefficient in the monomial local bound. -/
 def exponentEightPolylogLocalConstant : ℕ := 2 ^ 37
 
-/-- The exact amortized local cost has polynomial exponent eight. -/
+/-- The amortized local cost has polynomial exponent eight. -/
 theorem exponentEightPolylogLocalThreshold_le
     {q : ℕ} (hq : 0 < q) :
     exponentEightPolylogLocalThreshold q ≤
@@ -86,8 +86,7 @@ theorem theorem41_depthCost_le_exponentEightPolylogLocalThreshold
     _ ≤ 8 * Exponent7.exponentSevenLocalCost q (q ^ 2) := by omega
     _ = exponentEightPolylogLocalThreshold q := rfl
 
-/-- Source-faithful structural theorem at the exact exponent-eight local
-threshold. -/
+/-- Structural input at the exponent-eight local threshold. -/
 def CrossbarDichotomyInput8 (c : ℕ) : Prop :=
   ∀ {V : Type u} [Fintype V] [DecidableEq V]
     (H : _root_.SimpleGraph V) {q kappa : ℕ}
@@ -233,7 +232,7 @@ theorem hasStrongPathOfSetsMinor_of_noCrossbar
 
 end PseudoGrid
 
-/-- The exact exponent-eight local structural theorem. -/
+/-- Exponent-eight local structural theorem. -/
 theorem crossbarDichotomyInput8_proved :
     CrossbarDichotomyInput8.{u} 20000 := by
   intro V _ _ H q kappa A B X hq hpow hA hB hX hAB hAX hBX

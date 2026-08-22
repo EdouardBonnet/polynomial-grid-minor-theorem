@@ -5,9 +5,9 @@ namespace Lax17Proofs
 /-!
 # Rectangular row selection for Section 4.5
 
-The square Section 4.5 API uses one number both for the selected chain length
-and for the size of every overlap row set.  This file separates those two
-roles.  It contains only finite-set selection; the graph realization is in
+The square form of Section 4.5 uses one parameter for both the selected chain
+length and every overlap row set. Here these parameters are independent.
+This module proves the finite-set selection; the graph realization is in
 `RectangularCase1Assembly`.
 -/
 

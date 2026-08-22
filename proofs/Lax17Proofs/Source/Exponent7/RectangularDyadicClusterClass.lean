@@ -5,10 +5,9 @@ namespace Lax17Proofs
 /-!
 # Rectangular dyadic grouping
 
-The geometric row-depth classes are unchanged from the exponent-eight
-development.  Only the mass target is generalized: `L` is the desired
-number of clusters in the later rectangular Theorem 4.15 chain, while the
-overlap width remains separate.
+The geometric row-depth classes use a separate mass target: `L` is the
+required number of clusters in the rectangular Theorem 4.15 chain, while the
+overlap width is independent.
 -/
 
 namespace SimpleGraph

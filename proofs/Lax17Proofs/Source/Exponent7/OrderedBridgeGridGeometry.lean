@@ -6,15 +6,14 @@ namespace Lax17Proofs
 /-!
 # Grid assembly from batched vertical bridges
 
-The short-wide construction does not provide pairwise bridges in one cluster.
-It provides, for each column block, one simultaneous bridge for every
-consecutive pair of selected rows.  This module isolates the deterministic
-minor assembly from that data.
+For each column block, the short-wide construction provides one simultaneous
+bridge for every consecutive pair of selected rows. These bridges determine a
+grid minor.
 
 The branch sets are connected, ordered blocks on the horizontal rows.
-Horizontal connectors are the intervening row segments supplied by
+Horizontal connectors are the intervening segments supplied by
 `OrderedPathBlockFamily`; vertical connectors are the prescribed bridge
-paths.  The theorem below is axiom-free.
+paths.
 -/
 
 namespace SimpleGraph

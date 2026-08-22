@@ -7,8 +7,8 @@ namespace Lax17Proofs
 # Parent-ordered happy clusters for a rectangular target
 
 This is the Section 5.1 happy-cluster table with its chain-mass parameter
-separated from the overlap width.  The geometry and weak-well-linkedness
-remain exactly those proved in the exponent-eight development.
+separated from the overlap width. The geometry and weak well-linkedness are
+unchanged.
 -/
 
 namespace SimpleGraph

@@ -5,14 +5,10 @@ namespace Lax17Proofs
 /-!
 # Finite amortized slicing controller
 
-This module packages actual recursive slice layers into a finite run.  Every
-nonterminal node retires its productive slices and refines all remaining
-small slices with binary fanout.  The run is indexed by its initial
-`slice-count * width` potential.
-
-The construction remains entirely inside the proved Observation 5.4 and
-Theorem 4.6 APIs.  It does not assume the future short-wide
-path-of-sets-to-grid theorem.
+Recursive slice layers form a finite run indexed by the initial
+`slice-count * width` potential. Each nonterminal layer retires its productive
+slices and refines every remaining small slice with binary fanout.
+Observation 5.4 and Theorem 4.6 bound the accumulated loss.
 -/
 
 namespace SimpleGraph

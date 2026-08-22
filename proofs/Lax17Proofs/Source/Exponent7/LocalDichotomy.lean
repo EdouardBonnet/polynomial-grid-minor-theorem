@@ -4,14 +4,13 @@ import Lax17Proofs.Source.Theorem41
 namespace Lax17Proofs
 
 /-!
-# The exponent-seven local crossbar-or-grid dichotomy
+# Exponent-seven local crossbar-or-grid dichotomy
 
-This module joins the proved Chuzhoy--Tan Theorem 4.1 split to the amortized
-Section 5 branch.  The only new mathematical input is an ordinary argument of
-type `CleanMatchingDichotomyStatement reserve`; no project axiom is declared.
+Chuzhoy--Tan Theorem 4.1 is combined with the amortized Section 5 branch under
+the hypothesis `CleanMatchingDichotomyStatement reserve`.
 
-The exact source-facing slicing cost uses the uniform pseudo-grid row bound
-`64*q^6`.  A later arithmetic wrapper will bound this expression by
+The slicing cost uses the uniform pseudo-grid row bound `64*q^6`.
+`NumericalBounds` bounds this expression by
 `C * q^6 * ell * (log_2 q + 1)^3`.
 -/
 
@@ -52,8 +51,8 @@ theorem rowPacking_card_le_uniformBound
     _ ≤ (64 * q ^ 4) * q ^ 2 := Gamma.reservedUnion_card_le
     _ = 64 * q ^ 6 := by ring
 
-/-- The actual Theorem 4.6 slicing cost is at most the source-facing uniform
-cost, independently of how many rows survive the pseudo-grid construction. -/
+/-- The Theorem 4.6 slicing cost is bounded by the uniform cost, independently
+of how many rows survive the pseudo-grid construction. -/
 theorem slicingCost_le_uniformCost
     (Gamma : PseudoGrid G A B X q (64 * q ^ 4) P Q) :
     exponentSevenUniformSlices q ell * Gamma.rowPacking.card +

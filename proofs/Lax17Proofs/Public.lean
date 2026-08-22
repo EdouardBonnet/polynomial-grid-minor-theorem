@@ -1,5 +1,4 @@
 import Lax17.PolynomialGridMinor
-import Lax17.FixedRoundGridMinor
 import Lax17Proofs.Source.PolynomialGridMinorComplete
 
 namespace Lax17Proofs

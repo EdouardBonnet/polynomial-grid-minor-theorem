@@ -5,13 +5,11 @@ import Lax17Proofs.Source.HairyPathOfSetsComplete
 namespace Lax17Proofs
 
 /-!
-# Global consumers of the exponent-seven local dichotomy
+# Global exponent-seven dichotomy
 
-The local theorem already returns the target grid in its non-crossbar branch.
-Consequently the global propagation is simpler than the older
-crossbar-or-Path-of-Sets route: either one odd hair cluster contains the grid,
-or every odd hair cluster supplies a crossbar and the proved cut-matching-game
-assembly supplies the grid.
+In the non-crossbar branch, one odd hair cluster contains the target grid. In
+the other branch, every odd hair cluster supplies a crossbar and the
+cut-matching construction yields the grid.
 -/
 
 namespace SimpleGraph

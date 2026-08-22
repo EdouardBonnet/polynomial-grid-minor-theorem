@@ -5,19 +5,15 @@ namespace Lax17Proofs
 /-!
 # Rectangular Chuzhoy--Tan Theorem 4.15
 
-The original formal theorem `Section45.theorem415` uses the same parameter
-for the requested chain length and for the consecutive-overlap threshold.
-The proof of Chuzhoy--Tan Theorem 4.15 does not require that specialization.
+`Section45.theorem415` uses one parameter for the requested chain length and
+the consecutive-overlap threshold. The proof permits independent parameters.
 
-This module exposes the rectangular form needed by the exponent-seven
-experiment: a chain of length `L` whose consecutive row sets overlap in at
-least `W` rows.  The double-counting argument depends on `W`, while the final
-weighted source-layer argument depends on `L`.
+The rectangular form gives a chain of length `L` whose consecutive row sets
+overlap in at least `W` rows. The double-counting argument depends on `W`,
+while the final weighted source-layer argument depends on `L`.
 
-The explicit hypothesis `0 < W` is necessary for the theorem as stated over
-natural numbers.  Without it, the degenerate choice
-`N = D = M = 0`, `W = 0`, `L = 1` satisfies all three displayed numerical
-inequalities but admits no one-element list in `Fin M`.
+The hypothesis `0 < W` is necessary: with `N = D = M = W = 0` and `L = 1`,
+the numerical inequalities hold, but `Fin M` has no one-element list.
 -/
 
 namespace SimpleGraph

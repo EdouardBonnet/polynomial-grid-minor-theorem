@@ -6,9 +6,9 @@ namespace Lax17Proofs
 /-!
 # Conditional exponent-seven Section 5 grid exit
 
-This module joins the axiom-free amortized/rectangular Section 5 producer to
-the short-wide grid consumer.  The sole research hypothesis is the ordinary
-proposition `CleanMatchingDichotomyStatement reserve`.
+The amortized rectangular Section 5 construction and the short-wide grid
+construction are combined under the hypothesis
+`CleanMatchingDichotomyStatement reserve`.
 -/
 
 namespace SimpleGraph

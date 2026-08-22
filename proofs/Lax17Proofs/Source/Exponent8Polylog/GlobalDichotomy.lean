@@ -6,13 +6,12 @@ import Lax17Proofs.Source.ChekuriChuzhoyWP6Complete
 namespace Lax17Proofs
 
 /-!
-# Global consumers of the exact exponent-eight local dichotomy
+# Global exponent-eight dichotomy
 
 The local theorem supplies either a width-`g^2` crossbar or a square strong
-Path-of-Sets minor.  This module transports those two alternatives through
-the existing hairy-system consumers.  No new graph-theoretic input is used:
-the direct branch is the proved cut-matching construction, and the strong
-branch is the proved Chekuri--Chuzhoy Corollary 3.2 package.
+Path-of-Sets minor. These alternatives are transferred from one hair-local
+graph to the host graph. The crossbar branch uses the cut-matching
+construction; the strong branch uses Chekuri--Chuzhoy Corollary 3.2.
 -/
 
 namespace SimpleGraph
@@ -20,8 +19,7 @@ namespace Exponent8Polylog
 
 universe u
 
-/-- Apply the exact exponent-eight local dichotomy inside one hair-local
-graph. -/
+/-- Apply the exponent-eight local dichotomy inside one hair-local graph. -/
 theorem crossbar_or_strong_minor_in_hairLocalGraph8 :
     ∀ {V : Type u} [Fintype V] [DecidableEq V]
       {G : _root_.SimpleGraph V} {ell w g : ℕ}
@@ -119,8 +117,8 @@ theorem local_crossbars_or_strong_minor8 :
     · exact hcrossbar
     · exact False.elim (hstrong ⟨i, hi, hminor⟩)
 
-/-- The exact exponent-eight hairy-system dichotomy, with the all-crossbar
-branch discharged by the proved cut-matching construction. -/
+/-- Exponent-eight hairy-system dichotomy, with the all-crossbar branch
+handled by the cut-matching construction. -/
 theorem gridMinor_or_strong_minor_of_hairy8 :
     ∃ cGrid : ℕ, 0 < cGrid ∧
       ∀ {V : Type u} [Fintype V] [DecidableEq V]
@@ -191,9 +189,7 @@ theorem gridMinor_or_gridMinor_of_hairy8 :
       (square_le_of_scaled_square_le8 hscaled hell')
       (square_le_of_scaled_square_le8 hscaled hw') hminor)
 
-/-- Parameterized graph theorem.  Every semantic input is a proved Lean
-declaration; the remaining hypotheses are explicit natural-number
-inequalities. -/
+/-- Parameterized graph theorem with explicit natural-number hypotheses. -/
 theorem containsGridMinor_of_treewidth_parameters8 :
     ∃ cHair cHairLog cGrid cStrong : ℕ,
       0 < cHair ∧ 0 < cHairLog ∧ 0 < cGrid ∧ 0 < cStrong ∧

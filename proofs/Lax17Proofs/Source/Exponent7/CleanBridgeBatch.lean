@@ -5,27 +5,21 @@ namespace Lax17Proofs
 /-!
 # Clean simultaneous bridge batches
 
-This module develops the first unconditional graph-theoretic ingredient for
-the short-wide path-of-sets route.
-
-The paper-level idea starts with node-well-linked anchor vertices on a
-node-disjoint row family.  After routing two equal halves, each routed path is
-trimmed between its last hit of its source row and its first hit of another
-*selected* row.  The resulting bridge is internally disjoint from every
-selected row, and the bridges remain pairwise node-disjoint.
+Start with node-well-linked anchors on a node-disjoint row family. After
+routing two equal halves, trim each path between its last visit to the source
+row and its first visit to another selected row. The resulting bridges are
+pairwise node-disjoint and internally disjoint from every selected row.
 
 Using “selected row” is essential: the first row met outside the source row
-may otherwise have an index outside the selected set, which would not define
-the auxiliary multigraph used by the matching/hub argument.
+may otherwise lie outside the auxiliary multigraph used by the matching/hub
+argument.
 
-The later part of this module will pair the cleaned bridges by a
-maximum-matching/hub dichotomy.  The exact counting target carried here is
+The maximum-matching/hub dichotomy gives
 
 `q ≤ 12 * batchSize + 1`,
 
-which implies the uniform bound `q ≤ 13 * batchSize` for a nonempty batch.
-The unqualified `q ≤ 12 * batchSize` claimed in the informal proof has an
-odd-cardinality endpoint gap.
+and hence `q ≤ 13 * batchSize` for a nonempty batch. The additive term accounts
+for the possible odd-cardinality endpoint.
 -/
 
 namespace SimpleGraph
@@ -78,8 +72,8 @@ theorem rowAnchor_injective
   exact Finset.disjoint_left.mp (R.node_disjoint hne)
     (hanchor r) (by simpa [hrs] using hanchor s)
 
-/-- A finite set contains two disjoint subsets of size half its cardinality.
-The possible odd leftover is deliberately discarded. -/
+/-- A finite set contains two disjoint subsets of half its cardinality; a
+possible odd element is discarded. -/
 theorem exists_disjoint_halves
     {α : Type*} [DecidableEq α] (I : Finset α) :
     ∃ U V : Finset α,
@@ -1964,13 +1958,9 @@ end BalancedAnchorRouting.CleanTailBridgeFamily
 
 /-! ## Public bridge-batch theorem -/
 
-/-- Node-well-linked anchor vertices on selected disjoint rows produce a
-linear-size simultaneous clean bridge batch.
-
-The additive `+ 1` is the genuine parity loss from discarding the possible
-odd anchor before routing two equal halves.  In particular, the often-written
-informal conclusion `I.card ≤ 12 * Batch.card` does not follow from that
-equal-half argument in the odd case. -/
+/-- Node-well-linked anchors on selected disjoint rows produce a linear-size
+simultaneous clean bridge batch. The additive `+ 1` accounts for a possible
+odd anchor discarded before routing two equal halves. -/
 theorem cleanBridgeBatch_of_nodeWellLinked
     (R : PathPacking G S T) (anchor : R.Index → V)
     (hanchor : ∀ r, anchor r ∈ (R.path r).vertexSet)

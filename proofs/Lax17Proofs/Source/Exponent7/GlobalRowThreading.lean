@@ -5,10 +5,9 @@ namespace Lax17Proofs
 /-!
 # Global row threading through an arbitrary strong path-of-sets system
 
-The Appendix C stitching proof in the degree-ten route is specialized to
-`2 * g * (g - 1)` clusters.  The short-wide route needs the same elementary
-concatenation invariant for an arbitrary number of clusters.  This file
-isolates that invariant.
+The Appendix C stitching proof is specialized to `2 * g * (g - 1)` clusters.
+Here the same concatenation invariant is proved for an arbitrary number of
+clusters.
 
 For every cluster we choose a full-width perfect left-to-right linkage.  A
 `GlobalRowPrefix` concatenates those local linkages and the path-of-sets
@@ -18,8 +17,6 @@ records:
 * the local path occurring in every global row;
 * exact containment of the global trace in that local path; and
 * the order in which cluster traces occur.
-
-No paper theorem or new axiom is used here.
 -/
 
 namespace SimpleGraph

@@ -3,18 +3,16 @@ import Lax17Proofs.Source.Exponent7.CleanBridgeBatch
 namespace Lax17Proofs
 
 /-!
-# The prescribed-matching frontier for the exponent-seven route
+# Prescribed-matching dichotomy
 
-The clean bridge-batch theorem proves that node-well-linked anchor vertices
-produce linearly many simultaneous row-to-row bridges, but it chooses the
-matching.  The short-wide path-of-sets argument needs the matching to be
-prescribed: in alternating clusters it asks for the matchings
+The clean bridge-batch theorem produces linearly many simultaneous row-to-row
+bridges but chooses their matching. The short-wide path-of-sets argument
+requires the alternating prescribed matchings
 
 `(0,1), (2,3), ...` and `(1,2), (3,4), ...`.
 
-This module records that exact missing mathematical statement.  It adds no
-axiom.  Downstream conditional theorems take
-`CleanMatchingDichotomyStatement reserve` as an explicit hypothesis.
+`CleanMatchingDichotomyStatement reserve` states this requirement. Results
+that use it take its proof as an explicit hypothesis.
 -/
 
 namespace SimpleGraph
@@ -270,17 +268,12 @@ theorem evenRowMatching_card_le_half (g : ℕ) :
   simp
   omega
 
-/-! ## Exact research interface -/
+/-! ## Prescribed-matching hypothesis -/
 
-/-- The prescribed-matching dichotomy needed to batch Appendix C.1 bridges.
+/-- Prescribed-matching dichotomy for batching Appendix C.1 bridges.
 
-The reserve constant is explicit.  The statement is deliberately local and
-generic: the selected `g` rows may be any injectively indexed subfamily of a
-larger cluster linkage.  This is the only new graph-theoretic ingredient not
-supplied by the existing Chuzhoy--Tan/Chekuri--Chuzhoy development.
-
-No declaration of this proposition as an axiom is made in the project.
-Conditional consumers receive a proof as an ordinary argument. -/
+The reserve constant is explicit, and the selected `g` rows may be any
+injectively indexed subfamily of a larger cluster linkage. -/
 def CleanMatchingDichotomyStatement (reserve : ℕ) : Prop :=
   ∀ {V : Type u} [Fintype V] [DecidableEq V]
     (G : _root_.SimpleGraph V) (g : ℕ)
