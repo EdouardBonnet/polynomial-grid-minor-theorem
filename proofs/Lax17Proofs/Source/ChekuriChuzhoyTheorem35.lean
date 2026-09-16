@@ -2955,7 +2955,6 @@ theorem exists_selectedLeafMetaPathIncomingTurnConcatData
     incomingTurnPacking := R
     incomingTurnPacking_card := by
       dsimp [R, P]
-      rw [PerfectPathPacking.concatOfFirstInternallyDisjointSecondStaysIn_card]
       exact D.incoming.selectedLeafRestrictedPacking_card
     incomingTurnPacking_staysIn := by
       dsimp [R, P, Q, A]
@@ -3084,7 +3083,6 @@ theorem exists_selectedLeafMetaPathTurnOutgoingConcatData
     turnOutgoingPacking := R
     turnOutgoingPacking_card := by
       dsimp [R, P]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact D.turnLinkage_card
     turnOutgoingPacking_staysIn := by
       dsimp [R, P, Q, A]
@@ -3359,7 +3357,6 @@ theorem exists_rootChildSelectedLeafFirstTurnOutgoingConcatData
     firstTurnOutgoingPacking := R
     firstTurnOutgoingPacking_card := by
       dsimp [R, P]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact D.turnLinkage_card
     firstTurnOutgoingPacking_staysIn := by
       dsimp [R, P, Q, A]
@@ -3696,7 +3693,6 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
     advancePacking := R
     advancePacking_card := by
       dsimp [R]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact hQturn_card.trans hsource_card
     target_card := by
       calc
@@ -4046,7 +4042,6 @@ theorem exists_selectedLeafMetaPathFullTurnConcatData
     fullTurnPacking := R
     fullTurnPacking_card := by
       dsimp [R, P]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact C.incomingTurnPacking_card
     fullTurnPacking_staysIn := by
       dsimp [R, P, Q, A, prevConnectorVertexSet, outConnectorVertexSet,
@@ -4379,7 +4374,6 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData
     advancePacking := R
     advancePacking_card := by
       dsimp [R]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact hQturn_card.trans hsource_card
     advancePacking_staysIn := by
       dsimp [R, P, parent, hparent_leaf]
@@ -4507,7 +4501,6 @@ theorem exists_selectedLeafParentRightAdvanceRouteData
     advancePacking := R
     advancePacking_card := by
       dsimp [R]
-      rw [PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint_card]
       exact hQturn_card.trans hsource_card
     advancePacking_staysIn := by
       dsimp [R, P, parent, hparent_leaf]
