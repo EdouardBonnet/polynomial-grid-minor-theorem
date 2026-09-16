@@ -721,7 +721,7 @@ theorem exists_cleanRecordBoundaryEdge
     have hyInit : E.initialTerminal hrecords y ∈ Y := by
       have hyNotX :
           E.initialTerminal hrecords y ∉ X := by
-        simpa [S, E.mem_terminalSide hrecords X y] using hforward.2
+        simpa [S, y, E.mem_terminalSide hrecords X y] using hforward.2
       have hu : E.initialTerminal hrecords y ∈ X ∪ Y := by
         rw [hcover]
         simp
