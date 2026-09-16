@@ -281,21 +281,19 @@ noncomputable def addSuperterminalEndpoints
   let M := mapOld (B := B) P
   let R := ofAdj ((adj_old_superterminal_iff (G := G) (B := B) j).2 htarget)
   let LM := L.appendWithEqToPath M (by simp [L, M])
-  exact LM.appendWithEqToPath R (by simp [LM, L, M, R])
+  exact LM.appendWithEqToPath R rfl
 
 @[simp] theorem addSuperterminalEndpoints_source
     (P : Lax17Proofs.SimpleGraph.GraphPath G) (i j : Fin m)
     (hsource : P.source ∈ B i) (htarget : P.target ∈ B j) :
     (addSuperterminalEndpoints P i j hsource htarget).source =
-      superterminal i := by
-  simp [addSuperterminalEndpoints]
+      superterminal i := rfl
 
 @[simp] theorem addSuperterminalEndpoints_target
     (P : Lax17Proofs.SimpleGraph.GraphPath G) (i j : Fin m)
     (hsource : P.source ∈ B i) (htarget : P.target ∈ B j) :
     (addSuperterminalEndpoints P i j hsource htarget).target =
-      superterminal j := by
-  simp [addSuperterminalEndpoints]
+      superterminal j := rfl
 
 /-- Every vertex of an endpoint-augmented path is one of the two
 superterminals or an old copy of a vertex of the input path. -/
@@ -317,8 +315,7 @@ theorem addSuperterminalEndpoints_vertex_classification
   let LM := L.appendWithEqToPath M (by simp [L, M])
   have hzLMR :
       z ∈ LM.vertexSet ∪ R.vertexSet := by
-    exact LM.appendWithEqToPath_vertexSet_subset R
-      (by simp [LM, L, M, R]) (by
+    exact LM.appendWithEqToPath_vertexSet_subset R rfl (by
         simpa [addSuperterminalEndpoints, hL, hR, L, M, R, LM] using hz)
   rcases Finset.mem_union.mp hzLMR with hzLM | hzR
   · have hzLM' : z ∈ L.vertexSet ∪ M.vertexSet :=
@@ -1154,8 +1151,9 @@ theorem clusterPathSkeletonOfTerminalSkeleton_groupSize
       (Vertex.graph G B) (Vertex.terminals (V := V) (m := m)) mu S) :
     (clusterPathSkeletonOfTerminalSkeleton
       hinterface hdirect S houtput).GroupSizeAtMost m := by
-  simpa [clusterPathSkeletonOfTerminalSkeleton,
-    Vertex.terminals_card] using houtput.group_size
+  have h := houtput.group_size
+  rw [Vertex.terminals_card] at h
+  exact h
 
 /-! ## The Phase 2 producer -/
 
@@ -1246,7 +1244,8 @@ theorem exists_regularClusterPathSkeleton_of_pairwise_direct_packings
       hinterface hdirect T hT
   · intro i
     have hcardFin : 1 < Fintype.card (Fin m) := by
-      simpa using hm
+      rw [Fintype.card_fin]
+      exact hm
     obtain ⟨j, hji⟩ := Fintype.exists_ne_of_one_lt_card hcardFin i
     apply Nat.le_antisymm
     · change (projectTerminalGraph T).degree i ≤ 2 * mu

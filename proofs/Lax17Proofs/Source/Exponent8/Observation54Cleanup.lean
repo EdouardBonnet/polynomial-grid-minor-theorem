@@ -345,8 +345,7 @@ theorem restrict_separated_rows_isUniqueLinkage
         symm
         exact disjointUnion_edgeSet_eq_union_local
           Lambient D hSourceDisjoint hTargetDisjoint hnode
-      _ = Lfull.toPathPacking.edgeSet := by
-        simp [Lfull]
+      _ = Lfull.toPathPacking.edgeSet := rfl
       _ = P.toPathPacking.edgeSet := hFull
       _ = RI.toPathPacking.edgeSet ∪ D.toPathPacking.edgeSet := by
         simpa [RI, D] using restrictIndexSet_union_compl_edgeSet P I

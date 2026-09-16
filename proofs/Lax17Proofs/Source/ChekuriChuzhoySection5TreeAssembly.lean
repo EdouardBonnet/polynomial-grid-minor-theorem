@@ -271,7 +271,8 @@ noncomputable def bundlePathPacking
     (i j : Fin m) (hij : T.Adj i j) :
     (A.bundlePathPacking i j hij).card = w := by
   classical
-  simp [bundlePathPacking, PathPacking.card]
+  simp only [bundlePathPacking, PathPacking.card]
+  exact (Fintype.card_coe _).trans (A.chosenForAdj_card i j hij)
 
 theorem bundlePathPacking_internallyDisjointFromSet
     (A : TreeBundleSelection S T w)
@@ -317,7 +318,7 @@ noncomputable def selectedInterface
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     exact
-      (A.bundlePathPacking j i (T.symm hij)).targetSet
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij)).targetSet
 
 theorem selectedInterface_subset_interfaceVertices
     (A : TreeBundleSelection S T w)
@@ -331,7 +332,7 @@ theorem selectedInterface_subset_interfaceVertices
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [selectedInterface, h, hji] using
-      (A.bundlePathPacking j i (T.symm hij)).targetSet_subset_right
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij)).targetSet_subset_right
 
 theorem selectedInterface_subset_cluster
     (A : TreeBundleSelection S T w)
@@ -374,29 +375,31 @@ private theorem exists_selected_hostPath_of_mem_selectedInterface
         GraphPath.source_mem_vertexSet
           ((A.bundlePathPacking i j hij).orient.path e)
       rw [he] at hsource
-      simpa [bundlePathPacking] using hsource
+      rw [PathPacking.orient_path_vertexSet] at hsource
+      exact hsource
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     have hv' :
-        v ∈ (A.bundlePathPacking j i (T.symm hij)).targetSet := by
+        v ∈ (A.bundlePathPacking j i (T.symm.symm _ _ hij)).targetSet := by
       simpa [selectedInterface, h, hji] using hv
     rcases
-      (A.bundlePathPacking j i (T.symm hij))
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij))
           |>.exists_orient_target_eq_of_mem_targetSet hv' with
       ⟨e, he⟩
     refine
       ⟨e.1,
-        A.mem_selected_of_mem_chosenForAdj j i (T.symm hij) e.2, ?_, ?_⟩
+        A.mem_selected_of_mem_chosenForAdj j i (T.symm.symm _ _ hij) e.2, ?_, ?_⟩
     · have hekey : S.edgeKey e.1 = s(j, i) := by
         apply S.mem_edgeBundleKey.mp
         rw [← S.edgeBundle_eq_edgeBundleKey j i]
-        exact A.mem_edgeBundle_of_mem_chosenForAdj j i (T.symm hij) e.2
+        exact A.mem_edgeBundle_of_mem_chosenForAdj j i (T.symm.symm _ _ hij) e.2
       simpa [Sym2.eq_swap] using hekey
     · have htarget :=
         GraphPath.target_mem_vertexSet
-          ((A.bundlePathPacking j i (T.symm hij)).orient.path e)
+          ((A.bundlePathPacking j i (T.symm.symm _ _ hij)).orient.path e)
       rw [he] at htarget
-      simpa [bundlePathPacking] using htarget
+      rw [PathPacking.orient_path_vertexSet] at htarget
+      exact htarget
 
 theorem selectedInterface_disjoint
     (A : TreeBundleSelection S T w)
@@ -429,7 +432,7 @@ noncomputable def selectedConnector
     (i j : Fin m) (hij : T.Adj i j) :
     PerfectPathPacking G
       (A.selectedInterface i j hij)
-      (A.selectedInterface j i (T.symm hij)) := by
+      (A.selectedInterface j i (T.symm.symm _ _ hij)) := by
   classical
   by_cases h : i < j
   · let P := (A.bundlePathPacking i j hij).toPerfectUsedTerminals
@@ -439,7 +442,7 @@ noncomputable def selectedConnector
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     let P :=
-      (A.bundlePathPacking j i (T.symm hij)).toPerfectUsedTerminals.reverse
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij)).toPerfectUsedTerminals.reverse
     exact P.copyTerminals
       (by simp [selectedInterface, h])
       (by simp [selectedInterface, hji])
@@ -461,17 +464,19 @@ theorem selectedConnector_internallyDisjointFromSet
   · have hP :=
       (A.bundlePathPacking i j hij).toPerfectUsedTerminals_internallyDisjointFromSet
         (A.bundlePathPacking_internallyDisjointFromSet i j hij r)
-    simpa [selectedConnector, h] using hP
+    simp [selectedConnector, h]
+    exact hP
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     have hP :=
-      (A.bundlePathPacking j i (T.symm hij))
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij))
         |>.toPerfectUsedTerminals_internallyDisjointFromSet
           (A.bundlePathPacking_internallyDisjointFromSet
-            j i (T.symm hij) r)
+            j i (T.symm.symm _ _ hij) r)
     have hPrev :=
       PerfectPathPacking.reverse_internallyDisjointFromSet _ hP
-    simpa [selectedConnector, h, hji] using hPrev
+    simp [selectedConnector, h]
+    exact hPrev
 
 omit [Fintype V] in
 private theorem toPerfectUsedTerminals_vertexSet_eq
@@ -499,7 +504,8 @@ private theorem reverse_vertexSet_eq
   · rintro ⟨a, ha⟩
     exact ⟨a, by simpa using ha⟩
   · rintro ⟨a, ha⟩
-    exact ⟨a, by simpa using ha⟩
+    exact ⟨a, Eq.mpr (congrArg (fun s => v ∈ s)
+      (PerfectPathPacking.reverse_path_vertexSet P a)) ha⟩
 
 theorem selectedConnector_vertexSet_eq_of_lt
     (A : TreeBundleSelection S T w)
@@ -511,6 +517,7 @@ theorem selectedConnector_vertexSet_eq_of_lt
     (A.selectedConnector i j hij).toPathPacking.vertexSet =
         P.toPathPacking.vertexSet := by
       simp [P, selectedConnector, hij_lt]
+      rfl
     _ = (A.bundlePathPacking i j hij).vertexSet :=
       toPerfectUsedTerminals_vertexSet_eq _
 
@@ -518,18 +525,19 @@ theorem selectedConnector_vertexSet_eq_of_not_lt
     (A : TreeBundleSelection S T w)
     (i j : Fin m) (hij : T.Adj i j) (hij_lt : ¬ i < j) :
     (A.selectedConnector i j hij).toPathPacking.vertexSet =
-      (A.bundlePathPacking j i (T.symm hij)).vertexSet := by
+      (A.bundlePathPacking j i (T.symm.symm _ _ hij)).vertexSet := by
   have hji : j < i :=
     lt_of_le_of_ne (le_of_not_gt hij_lt) hij.ne.symm
   let P :=
-    (A.bundlePathPacking j i (T.symm hij)).toPerfectUsedTerminals
+    (A.bundlePathPacking j i (T.symm.symm _ _ hij)).toPerfectUsedTerminals
   calc
     (A.selectedConnector i j hij).toPathPacking.vertexSet =
         P.reverse.toPathPacking.vertexSet := by
       simp [P, selectedConnector, hij_lt]
+      rfl
     _ = P.toPathPacking.vertexSet :=
       reverse_vertexSet_eq P
-    _ = (A.bundlePathPacking j i (T.symm hij)).vertexSet :=
+    _ = (A.bundlePathPacking j i (T.symm.symm _ _ hij)).vertexSet :=
       toPerfectUsedTerminals_vertexSet_eq _
 
 theorem selectedConnector_mutuallyNodeDisjoint
@@ -561,7 +569,7 @@ theorem selectedConnector_mutuallyNodeDisjoint
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
         (A.bundlePathPacking_mutuallyNodeDisjoint
-          i j hij q p (T.symm hpq) hedge')
+          i j hij q p (T.symm.symm _ _ hpq) hedge')
       exact hdisj.mono
         (subset_trans
           (PathPacking.path_vertexSet_subset_vertexSet
@@ -580,7 +588,7 @@ theorem selectedConnector_mutuallyNodeDisjoint
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
         (A.bundlePathPacking_mutuallyNodeDisjoint
-          j i (T.symm hij) p q hpq hedge')
+          j i (T.symm.symm _ _ hij) p q hpq hedge')
       exact hdisj.mono
         (subset_trans
           (PathPacking.path_vertexSet_subset_vertexSet
@@ -597,7 +605,7 @@ theorem selectedConnector_mutuallyNodeDisjoint
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
         (A.bundlePathPacking_mutuallyNodeDisjoint
-          j i (T.symm hij) q p (T.symm hpq) hedge')
+          j i (T.symm.symm _ _ hij) q p (T.symm.symm _ _ hpq) hedge')
       exact hdisj.mono
         (subset_trans
           (PathPacking.path_vertexSet_subset_vertexSet
