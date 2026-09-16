@@ -1291,7 +1291,7 @@ theorem exists_directChildBridgeData
       calc
         B.card = H.card := by simp [B]
         _ = R₁.card := by simp [H]
-        _ = A₄.card := by simp [R₁]
+        _ = A₄.card := by simp [R₁, P₁.targetIndexSetOfSubset_card hA₄]
         _ = 4 * w := hA₄card
     connector_staysIn := by
       simpa [Finset.union_assoc] using hBstay }⟩
@@ -1467,7 +1467,8 @@ theorem exists_theorem46RoutedDfsState_leaf
       intro i j
       change GraphPath.NodeDisjoint
         (PL.path i).reverse (PR.path j).reverse
-      simpa [GraphPath.NodeDisjoint] using
+      simp only [GraphPath.NodeDisjoint, GraphPath.reverse_vertexSet]
+      exact
         E.packing.node_disjoint (by
           intro hij
           have hiL : (E.packing.path i.1).target ∈ L := by
@@ -1742,7 +1743,7 @@ theorem Theorem46RoutedDfsState.liftOneChild
           change i.1 + 1 < (S.selectedBelow c).card
           rw [← hcard]
           exact hi) j
-        (by simpa [Psys] using hx)
+        hx
     leftRoute_disjoint_connectors := by
       intro i hi
       apply E.left_disjoint_old (Psys.connector i hi).toPathPacking
@@ -1751,13 +1752,13 @@ theorem Theorem46RoutedDfsState.liftOneChild
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
             exact hi) j
-          (by simpa [Psys] using hx)
-      · simpa [Psys] using
+          hx
+      · exact
           C.leftRoute_disjoint_connectors (Fin.cast hcard i) (by
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
             exact hi)
-      · simpa [Psys] using
+      · exact
           C.rightRoute_disjoint_connectors (Fin.cast hcard i) (by
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
@@ -1770,13 +1771,13 @@ theorem Theorem46RoutedDfsState.liftOneChild
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
             exact hi) j
-          (by simpa [Psys] using hx)
-      · simpa [Psys] using
+          hx
+      · exact
           C.leftRoute_disjoint_connectors (Fin.cast hcard i) (by
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
             exact hi)
-      · simpa [Psys] using
+      · exact
           C.rightRoute_disjoint_connectors (Fin.cast hcard i) (by
             change i.1 + 1 < (S.selectedBelow c).card
             rw [← hcard]
@@ -1909,8 +1910,8 @@ noncomputable def Theorem46RoutedDfsState.reverse
       dsimp [n] at hn ⊢
       omega
     exact C.connectors_stayIn k hk j (by
-      simpa [P, StrongPathOfSetsSystem.reverse, k,
-        GraphPath.reverse_vertexSet] using hx)
+      simpa [P, StrongPathOfSetsSystem.reverse, PerfectPathPacking.reverse,
+        k, GraphPath.reverse_vertexSet] using hx)
   · intro i hi a b
     let k : Fin n := ⟨n - 2 - i.1, by
       have hn := C.system.length_pos
@@ -1922,8 +1923,8 @@ noncomputable def Theorem46RoutedDfsState.reverse
       dsimp [n] at hn ⊢
       omega
     have h := C.rightRoute_disjoint_connectors k hk a b
-    simpa [P, StrongPathOfSetsSystem.reverse, k,
-      GraphPath.NodeDisjoint] using h
+    simpa [P, StrongPathOfSetsSystem.reverse, PerfectPathPacking.reverse,
+      k, GraphPath.NodeDisjoint, GraphPath.reverse_vertexSet] using h
   · intro i hi a b
     let k : Fin n := ⟨n - 2 - i.1, by
       have hn := C.system.length_pos
@@ -1935,8 +1936,8 @@ noncomputable def Theorem46RoutedDfsState.reverse
       dsimp [n] at hn ⊢
       omega
     have h := C.leftRoute_disjoint_connectors k hk a b
-    simpa [P, StrongPathOfSetsSystem.reverse, k,
-      GraphPath.NodeDisjoint] using h
+    simpa [P, StrongPathOfSetsSystem.reverse, PerfectPathPacking.reverse,
+      k, GraphPath.NodeDisjoint, GraphPath.reverse_vertexSet] using h
 
 end RoutedDfsInvariant
 
@@ -2028,9 +2029,7 @@ theorem Lemma219SplitData.smallPart_edgeSet_subset
   apply D.support
   rcases D.smallPart.toPathPacking.mem_edgeSet.mp he with ⟨i, hi⟩
   exact D.rerouted.toPathPacking.mem_edgeSet.mpr
-    ⟨i.1, by simpa [Lemma219SplitData.smallPart,
-      EndpointCleanPathPacking.restrictSources,
-      EndpointCleanPathPacking.restrictIndexSet] using hi⟩
+    ⟨i.1, hi⟩
 
 /-- Every rerouted path stays in the union of the two input path families.
 This vertex form includes the possible zero-edge endpoint case and is the
@@ -2062,6 +2061,7 @@ theorem Lemma219SplitData.rerouted_path_vertexSet_subset
       apply Finset.mem_union_left
       apply large.toPathPacking.mem_vertexSet.mpr
       refine ⟨j, ?_⟩
+      show x ∈ (large.path j).vertexSet
       simpa [hxSource, hj] using
         GraphPath.source_mem_vertexSet (large.path j)
     · have hmemSmall :
@@ -2072,6 +2072,7 @@ theorem Lemma219SplitData.rerouted_path_vertexSet_subset
       apply Finset.mem_union_right
       apply small.toPathPacking.mem_vertexSet.mpr
       refine ⟨j, ?_⟩
+      show x ∈ (small.path j).vertexSet
       simpa [hxSource, hj] using
         GraphPath.source_mem_vertexSet (small.path j)
   · rcases
@@ -2461,9 +2462,8 @@ theorem exists_generalLemma219SplitData
         hX₂Z SP hSPtargetOld i x hx
     have hxS :
         old (X := Z) x ∈ (S.path i).vertexSet := by
-      simpa [SP, SP₀, PathPacking.toPerfectUsedTerminals,
-        PerfectPathPacking.copyTerminals,
-        EndpointCleanPathPacking.toPathPacking_orient_path] using hxLift
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path S i]
+      exact hxLift
     have hxD :
         old (X := Z) x ∈ (D.rerouted.path i.1).vertexSet := by
       simpa [S, Lemma219SplitData.smallPart,
@@ -2476,11 +2476,11 @@ theorem exists_generalLemma219SplitData
     · rcases largeEC.toPathPacking.mem_vertexSet.mp hx₁ with ⟨j, hj⟩
       exact Finset.mem_union_left _
         (prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
-          hX₁Z large j (by simpa [largeEC, P₁] using hj))
+          hX₁Z large j hj)
     · rcases smallEC.toPathPacking.mem_vertexSet.mp hx₂ with ⟨j, hj⟩
       exact Finset.mem_union_right _
         (prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
-          hX₂Z small j (by simpa [smallEC, P₂] using hj))
+          hX₂Z small j hj)
   refine ⟨{
     retainedSources := Rsrc
     retainedTargets := Rtarget
@@ -2515,8 +2515,8 @@ theorem exists_generalLemma219SplitData
         EndpointCleanPathPacking.restrictSources,
         EndpointCleanPathPacking.restrictIndexSet] using hi
     have htarget :
-        (largeEC.path i.1).target ∈ oldImage (X := Z) A₁ := by
-      simpa [largeEC, P₁] using P₁.target_mem i.1
+        (largeEC.path i.1).target ∈ oldImage (X := Z) A₁ :=
+      P₁.target_mem i.1
     exact mem_oldImage.mp (hi' ▸ htarget)
   · calc
       Rsrc.card + small.card =
@@ -2534,9 +2534,9 @@ theorem exists_generalLemma219SplitData
     have hxD :
         old (X := Z) x ∈
           (D.originalRetainedPart.path i).vertexSet := by
-      simpa [RP, RP₀, PathPacking.toPerfectUsedTerminals,
-        PerfectPathPacking.copyTerminals,
-        EndpointCleanPathPacking.toPathPacking_orient_path] using hxLift
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path
+        D.originalRetainedPart i]
+      exact hxLift
     have hxLarge :
         old (X := Z) x ∈ (largeEC.path i.1).vertexSet := by
       simpa [Lemma219SplitData.originalRetainedPart,
@@ -2544,7 +2544,7 @@ theorem exists_generalLemma219SplitData
         EndpointCleanPathPacking.restrictIndexSet] using hxD
     exact
       prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
-        hX₁Z large i.1 (by simpa [largeEC, P₁] using hxLarge)
+        hX₁Z large i.1 hxLarge
   · intro x hx
     have hxOld :
         old (X := Z) x ∈ S.toPathPacking.targetSet :=
@@ -2572,14 +2572,13 @@ theorem exists_generalLemma219SplitData
     have hxD :
         old (X := Z) x ∈
           (D.originalRetainedPart.path i).vertexSet := by
-      simpa [RP, RP₀, PathPacking.toPerfectUsedTerminals,
-        PerfectPathPacking.copyTerminals,
-        EndpointCleanPathPacking.toPathPacking_orient_path] using hxRLift
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path
+        D.originalRetainedPart i]
+      exact hxRLift
     have hxS :
         old (X := Z) x ∈ (S.path j).vertexSet := by
-      simpa [SP, SP₀, PathPacking.toPerfectUsedTerminals,
-        PerfectPathPacking.copyTerminals,
-        EndpointCleanPathPacking.toPathPacking_orient_path] using hxQLift
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path S j]
+      exact hxQLift
     have hiSourceRet :
         (largeEC.path i.1).source ∈ D.retainedOrigins :=
       (Finset.mem_filter.mp i.2).2
@@ -2629,19 +2628,17 @@ theorem exists_generalLemma219SplitData
         hX₂Z SP hSPtargetOld i x hx
     have hxS :
         old (X := Z) x ∈ (S.path i).vertexSet := by
-      simpa [SP, SP₀, PathPacking.toPerfectUsedTerminals,
-        PerfectPathPacking.copyTerminals,
-        EndpointCleanPathPacking.toPathPacking_orient_path] using hxLift
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path S i]
+      exact hxLift
     have heq :=
       (S.endpoint_clean i).right_eq_target hxS (mem_oldImage.mpr hxC)
     apply Or.inr
     apply old_injective (V := V) (X := Z)
     calc
       old (X := Z) x = (S.path i).target := heq
-      _ = (SP.path i).target := by
-        simp [SP, SP₀, PathPacking.toPerfectUsedTerminals,
-          PerfectPathPacking.copyTerminals,
-          EndpointCleanPathPacking.toPathPacking_orient_path]
+      _ = (SP.path i).target :=
+        congrArg GraphPath.target
+          (EndpointCleanPathPacking.toPathPacking_orient_path S i).symm
       _ = old (X := Z) (Q.path i).target := by
         exact
           (ChekuriChuzhoyPendantVertex.PerfectPathPacking.projectSourceLeaves_target_lifts
@@ -2795,7 +2792,7 @@ theorem exists_twoChildReroutingData
     (exists_lemma219SplitData large₁ small₁
       hlarge₁source hsmall₁source
       hX₁B₄
-      (by simpa [hsmall₁card, large₁] using hfour₁))
+      (by rw [hsmall₁card]; exact hfour₁))
   let S₁ := D₁.smallPart
   let R₁ := S₁.toPathPacking.toPerfectUsedTerminals.reverse
   have hR₁target : S₁.toPathPacking.sourceSet ⊆ A₂ := by
@@ -2818,8 +2815,9 @@ theorem exists_twoChildReroutingData
     rcases H₂.path_vertexSet_subset i with ⟨j, hj⟩
     have hxS₁ : x ∈ (S₁.path j).vertexSet := by
       have hxR₁ : x ∈ (R₁.path j).vertexSet := hj hx
-      simpa [R₁, PathPacking.toPerfectUsedTerminals,
-        PathPacking.orient_path_vertexSet] using hxR₁
+      rw [← EndpointCleanPathPacking.toPathPacking_orient_path S₁ j,
+        ← GraphPath.reverse_vertexSet]
+      exact hxR₁
     have hxD₁ : x ∈ (D₁.rerouted.path j.1).vertexSet := by
       simpa [S₁, Lemma219SplitData.smallPart,
         EndpointCleanPathPacking.restrictSources,
@@ -2829,9 +2827,7 @@ theorem exists_twoChildReroutingData
         hlarge₁source hsmall₁source j.1 hxD₁
     rcases Finset.mem_union.mp hxUnion with hxLarge | hxSmall
     · rcases large₁.toPathPacking.mem_vertexSet.mp hxLarge with ⟨a, ha⟩
-      have hxP₁ : x ∈ (P₁.path a).vertexSet := by
-        simpa [large₁,
-          EndpointCleanPathPacking.ofPerfectWithExtraSources] using ha
+      have hxP₁ : x ∈ (P₁.path a).vertexSet := ha
       rcases P₂.source_bijective.2 ⟨x, hxX₂⟩ with ⟨b, hb⟩
       have hxP₂ : x ∈ (P₂.path b).vertexSet := by
         have : (P₂.path b).source = x := congrArg Subtype.val hb
@@ -2895,7 +2891,7 @@ theorem exists_twoChildReroutingData
     (exists_lemma219SplitData large₂ small₂
       hlarge₂source hsmall₂source
       hX₂S₁target
-      (by simpa [hsmall₂card, large₂] using hfour₂))
+      (by rw [hsmall₂card]; exact hfour₂))
   let bridge :=
     D₂.smallPart.toPathPacking.toPerfectUsedTerminals
   let RF₀ :=
@@ -2924,9 +2920,13 @@ theorem exists_twoChildReroutingData
       rw [D₂.retainedOrigins_eq]
       exact Finset.inter_subset_right
     retainedFirst_count := by
-      simpa [hsmall₁card, large₁] using D₁.retained_count
+      have h := D₁.retained_count
+      rw [hsmall₁card] at h
+      exact h
     retainedSecond_count := by
-      simpa [hsmall₂card, large₂] using D₂.retained_count
+      have h := D₂.retained_count
+      rw [hsmall₂card] at h
+      exact h
     retainedFirstTarget := D₁.originalRetainedPart.targetSet
     retainedSecondTarget := D₂.originalRetainedPart.targetSet
     retainedFirstTarget_subset :=
@@ -2939,32 +2939,30 @@ theorem exists_twoChildReroutingData
       intro i x hx
       have hxD :
           x ∈ (D₁.originalRetainedPart.path i).vertexSet := by
-        simpa [RF, RF₀, PathPacking.toPerfectUsedTerminals,
-          PerfectPathPacking.copyTerminals,
-          EndpointCleanPathPacking.toPathPacking_orient_path] using hx
+        rw [← EndpointCleanPathPacking.toPathPacking_orient_path
+          D₁.originalRetainedPart i]
+        exact hx
       have hxP :
           x ∈ (large₁.path i.1).vertexSet := by
         simpa [Lemma219SplitData.originalRetainedPart,
           EndpointCleanPathPacking.restrictSources,
           EndpointCleanPathPacking.restrictIndexSet] using hxD
       exact large₁.toPathPacking.path_vertexSet_subset_vertexSet i.1
-        (by simpa [large₁,
-          EndpointCleanPathPacking.ofPerfectWithExtraSources] using hxP)
+        hxP
     retainedSecondInside_path_subset := by
       intro i x hx
       have hxD :
           x ∈ (D₂.originalRetainedPart.path i).vertexSet := by
-        simpa [RS, RS₀, PathPacking.toPerfectUsedTerminals,
-          PerfectPathPacking.copyTerminals,
-          EndpointCleanPathPacking.toPathPacking_orient_path] using hx
+        rw [← EndpointCleanPathPacking.toPathPacking_orient_path
+          D₂.originalRetainedPart i]
+        exact hx
       have hxP :
           x ∈ (large₂.path i.1).vertexSet := by
         simpa [Lemma219SplitData.originalRetainedPart,
           EndpointCleanPathPacking.restrictSources,
           EndpointCleanPathPacking.restrictIndexSet] using hxD
       exact large₂.toPathPacking.path_vertexSet_subset_vertexSet i.1
-        (by simpa [large₂,
-          EndpointCleanPathPacking.ofPerfectWithExtraSources] using hxP)
+        hxP
     bridgeSource := D₂.smallPart.toPathPacking.sourceSet
     bridgeTarget := D₂.smallPart.toPathPacking.targetSet
     bridgeSource_subset := by
@@ -3001,18 +2999,17 @@ theorem exists_twoChildReroutingData
     bridge_internallyDisjoint_firstTarget := by
       intro i x hx hxA₁
       have hxD₂ : x ∈ (D₂.rerouted.path i.1).vertexSet := by
-        simpa [bridge, Lemma219SplitData.smallPart,
-          EndpointCleanPathPacking.restrictSources,
-          EndpointCleanPathPacking.restrictIndexSet,
-          PathPacking.toPerfectUsedTerminals] using hx
+        have h : x ∈ (D₂.smallPart.toPathPacking.orient.path i).vertexSet :=
+          hx
+        rw [EndpointCleanPathPacking.toPathPacking_orient_path
+          D₂.smallPart i] at h
+        exact h
       have hxUnion :=
         D₂.rerouted_path_vertexSet_subset
           hlarge₂source hsmall₂source i.1 hxD₂
       rcases Finset.mem_union.mp hxUnion with hxLarge | hxSmall
       · rcases large₂.toPathPacking.mem_vertexSet.mp hxLarge with ⟨j, hj⟩
-        have hxP₂ : x ∈ (P₂.path j).vertexSet := by
-          simpa [large₂,
-            EndpointCleanPathPacking.ofPerfectWithExtraSources] using hj
+        have hxP₂ : x ∈ (P₂.path j).vertexSet := hj
         rcases P₁.target_bijective.2 ⟨x, hxA₁⟩ with ⟨k, hk⟩
         have hxP₁ : x ∈ (P₁.path k).vertexSet := by
           have hk' : (P₁.path k).target = x := congrArg Subtype.val hk
@@ -3023,62 +3020,64 @@ theorem exists_twoChildReroutingData
         change H₂.packing.Index at j
         rcases H₂.path_vertexSet_subset j with ⟨a, ha⟩
         have hxS₁ : x ∈ (S₁.path a).vertexSet := by
-          simpa [small₂,
-            EndpointCleanPathPacking.ofPerfectWithExtraSourcesAndTargetRegion,
-            R₁, PathPacking.toPerfectUsedTerminals] using ha hj
+          rw [← EndpointCleanPathPacking.toPathPacking_orient_path S₁ a,
+            ← GraphPath.reverse_vertexSet]
+          exact ha hj
         have hxS₁Target :
             x = (S₁.path a).target :=
           (S₁.endpoint_clean a).right_eq_target hxS₁ hxA₁
         have hxSourceClass :
             x ∈ S₁.toPathPacking.targetSet := by
           apply Finset.mem_image.mpr
-          refine ⟨a, by simp, ?_⟩
-          simpa [EndpointCleanPathPacking.toPathPacking_orient_path]
-            using hxS₁Target.symm
+          refine ⟨a, Finset.mem_univ _, ?_⟩
+          exact (congrArg GraphPath.target
+            (EndpointCleanPathPacking.toPathPacking_orient_path S₁ a)).trans
+            hxS₁Target.symm
         have hxAmbient :
             x ∈ X₂ ∪ S₁.toPathPacking.targetSet :=
           Finset.mem_union_right _ hxSourceClass
         apply Or.inl
-        simpa [bridge, Lemma219SplitData.smallPart,
-          EndpointCleanPathPacking.restrictSources,
-          EndpointCleanPathPacking.restrictIndexSet,
-          PathPacking.toPerfectUsedTerminals] using
-          ((D₂.rerouted.endpoint_clean i.1).left_eq_source hxD₂ hxAmbient)
+        exact ((D₂.rerouted.endpoint_clean i.1).left_eq_source hxD₂
+            hxAmbient).trans
+          (congrArg GraphPath.source
+            (EndpointCleanPathPacking.toPathPacking_orient_path
+              D₂.smallPart i).symm)
     bridge_internallyDisjoint_secondTarget := by
       intro i x hx hxA₂
       have hxD₂ : x ∈ (D₂.rerouted.path i.1).vertexSet := by
-        simpa [bridge, Lemma219SplitData.smallPart,
-          EndpointCleanPathPacking.restrictSources,
-          EndpointCleanPathPacking.restrictIndexSet,
-          PathPacking.toPerfectUsedTerminals] using hx
+        have h : x ∈ (D₂.smallPart.toPathPacking.orient.path i).vertexSet :=
+          hx
+        rw [EndpointCleanPathPacking.toPathPacking_orient_path
+          D₂.smallPart i] at h
+        exact h
       apply Or.inr
-      simpa [bridge, Lemma219SplitData.smallPart,
-        EndpointCleanPathPacking.restrictSources,
-        EndpointCleanPathPacking.restrictIndexSet,
-        PathPacking.toPerfectUsedTerminals] using
-        ((D₂.rerouted.endpoint_clean i.1).right_eq_target hxD₂ hxA₂)
+      exact ((D₂.rerouted.endpoint_clean i.1).right_eq_target hxD₂
+          hxA₂).trans
+        (congrArg GraphPath.target
+          (EndpointCleanPathPacking.toPathPacking_orient_path
+            D₂.smallPart i).symm)
     bridge_path_subset := by
       intro i x hx
       have hxD₂ : x ∈ (D₂.rerouted.path i.1).vertexSet := by
-        simpa [bridge, Lemma219SplitData.smallPart,
-          EndpointCleanPathPacking.restrictSources,
-          EndpointCleanPathPacking.restrictIndexSet,
-          PathPacking.toPerfectUsedTerminals] using hx
+        have h : x ∈ (D₂.smallPart.toPathPacking.orient.path i).vertexSet :=
+          hx
+        rw [EndpointCleanPathPacking.toPathPacking_orient_path
+          D₂.smallPart i] at h
+        exact h
       have hxUnion :=
         D₂.rerouted_path_vertexSet_subset
           hlarge₂source hsmall₂source i.1 hxD₂
       rcases Finset.mem_union.mp hxUnion with hxLarge | hxSmall
       · apply Finset.mem_union_right
         apply Finset.mem_union_left
-        simpa [large₂,
-          EndpointCleanPathPacking.ofPerfectWithExtraSources] using hxLarge
+        exact hxLarge
       · rcases small₂.toPathPacking.mem_vertexSet.mp hxSmall with ⟨j, hj⟩
         change H₂.packing.Index at j
         rcases H₂.path_vertexSet_subset j with ⟨a, ha⟩
         have hxS₁ : x ∈ (S₁.path a).vertexSet := by
-          simpa [small₂,
-            EndpointCleanPathPacking.ofPerfectWithExtraSourcesAndTargetRegion,
-            R₁, PathPacking.toPerfectUsedTerminals] using ha hj
+          rw [← EndpointCleanPathPacking.toPathPacking_orient_path S₁ a,
+            ← GraphPath.reverse_vertexSet]
+          exact ha hj
         have hxD₁ : x ∈ (D₁.rerouted.path a.1).vertexSet := by
           simpa [S₁, Lemma219SplitData.smallPart,
             EndpointCleanPathPacking.restrictSources,
@@ -3087,9 +3086,7 @@ theorem exists_twoChildReroutingData
           D₁.rerouted_path_vertexSet_subset
             hlarge₁source hsmall₁source a.1 hxD₁
         rcases Finset.mem_union.mp hxUnion₁ with hxP | hxQ
-        · exact Finset.mem_union_left _ (by
-            simpa [large₁,
-              EndpointCleanPathPacking.ofPerfectWithExtraSources] using hxP)
+        · exact Finset.mem_union_left _ hxP
         · apply Finset.mem_union_right
           apply Finset.mem_union_right
           rcases small₁.toPathPacking.mem_vertexSet.mp hxQ with ⟨j, hj⟩

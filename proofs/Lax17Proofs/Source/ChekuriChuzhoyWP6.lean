@@ -77,9 +77,9 @@ noncomputable def mapEmbedding (P : PathPacking G S T) (φ : G ↪g H) :
     rcases Finset.mem_image.mp hx with ⟨v, hv, hvx⟩
     rcases P.mem_vertexSet.mp hv with ⟨i, hvi⟩
     exact (P.mapEmbedding φ).mem_vertexSet.mpr
-      ⟨i, by
-        rw [mapEmbedding_path_vertexSet]
-        exact Finset.mem_image.mpr ⟨v, hvi, hvx⟩⟩
+      ⟨i, Finset.mem_of_subset
+        (le_of_eq (mapEmbedding_path_vertexSet P φ i).symm)
+        (Finset.mem_image.mpr ⟨v, hvi, hvx⟩)⟩
 
 /-- Reinterpret a path packing after replacing its two terminal finsets by
 equal finsets. -/
@@ -326,8 +326,8 @@ theorem localRoutingClusterInput_of_theoremB1
     refine ⟨Q, ?_, ?_, ?_⟩
     · exact hPcard
     · intro i v hv
-      change v ∈ (Pmap.path i).vertexSet at hv
-      rw [PathPacking.mapEmbedding_path_vertexSet] at hv
+      have hv : v ∈ (P.path i).vertexSet.image φ.toEmbedding :=
+        Finset.mem_of_subset (le_of_eq (PathPacking.mapEmbedding_path_vertexSet P φ i)) hv
       rcases Finset.mem_image.mp hv with ⟨x, _hx, rfl⟩
       exact x.2
     · intro i j hij

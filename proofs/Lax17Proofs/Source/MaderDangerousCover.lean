@@ -153,7 +153,7 @@ theorem dangerousAnchorFamily_covers_centerNeighbors
     FinsetFamilyCovers (H.dangerousAnchorFamily s (H.otherEndpointAt s e0))
       (H.centerNeighbors s) := by
   classical
-  have hcard : 1 < (H.incidentEdges s).card := by simpa [degree] using hdegree
+  have hcard : 1 < (H.incidentEdges s).card := hdegree
   rcases Finset.one_lt_card.mp hcard with ⟨a, ha, b, hb, hab⟩
   have hexistsOther : ∃ f ∈ H.incidentEdges s, f ≠ e0 := by
     by_cases hae : a = e0
@@ -168,14 +168,14 @@ theorem dangerousAnchorFamily_covers_centerNeighbors
       ⟨X, hX, hfirst, hsecond⟩
     apply Finset.mem_biUnion.mpr
     refine ⟨X, H.mem_dangerousAnchorFamily.mpr ⟨hX, ?_⟩, ?_⟩
-    · simpa [p] using hfirst
-    · simpa [heq, p] using hfirst
+    · exact hfirst
+    · rw [heq]
+      exact hfirst
   · let p := H.maderSplitPairOfIncidentCopies he0 he (fun h => heq h.symm)
     rcases (H.not_maderAdmissible_iff_exists_dangerous p).mp (hcounter p) with
       ⟨X, hX, hfirst, hsecond⟩
     apply Finset.mem_biUnion.mpr
-    exact ⟨X, H.mem_dangerousAnchorFamily.mpr ⟨hX, by simpa [p] using hfirst⟩,
-      by simpa [p] using hsecond⟩
+    exact ⟨X, H.mem_dangerousAnchorFamily.mpr ⟨hX, hfirst⟩, hsecond⟩
 
 private theorem edgesBetween_center_eq_incidentEdges_of_neighbors_subset
     (H : FiniteEdgeIndexedGraph W) {s : W} {X : Finset W}
