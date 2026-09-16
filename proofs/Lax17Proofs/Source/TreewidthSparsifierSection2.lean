@@ -1112,7 +1112,7 @@ end GraphPath
   · rintro ⟨i, hv⟩
     exact ⟨i, by simpa using hv⟩
   · rintro ⟨i, hv⟩
-    exact ⟨i, by simpa using hv⟩
+    exact ⟨i, by simpa [PerfectPathPacking.reverse] using hv⟩
 
 @[simp] theorem perfectPathPacking_reverse_edgeSet
     {G : _root_.SimpleGraph V} {S T : Finset V}
@@ -1125,7 +1125,7 @@ end GraphPath
   · rintro ⟨i, he⟩
     exact ⟨i, by simpa using he⟩
   · rintro ⟨i, he⟩
-    exact ⟨i, by simpa using he⟩
+    exact ⟨i, by simpa [PerfectPathPacking.reverse] using he⟩
 
 @[simp] theorem perfectPathPacking_reverse_spanningGraph
     {G : _root_.SimpleGraph V} {S T : Finset V}
@@ -1200,7 +1200,7 @@ noncomputable def singletonPerfectPathPacking
   · rintro ⟨i, hv⟩
     simpa using hv
   · intro hv
-    exact ⟨PUnit.unit, by simpa using hv⟩
+    exact ⟨PUnit.unit, hv⟩
 
 /-- A singleton path packing has degree at most one at an endpoint of its
 single path. -/
@@ -1389,13 +1389,13 @@ noncomputable def cleanRerouteThrough
     {G : _root_.SimpleGraph V} (R Q : GraphPath G)
     (hne : (Q.vertexSet ∩ R.vertexSet).Nonempty) :
     (cleanRerouteThrough R Q hne).source = Q.source := by
-  simp [cleanRerouteThrough, cleanReroutePrefix]
+  rfl
 
 @[simp] theorem cleanRerouteThrough_target
     {G : _root_.SimpleGraph V} (R Q : GraphPath G)
     (hne : (Q.vertexSet ∩ R.vertexSet).Nonempty) :
     (cleanRerouteThrough R Q hne).target = Q.target := by
-  simp [cleanRerouteThrough, cleanRerouteSuffix]
+  rfl
 
 theorem cleanRerouteThrough_edgeSet_subset
     {G : _root_.SimpleGraph V} (R Q : GraphPath G)
@@ -1744,7 +1744,7 @@ theorem liftWalkStructured_support_subset_walkBranchUnion
           x ∈ L.walk.support ∨
             x ∈ (_root_.SimpleGraph.Walk.cons
               (edgeLeft_adj_edgeRight M hab) R).support := by
-        simpa [_root_.SimpleGraph.Walk.mem_support_append_iff] using hxSupportList
+        exact (_root_.SimpleGraph.Walk.mem_support_append_iff _ _).mp hxSupportList
       rcases hxSplit with hxL | hxCons
       · have hxPath : x ∈ L.vertexSet := by
           simpa [GraphPath.vertexSet] using hxL
@@ -5314,9 +5314,10 @@ noncomputable def contractEdgeGraph
       ∃ a ∈ EdgeContractVertex.branchSet x,
         ∃ b ∈ EdgeContractVertex.branchSet y, G.Adj a b
   symm := by
+    refine ⟨?_⟩
     intro x y hxy
     rcases hxy with ⟨hne, a, ha, b, hb, hab⟩
-    exact ⟨hne.symm, b, hb, a, ha, G.symm hab⟩
+    exact ⟨hne.symm, b, hb, a, ha, hab.symm⟩
   loopless := ⟨by
     intro x hxx
     exact hxx.1 rfl⟩
@@ -5445,8 +5446,9 @@ theorem branch_connected (huv : G.Adj u v) (x : EdgeContractVertex V u v) :
       rw [EdgeContractVertex.branchSet_merged, hset]
       exact _root_.SimpleGraph.induce_pair_connected_of_adj (G := G) huv
   | keep z =>
-      simpa [EdgeContractVertex.branchSet] using
-        GraphPath.connected_induce_vertexSet (GraphPath.refl G z.1)
+      have hconn := GraphPath.connected_induce_vertexSet (GraphPath.refl G z.1)
+      rw [GraphPath.refl_vertexSet] at hconn
+      exact hconn
 
 /-- The canonical branch-set model witnessing an edge contraction as a minor. -/
 noncomputable def minorModel :
@@ -7799,17 +7801,24 @@ theorem twoSingletonPathUnion_cleanOrDisjointReroute_degreeAtMost_zero_of_red_so
           hblue with
         ⟨⟨i, he⟩, _hne⟩
       by_cases hne : (Q.vertexSet ∩ P.vertexSet).Nonempty
-      · have heBlue :
+      · have hEq :
+            GraphPath.cleanOrDisjointReroute P Q =
+              GraphPath.cleanRerouteThrough P Q hne := dif_pos hne
+        have heBlue :
             s(x, y) ∈ (GraphPath.cleanRerouteThrough P Q hne).edgeSet := by
-          simpa [GraphPath.cleanOrDisjointReroute, hne] using he
+          rw [← hEq]
+          exact he
         have heP :
             s(x, y) ∈ P.edgeSet :=
           GraphPath.cleanRerouteThrough_incident_subset_red_except
             P Q hne x hxP (hxFirst hne) (hxLast hne) y heBlue
         simp [hPempty] at heP
-      · have heQ :
+      · have hEq :
+            GraphPath.cleanOrDisjointReroute P Q = Q := dif_neg hne
+        have heQ :
             s(x, y) ∈ Q.edgeSet := by
-          simpa [GraphPath.cleanOrDisjointReroute, hne] using he
+          rw [← hEq]
+          exact he
         have hxQ : x ∈ Q.vertexSet :=
           (GraphPath.endpoints_mem_vertexSet_of_edgeSet Q heQ).1
         exact False.elim
@@ -11654,9 +11663,9 @@ noncomputable def toReverseRedLabelingOfReverse
   same_reverseLabel_order := by
     intro x y i j hxR hyR hxB hyB hlabel hxyR
     have hyRev : y ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hyR
+      simpa [PerfectPathPacking.reverse] using hyR
     have hxRev : x ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hxR
+      simpa [PerfectPathPacking.reverse] using hxR
     have hyxRev : ((P.reverse).path i).Before y x := by
       simpa [PerfectPathPacking.reverse] using
         GraphPath.reverse_before_of_before (P.path i) hxyR
@@ -11813,7 +11822,11 @@ theorem exists_minimumTwoPairRoutingBranchCount_of_routable
 inductive TwoPairColor where
   | red
   | blue
-deriving DecidableEq, Fintype
+deriving DecidableEq
+
+-- The `deriving Fintype` enum fast path is broken at this toolchain; the
+-- generic `derive_fintype%` elaborator produces the same instance.
+instance : Fintype TwoPairColor := derive_fintype% _
 
 namespace TwoPairColor
 
@@ -12264,17 +12277,17 @@ theorem comparable_of_same_end
   classical
   have hx' :
       Relation.ReflTransGen (flip (TwoPairAltStep P Q)) finish x :=
-    Relation.ReflTransGen.swap hx
+    Relation.ReflTransGen.swap _ _ hx
   have hy' :
       Relation.ReflTransGen (flip (TwoPairAltStep P Q)) finish y :=
-    Relation.ReflTransGen.swap hy
+    Relation.ReflTransGen.swap _ _ hy
   have hright :
       Relator.RightUnique (flip (TwoPairAltStep P Q)) :=
     (leftUnique (P := P) (Q := Q)).flip
   rcases Relation.ReflTransGen.total_of_right_unique hright hx' hy' with
     hxy | hyx
-  · exact Or.inr (Relation.ReflTransGen.swap hxy)
-  · exact Or.inl (Relation.ReflTransGen.swap hyx)
+  · exact Or.inr (Relation.ReflTransGen.swap _ _ hxy)
+  · exact Or.inl (Relation.ReflTransGen.swap _ _ hyx)
 
 end TwoPairAltStep
 
@@ -12624,9 +12637,9 @@ noncomputable def toReverseRedReachCoverOfReverse
   red_reverse_order_of_reach := by
     intro i x y hxy hx hy
     have hxRev : x ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hx
+      simpa [PerfectPathPacking.reverse] using hx
     have hyRev : y ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hy
+      simpa [PerfectPathPacking.reverse] using hy
     have hrev :
         ((P.reverse).path i).Before x y :=
       Z.red_order_of_reach i hxy hxRev hyRev
@@ -12987,9 +13000,9 @@ noncomputable def toBranchReverseRedReachCoverOfReverse
   red_reverse_order_of_reach := by
     intro i sx sy hxy hx hy
     have hxRev : sx.1 ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hx
+      simpa [PerfectPathPacking.reverse] using hx
     have hyRev : sy.1 ∈ ((P.reverse).path i).vertexSet := by
-      simpa using hy
+      simpa [PerfectPathPacking.reverse] using hy
     have hrev :
         ((P.reverse).path i).Before sx.1 sy.1 :=
       Z.red_order_of_reach i hxy hxRev hyRev
@@ -13311,7 +13324,7 @@ theorem false_of_colorEdge_into_terminal_and_swapped_colorEdge_out
         exact M.good.false_of_red_and_blue_edge_incident_terminal
           hdeg hdisj hy hredPack hbluePack
       · have hxyAdj : H.Adj y x := by
-          exact H.symm (GraphPath.edgeSet_subset_edgeSet
+          exact H.adj_symm (GraphPath.edgeSet_subset_edgeSet
             (M.good.redRouting.path i) hredEdge)
         have hyzAdj : H.Adj y z :=
           GraphPath.edgeSet_subset_edgeSet
@@ -13335,7 +13348,7 @@ theorem false_of_colorEdge_into_terminal_and_swapped_colorEdge_out
         exact M.good.false_of_red_and_blue_edge_incident_terminal
           hdeg hdisj hy hredPack hbluePack
       · have hxyAdj : H.Adj y x := by
-          exact H.symm (GraphPath.edgeSet_subset_edgeSet
+          exact H.adj_symm (GraphPath.edgeSet_subset_edgeSet
             (M.good.blueRouting.path j) hblueEdge)
         have hyzAdj : H.Adj y z :=
           GraphPath.edgeSet_subset_edgeSet
@@ -13431,7 +13444,7 @@ theorem false_of_blueColorEdge_backward_on_red_path
       PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
         (R := M.good.redRouting)
         (fun R' => M.redRouting_edgeSet_eq_selected hdeg hdisj R')
-        hzwBefore hw_before_x hzw_ne hwx (H.symm hblueAdj)
+        hzwBefore hw_before_x hzw_ne hwx (H.adj_symm hblueAdj)
 
 omit [Fintype V] in
 /-- Red symmetric version of
@@ -13519,7 +13532,7 @@ theorem false_of_redColorEdge_backward_on_blue_path
       PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
         (R := M.good.blueRouting)
         (fun B' => M.blueRouting_edgeSet_eq_selected hdeg hdisj B')
-        hzwBefore hw_before_x hzw_ne hwx (H.symm hredAdj)
+        hzwBefore hw_before_x hzw_ne hwx (H.adj_symm hredAdj)
 
 omit [Fintype V] in
 /-- In a minimal good minor, every red step followed by a blue step induces a
@@ -13580,7 +13593,7 @@ theorem red_then_blue_linkageDependency
             (R := M.good.redRouting)
             (fun R' => M.redRouting_edgeSet_eq_selected hdeg hdisj R')
             hzxBefore hredBefore (fun hzx => hxz hzx.symm) hxy_ne
-            (H.symm hblueAdj))
+            (H.adj_symm hblueAdj))
   · exact
       TwoPairColorEdge.red_then_blue_linkageDependency_of_target_red_row_ne
         (P := M.good.redRouting) (Q := M.good.blueRouting)
@@ -13643,7 +13656,7 @@ theorem blue_then_red_linkageDependency
             (R := M.good.blueRouting)
             (fun B' => M.blueRouting_edgeSet_eq_selected hdeg hdisj B')
             hzxBefore hblueBefore (fun hzx => hxz hzx.symm) hxy_ne
-            (H.symm hredAdj))
+            (H.adj_symm hredAdj))
   · exact
       TwoPairColorEdge.blue_then_red_linkageDependency_of_target_blue_row_ne
         (P := M.good.redRouting) (Q := M.good.blueRouting)
@@ -14045,7 +14058,7 @@ theorem red_order_of_redBlueTwoStep_reflTransGen_same_path
             M.good.redRouting) x z :=
       Relation.TransGen.mono
         (fun a b hab =>
-          M.red_linkageDependency_of_redBlueTwoStep hdeg hdisj hab) htr
+          M.red_linkageDependency_of_redBlueTwoStep hdeg hdisj hab) _ _ htr
     rcases GraphPath.before_total_of_mem (M.good.redRouting.path i) hx hz with
       hxzBefore | hzxBefore
     · exact hxzBefore
@@ -14086,7 +14099,7 @@ theorem blue_order_of_blueRedTwoStep_reflTransGen_same_path
             M.good.blueRouting) x z :=
       Relation.TransGen.mono
         (fun a b hab =>
-          M.blue_linkageDependency_of_blueRedTwoStep hdeg hdisj hab) htr
+          M.blue_linkageDependency_of_blueRedTwoStep hdeg hdisj hab) _ _ htr
     rcases GraphPath.before_total_of_mem (M.good.blueRouting.path j) hx hz with
       hxzBefore | hzxBefore
     · exact hxzBefore
@@ -14271,7 +14284,7 @@ theorem red_linkageDependency_reflTransGen_of_altStep_red_to_red
     M.redBlueTwoStep_reflTransGen_of_altStep_red_to_red hzRed hxz
   exact Relation.ReflTransGen.mono
     (fun a b hab =>
-      M.red_linkageDependency_of_redBlueTwoStep hdeg hdisj hab) htwo
+      M.red_linkageDependency_of_redBlueTwoStep hdeg hdisj hab) _ _ htwo
 
 omit [Fintype V] in
 /-- Alternating reachability from a red state to a blue state gives
@@ -14412,7 +14425,7 @@ theorem blue_linkageDependency_reflTransGen_of_altStep_blue_to_blue
     M.blueRedTwoStep_reflTransGen_of_altStep_blue_to_blue hzBlue hxz
   exact Relation.ReflTransGen.mono
     (fun a b hab =>
-      M.blue_linkageDependency_of_blueRedTwoStep hdeg hdisj hab) htwo
+      M.blue_linkageDependency_of_blueRedTwoStep hdeg hdisj hab) _ _ htwo
 
 omit [Fintype V] in
 /-- Blue analogue of
@@ -14603,7 +14616,7 @@ theorem red_order_of_altStep_blue_to_blue_same_path
                       (PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
                         (R := M.good.redRouting)
                         (fun R' => M.redRouting_edgeSet_eq_selected hdeg hdisj R')
-                        hazBefore hzxBefore haz hzx_ne (H.symm hxaAdj))
+                        hazBefore hzxBefore haz hzx_ne (H.adj_symm hxaAdj))
                 · exact Or.inr
                     ⟨i, ia, (fun hii => hia hii.symm), hz, haia, x, hx, hzxBefore,
                       hzx_ne, hxaAdj⟩
@@ -14695,7 +14708,7 @@ theorem blue_order_of_altStep_red_to_red_same_path
                       (PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
                         (R := M.good.blueRouting)
                         (fun B' => M.blueRouting_edgeSet_eq_selected hdeg hdisj B')
-                        hazBefore hzxBefore haz hzx_ne (H.symm hxaAdj))
+                        hazBefore hzxBefore haz hzx_ne (H.adj_symm hxaAdj))
                 · exact Or.inr
                     ⟨j, ja, (fun hjj => hja hjj.symm), hz, haja, x, hx,
                       hzxBefore, hzx_ne, hxaAdj⟩
@@ -14783,7 +14796,7 @@ theorem red_order_of_altStep_blue_to_red_same_path
                         (PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
                           (R := M.good.redRouting)
                           (fun R' => M.redRouting_edgeSet_eq_selected hdeg hdisj R')
-                          hazBefore hzxBefore haz hzx_ne (H.symm hxaAdj))
+                          hazBefore hzxBefore haz hzx_ne (H.adj_symm hxaAdj))
                   · exact Or.inr
                       ⟨i, ia, (fun hii => hia hii.symm), hz, haia, x, hx,
                         hzxBefore, hzx_ne, hxaAdj⟩
@@ -14875,7 +14888,7 @@ theorem blue_order_of_altStep_red_to_blue_same_path
                         (PathSlicing.false_of_shortcut_edge_of_edgeSet_unique
                           (R := M.good.blueRouting)
                           (fun B' => M.blueRouting_edgeSet_eq_selected hdeg hdisj B')
-                          hazBefore hzxBefore haz hzx_ne (H.symm hxaAdj))
+                          hazBefore hzxBefore haz hzx_ne (H.adj_symm hxaAdj))
                   · exact Or.inr
                       ⟨j, ja, (fun hjj => hja hjj.symm), hz, haja, x, hx,
                         hzxBefore, hzx_ne, hxaAdj⟩
@@ -15720,9 +15733,11 @@ noncomputable def reverseRed
       intro h
       exact hv (by
         simpa using h)
-    exact C.no_nonterminal_shared_edge hvOld
-      (by simpa [TwoPairGoodMinor.reverseRed] using hred)
-      (by simpa [TwoPairGoodMinor.reverseRed] using hblue)
+    have hredRev : s(v, w) ∈ N.redRouting.reverse.toPathPacking.edgeSet := hred
+    have hred' : s(v, w) ∈ N.redRouting.toPathPacking.edgeSet := by
+      simpa using hredRev
+    have hblue' : s(v, w) ∈ N.blueRouting.toPathPacking.edgeSet := hblue
+    exact C.no_nonterminal_shared_edge hvOld hred' hblue'
 
 end TwoPairGoodMinorCoreIncidence
 
@@ -16367,9 +16382,7 @@ noncomputable def reverseRedReachCoverOfCoreIncidence
       hredCardRev hblueCardRev
   have Z' :
       TwoPairForwardReachCover M.good.redRouting.reverse
-        M.good.blueRouting k := by
-    simpa [Z, Mrev, TwoPairMinimalGoodMinor.reverseRed,
-      TwoPairGoodMinor.reverseRed] using Z
+        M.good.blueRouting k := Z
   exact Z'.toReverseRedReachCoverOfReverse
 
 omit [Fintype V] in
@@ -16432,9 +16445,7 @@ noncomputable def branchReverseRedReachCoverOfCoreIncidence
       hredCardRev hblueCardRev
   have Z' :
       TwoPairBranchForwardReachCover M.good.redRouting.reverse
-        M.good.blueRouting k := by
-    simpa [Z, Mrev, TwoPairMinimalGoodMinor.reverseRed,
-      TwoPairGoodMinor.reverseRed] using Z
+        M.good.blueRouting k := Z
   exact Z'.toBranchReverseRedReachCoverOfReverse
 
 omit [Fintype V] in
@@ -16494,9 +16505,7 @@ noncomputable def branchReverseRedReachCoverOfMinimality
       hdegSwap hdisj.swap_first defaultState hredCardRev hblueCardRev
   have Z' :
       TwoPairBranchForwardReachCover M.good.redRouting.reverse
-        M.good.blueRouting k := by
-    simpa [Z, Mrev, TwoPairMinimalGoodMinor.reverseRed,
-      TwoPairGoodMinor.reverseRed] using Z
+        M.good.blueRouting k := Z
   exact Z'.toBranchReverseRedReachCoverOfReverse
 
 end TwoPairMinimalGoodMinor
@@ -18295,9 +18304,20 @@ noncomputable def oldPerfectPathPacking [DecidableEq V]
       intro i j hij
       rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint, Finset.disjoint_left]
       intro z hzi hzj
-      rw [GraphPath.mapHomInjective_vertexSet] at hzi hzj
-      rcases Finset.mem_image.mp hzi with ⟨x, hx, rfl⟩
-      rcases Finset.mem_image.mp hzj with ⟨y, hy, hyx⟩
+      have hzi' := Eq.mp (congrArg (fun s => z ∈ s)
+        (GraphPath.mapHomInjective_vertexSet (P.path i)
+          (oldHom (V := V) (S₁ := S₁) (T₁ := T₁)
+            (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
+          (old_injective (V := V) (S₁ := S₁) (T₁ := T₁)
+            (S₂ := S₂) (T₂ := T₂) (δ := δ)))) hzi
+      have hzj' := Eq.mp (congrArg (fun s => z ∈ s)
+        (GraphPath.mapHomInjective_vertexSet (P.path j)
+          (oldHom (V := V) (S₁ := S₁) (T₁ := T₁)
+            (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
+          (old_injective (V := V) (S₁ := S₁) (T₁ := T₁)
+            (S₂ := S₂) (T₂ := T₂) (δ := δ)))) hzj
+      rcases Finset.mem_image.mp hzi' with ⟨x, hx, rfl⟩
+      rcases Finset.mem_image.mp hzj' with ⟨y, hy, hyx⟩
       have hxy : x = y :=
         old_injective (V := V) (S₁ := S₁) (T₁ := T₁)
           (S₂ := S₂) (T₂ := T₂) (δ := δ) hyx.symm
@@ -18701,8 +18721,13 @@ theorem oldPerfectPathPacking_staysIn_oldImage_univ [DecidableEq V]
           (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
         (old_injective (V := V) (S₁ := S₁) (T₁ := T₁)
           (S₂ := S₂) (T₂ := T₂) (δ := δ))).vertexSet at hz
-  rw [GraphPath.mapHomInjective_vertexSet] at hz
-  rcases Finset.mem_image.mp hz with ⟨x, _hx, rfl⟩
+  have hz' := Eq.mp (congrArg (fun s => z ∈ s)
+    (GraphPath.mapHomInjective_vertexSet (P.path i)
+      (oldHom (V := V) (S₁ := S₁) (T₁ := T₁)
+        (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
+      (old_injective (V := V) (S₁ := S₁) (T₁ := T₁)
+        (S₂ := S₂) (T₂ := T₂) (δ := δ)))) hz
+  rcases Finset.mem_image.mp hz' with ⟨x, _hx, rfl⟩
   exact (mem_oldImage (V := V) (S₁ := S₁) (T₁ := T₁)
     (S₂ := S₂) (T₂ := T₂) (δ := δ)
     (A := (Finset.univ : Finset V))).2 (by simp)
@@ -19232,13 +19257,13 @@ noncomputable def dummyBluePath {G : _root_.SimpleGraph V} (i : Fin δ) :
     (dummyBluePath (V := V) (S₁ := S₁) (T₁ := T₁)
       (S₂ := S₂) (T₂ := T₂) (δ := δ) (G := G) i).source =
       leafS₂Dummy i := by
-  simp [dummyBluePath]
+  rfl
 
 @[simp] theorem dummyBluePath_target {G : _root_.SimpleGraph V} (i : Fin δ) :
     (dummyBluePath (V := V) (S₁ := S₁) (T₁ := T₁)
       (S₂ := S₂) (T₂ := T₂) (δ := δ) (G := G) i).target =
       leafT₂Dummy i := by
-  simp [dummyBluePath]
+  rfl
 
 theorem dummyBluePath_vertexSet_subset_index [DecidableEq V]
     {G : _root_.SimpleGraph V} (i : Fin δ) {z : Theorem13AugVertex V S₁ T₁ S₂ T₂ δ}
@@ -19721,16 +19746,16 @@ noncomputable def dummyBluePacking [DecidableEq V] {G : _root_.SimpleGraph V} :
     · exact Finset.mem_union_left _
         (Finset.mem_union_left _
           (Finset.mem_union_left _
-            (Finset.mem_image.mpr ⟨i, by simp, rfl⟩)))
+            (Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩)))
     · exact Finset.mem_union_left _
         (Finset.mem_union_left _
           (Finset.mem_union_right _
-            (Finset.mem_image.mpr ⟨i, by simp, rfl⟩)))
+            (Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩)))
     · exact Finset.mem_union_left _
         (Finset.mem_union_right _
-          (Finset.mem_image.mpr ⟨i, by simp, rfl⟩))
+          (Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩))
     · exact Finset.mem_union_right _
-        (Finset.mem_image.mpr ⟨i, by simp, rfl⟩)
+        (Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩)
 
   theorem blueOldRegion_disjoint_dummyBlueRegion [DecidableEq V] :
       Disjoint
@@ -19959,12 +19984,12 @@ noncomputable def dummyBluePacking [DecidableEq V] {G : _root_.SimpleGraph V} :
       (V := V) (S₁ := S₁) (T₁ := T₁)
       (S₂ := S₂) (T₂ := T₂) (δ := δ) P⟩
 
-  theorem leafS₁_degree_one [DecidableEq V] {G : _root_.SimpleGraph V}
-      (x : {x : V // x ∈ S₁}) :
-      DegreeEquals
-      (graph (V := V) (S₁ := S₁) (T₁ := T₁)
-        (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
-      (leafS₁ x) 1 := by
+theorem leafS₁_degree_one [DecidableEq V] {G : _root_.SimpleGraph V}
+    (x : {x : V // x ∈ S₁}) :
+    DegreeEquals
+    (graph (V := V) (S₁ := S₁) (T₁ := T₁)
+      (S₂ := S₂) (T₂ := T₂) (δ := δ) G)
+    (leafS₁ x) 1 := by
   classical
   refine degreeEquals_one_of_unique_neighbor (adj_leafS₁_old (G := G) x) ?_
   intro y hy

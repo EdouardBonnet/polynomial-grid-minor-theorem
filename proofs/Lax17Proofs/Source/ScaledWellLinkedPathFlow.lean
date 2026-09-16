@@ -83,6 +83,7 @@ def graph (G : _root_.SimpleGraph V) (S T : Finset V) (D : Nat) :
     _root_.SimpleGraph (Node G S T D) where
   Adj := Adj
   symm := by
+    constructor
     intro x y h
     cases h with
     | sourceEdge v => exact Adj.sourceEdgeSymm v
@@ -658,7 +659,7 @@ theorem nodeProjection_adj_or_eq [DecidableRel G.Adj]
       by_cases heq : e.1.out.1 = v
       · exact Or.inl heq
       · right
-        apply G.symm
+        apply G.symm.symm
         rw [← _root_.SimpleGraph.mem_edgeSet]
         have hedge : e.1 = s(v, e.1.out.1) :=
           (Sym2.mem_and_mem_iff (Ne.symm heq)).1
@@ -745,7 +746,11 @@ theorem projectWalk_edge_provenance [DecidableRel G.Adj]
                   ⟨hv, Sym2.out_fst_mem e.1⟩
               refine ⟨e, i, ?_, ?_⟩
               · simpa using heUnderlying
-              · simp [canonicalChannelEdge, hvother]
+              · have h0 : canonicalChannelEdge (G := G) (S := S) (T := T) (D := D) e i
+                    = s(original (G := G) (S := S) (T := T) (D := D) v,
+                        channel (G := G) (S := S) (T := T) (D := D) e i) := by
+                  simp only [canonicalChannelEdge, ← hvother]
+                exact List.mem_cons.mpr (Or.inl h0)
           | channelEdgeSymm e i v hv =>
               have hvne : v ≠ e.1.out.1 := by
                 exact fun h => heq h.symm
@@ -756,7 +761,12 @@ theorem projectWalk_edge_provenance [DecidableRel G.Adj]
                 rw [hvother, Sym2.mk, e.1.out_eq]
               refine ⟨e, i, ?_, ?_⟩
               · simpa using heUnderlying
-              · simp [canonicalChannelEdge, hvother, Sym2.eq_swap]
+              · have h0 : canonicalChannelEdge (G := G) (S := S) (T := T) (D := D) e i
+                    = s(channel (G := G) (S := S) (T := T) (D := D) e i,
+                        original (G := G) (S := S) (T := T) (D := D) v) := by
+                  simp only [canonicalChannelEdge, ← hvother]
+                  exact Sym2.eq_swap
+                exact List.mem_cons.mpr (Or.inl h0)
         · rcases ih hedgeTail with ⟨e, i, he, hi⟩
           exact ⟨e, i, he, by simpa using Or.inr hi⟩
 

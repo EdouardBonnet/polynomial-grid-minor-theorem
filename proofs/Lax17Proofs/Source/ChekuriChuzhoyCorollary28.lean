@@ -133,7 +133,7 @@ theorem crossing_card_le
       intro z hz
       rw [hcover]
       exact D.support_subset i (hPsubSupport hz)
-    have hsource : P.source ∈ X := by simpa [P] using hxX
+    have hsource : P.source ∈ X := hxX
     have hnot : ¬ P.vertexSet ⊆ X := by
       intro hPX
       have htarget : P.target = y := rfl

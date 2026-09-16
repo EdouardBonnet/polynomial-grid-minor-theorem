@@ -157,7 +157,7 @@ theorem exists_routerPair_pathPacking
   let target := routeValue / (8 * Delta)
   rcases Menger.finite_vertex_menger_sharp
       G (R.router i) (R.router j) target with hpacking | hseparator
-  · simpa [target] using hpacking
+  · exact hpacking
   · rcases hseparator with ⟨X, hXcard, hXsep⟩
     rcases
         EdgeMenger.exists_exact_edgePathPacking_of_hasEdgeDisjointPathsIn

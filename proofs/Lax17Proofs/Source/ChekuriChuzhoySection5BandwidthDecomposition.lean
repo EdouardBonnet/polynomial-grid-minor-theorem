@@ -478,7 +478,8 @@ noncomputable def pairFinpartition
     · exact cut.disjoint.symm
     · exact False.elim (hne rfl)
   sup_parts := by
-    simpa only [Finset.sup_insert, Finset.sup_singleton, id_eq] using cut.cover
+    simpa only [Finset.sup_insert, Finset.sup_singleton, id_eq,
+      Finset.sup_eq_union] using cut.cover
   bot_notMem := by
     simp only [Finset.mem_insert, Finset.mem_singleton, not_or]
     exact ⟨fun h => (left_nonempty cut).ne_empty h.symm,
@@ -583,7 +584,8 @@ theorem mem_combinePartitions_iff
     rcases hU with hU | hU
     · refine ⟨cut.X, ?_, ?_⟩
       · simp [ScaledViolatingPartition.pairFinpartition]
-      · simpa only [dif_pos rfl] using hU
+      · rw [dif_pos (rfl : cut.X = cut.X)]
+        exact hU
     · refine ⟨cut.Y, ?_, ?_⟩
       · simp [ScaledViolatingPartition.pairFinpartition]
       · have hXY : cut.Y ≠ cut.X := by

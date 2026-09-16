@@ -539,7 +539,8 @@ theorem exists_run_source_eq_of_mem_packingInside_sourceSet
   classical
   rw [PathPacking.sourceSet] at hv
   rcases Finset.mem_image.mp hv with ⟨q, _hq, hqv⟩
-  exact ⟨q, by simpa using hqv⟩
+  exact ⟨q,
+    (congrArg GraphPath.source (packingInside_orient_path P X q)).symm.trans hqv⟩
 
 theorem exists_run_target_eq_of_mem_packingInside_targetSet
     {S T : Finset V} (P : PathPacking G S T) (X : Finset V)
@@ -549,7 +550,8 @@ theorem exists_run_target_eq_of_mem_packingInside_targetSet
   classical
   rw [PathPacking.targetSet] at hv
   rcases Finset.mem_image.mp hv with ⟨q, _hq, hqv⟩
-  exact ⟨q, by simpa using hqv⟩
+  exact ⟨q,
+    (congrArg GraphPath.target (packingInside_orient_path P X q)).symm.trans hqv⟩
 
 theorem packingInside_sourceSet_subset
     {S T : Finset V} (P : PathPacking G S T) (X : Finset V) :
