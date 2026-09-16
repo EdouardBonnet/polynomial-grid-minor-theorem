@@ -197,7 +197,7 @@ theorem good_or_router_in_region
               have hSR :
                   clusteringPotential G S schedule + 1 ≤
                     clusteringPotential G R schedule := by
-                simpa [schedule] using hSdrop
+                exact hSdrop
               linarith [hRpotential, hQ.2.1]
             have hSQ :
                 DropsByOne G schedule Q S := by
@@ -205,7 +205,7 @@ theorem good_or_router_in_region
               have hSR :
                   clusteringPotential G S schedule + 1 ≤
                     clusteringPotential G R schedule := by
-                simpa [schedule] using hSdrop
+                exact hSdrop
               linarith [hRpotential]
             exact Or.inr ⟨S, ⟨hSacceptable, hSP, hSinside⟩, hSQ⟩)
   simpa [Output, schedule] using houtput
@@ -256,7 +256,7 @@ theorem seedFamily_good_drop_or_goodRouterFamily
     have hseed :
         clusteringPotential G (seed.clustering i) schedule + 1 ≤
           clusteringPotential G P schedule := by
-      simpa [schedule] using seed.initial_drop i
+      exact seed.initial_drop i
     linarith
   · have hrouters :
         ∀ i : Fin ell0, ∃ router : Finset V,

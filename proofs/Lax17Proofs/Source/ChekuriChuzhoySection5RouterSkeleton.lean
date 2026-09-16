@@ -34,10 +34,10 @@ variable {W : Type u} [Fintype W] [DecidableEq W]
 def underlyingGraph (H : FiniteEdgeIndexedGraph W) :
     _root_.SimpleGraph W where
   Adj x y := ∃ e : H.Edge, H.Joins e x y
-  symm := by
+  symm := ⟨by
     intro x y
     rintro ⟨e, he⟩
-    exact ⟨e, (H.joins_comm e x y).mp he⟩
+    exact ⟨e, (H.joins_comm e x y).mp he⟩⟩
   loopless := ⟨by
     intro x
     rintro ⟨e, he⟩
@@ -398,8 +398,7 @@ theorem exists_hostPath_of_simpleNamedPath
             subst b
             have hnil :
                 tail'.toUnderlyingWalk = _root_.SimpleGraph.Walk.nil :=
-              (_root_.SimpleGraph.Walk.isPath_iff_eq_nil
-                tail'.toUnderlyingWalk).mp htailPath
+              _root_.SimpleGraph.Walk.isPath_iff_eq_nil.mp htailPath
             have hlength := congrArg
               _root_.SimpleGraph.Walk.length hnil
             simp [tail'] at hlength
@@ -937,7 +936,7 @@ theorem originFiber_card_le_two
       exact ha.trans hb.symm
     · exact hab
   have hcard := Fintype.card_le_of_injective tag htag
-  simpa only [Fintype.card_coe] using hcard
+  simpa only [Fintype.card_coe, Fintype.card_bool] using hcard
 
 theorem contractedEdge_incident_router_of_origin_incident
     (hpair : RouterPairwiseDisjoint cluster)
