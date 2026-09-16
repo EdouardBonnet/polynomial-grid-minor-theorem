@@ -388,8 +388,8 @@ private theorem boundary_groupSide_subset_nonterminalEdges
       (hterminal_mem_side_iff t).trans
         (hneighbor_mem_side_iff t).symm
     rcases hends with hends | hends
-    · simpa [heq, hends.1, hends.2] using hsame
-    · simpa [heq, hends.1, hends.2] using hsame.symm
+    · simpa [terminalNeighbor, heq, hends.1, hends.2] using hsame
+    · simpa [terminalNeighbor, heq, hends.1, hends.2] using hsame.symm
   intro e he
   have hcross := (H.mem_boundary side e).1 he
   have hleft : H.left e ∉ terminals := by
@@ -791,7 +791,7 @@ theorem terminal_card_le_three_mul_nonterminalEdges
     simpa [hostSide] using hboundaryHost
   have hboundarySubset :
       H.boundary side ⊆ nonterminalEdges H T := by
-    simpa [side, selected] using
+    simpa [side, selectedCenters, selected] using
       boundary_groupSide_subset_nonterminalEdges
         H T hpendantH hnoTerminalEdge labels
   have hqm :

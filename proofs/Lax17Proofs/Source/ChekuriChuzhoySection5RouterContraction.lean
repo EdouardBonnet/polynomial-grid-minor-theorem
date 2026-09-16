@@ -195,18 +195,18 @@ noncomputable def edgeOfAdj
   rcases hjoins with hends | hends
   · have hleft :
         ChekuriChuzhoySection5TerminalSkeleton.hostEdgeLeft G e = x := by
-      simpa [e] using hends.1
+      exact hends.1
     have hright :
         ChekuriChuzhoySection5TerminalSkeleton.hostEdgeRight G e = y := by
-      simpa [e] using hends.2
+      exact hends.2
     rw [hleft, hright]
     exact hne
   · have hright :
         ChekuriChuzhoySection5TerminalSkeleton.hostEdgeRight G e = x := by
-      simpa [e] using hends.1
+      exact hends.1
     have hleft :
         ChekuriChuzhoySection5TerminalSkeleton.hostEdgeLeft G e = y := by
-      simpa [e] using hends.2
+      exact hends.2
     rw [hleft, hright]
     exact hne.symm
 
@@ -232,12 +232,12 @@ theorem edgeOfAdj_joins
   rcases hjoins with hends | hends
   · apply Or.inl
     constructor
-    · exact congrArg (projection cluster) (by simpa [e] using hends.1)
-    · exact congrArg (projection cluster) (by simpa [e] using hends.2)
+    · exact congrArg (projection cluster) (by exact hends.1)
+    · exact congrArg (projection cluster) (by exact hends.2)
   · apply Or.inr
     constructor
-    · exact congrArg (projection cluster) (by simpa [e] using hends.1)
-    · exact congrArg (projection cluster) (by simpa [e] using hends.2)
+    · exact congrArg (projection cluster) (by exact hends.1)
+    · exact congrArg (projection cluster) (by exact hends.2)
 
 private theorem edge_fst_mem_vertexSet
     (P : Lax17Proofs.SimpleGraph.GraphPath G) {x y : V}

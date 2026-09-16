@@ -154,6 +154,18 @@ theorem reverseAux_eq_reverse_append (P : H.NamedEdgeWalk x y)
 
 end NamedEdgeWalk
 
+/-- A named edge joins its own two endpoints.  Stating this as a lemma keeps
+the `Joins` application folded in stored proof arguments. -/
+theorem joins_left_right (G : FiniteEdgeIndexedGraph W) (e : G.Edge) :
+    G.Joins e (G.left e) (G.right e) :=
+  Or.inl ⟨rfl, rfl⟩
+
+/-- The second edge of a split pair joins the center to its other endpoint,
+with the `Joins` application folded. -/
+theorem MaderSplitPair.joins_second {G : FiniteEdgeIndexedGraph W} {s : W}
+    (p : G.MaderSplitPair s) : G.Joins p.second s p.secondOther :=
+  p.second_ends
+
 /-! ## Histories and one-step transport -/
 
 /-- A realization of every edge of `current` by an edge-nonempty walk in
@@ -195,7 +207,7 @@ one-edge walk. -/
 def identity (base : FiniteEdgeIndexedGraph W) :
     MaderEdgeHistory base base where
   route e :=
-    .cons e (Or.inl ⟨rfl, rfl⟩) (.nil (base.right e))
+    .cons e (base.joins_left_right e) (.nil (base.right e))
   routeEdges_nonempty := by
     intro e
     simp
@@ -246,7 +258,7 @@ def splitNewRoute (R : MaderEdgeHistory base current)
     base.NamedEdgeWalk p.firstOther p.secondOther :=
   (R.routeAlong p.first
       ((current.joins_comm p.first s p.firstOther).mp p.first_ends)).append
-    (R.routeAlong p.second p.second_ends)
+    (R.routeAlong p.second p.joins_second)
 
 @[simp] theorem splitNewRoute_routeEdges
     (R : MaderEdgeHistory base current)
@@ -262,7 +274,7 @@ theorem splitNewRoute_nodup
   rw [splitNewRoute, NamedEdgeWalk.edgeList_append]
   apply (R.routeAlong_nodup p.first
     ((current.joins_comm p.first s p.firstOther).mp p.first_ends)).append
-      (R.routeAlong_nodup p.second p.second_ends)
+      (R.routeAlong_nodup p.second p.joins_second)
   apply List.disjoint_toFinset_iff_disjoint.mp
   rw [R.routeAlong_routeEdges p.first,
     R.routeAlong_routeEdges p.second]

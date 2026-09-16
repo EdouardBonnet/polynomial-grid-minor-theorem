@@ -354,7 +354,8 @@ noncomputable def contractCommonEdge
       dense := ?_
       deletion_bound := ?_ }
   · intro i
-    rw [Proj.vertex_image, originalQ_vertex_image]
+    have hqv := originalQ_vertex_image (State.parent (Proj.oldIndex i))
+    rw [Proj.vertex_image, hqv]
     exact Finset.image_mono _
       (State.retained_vertex_subset (Proj.oldIndex i))
   · intro i e' he'
@@ -373,8 +374,8 @@ noncomputable def contractCommonEdge
     rcases Finset.not_disjoint_iff.1 hr with ⟨v, hvQ, hvR⟩
     apply Finset.mem_filter.2
     refine ⟨Finset.mem_univ r, ?_⟩
-    rw [Proj.vertex_image, row_vertex_image,
-      Finset.not_disjoint_iff]
+    have hrv := row_vertex_image r
+    rw [Proj.vertex_image, hrv, Finset.not_disjoint_iff]
     exact ⟨EdgeContractVertex.projection
         (V := State.W) (u := a) (v := b) v,
       Finset.mem_image.2 ⟨v, hvQ, rfl⟩,
@@ -599,7 +600,8 @@ noncomputable def contractOffRowEdge
       dense := ?_
       deletion_bound := ?_ }
   · intro i
-    rw [Proj.vertex_image, originalQ_vertex_image]
+    have hqv := originalQ_vertex_image (State.parent (Proj.oldIndex i))
+    rw [Proj.vertex_image, hqv]
     exact Finset.image_mono _
       (State.retained_vertex_subset (Proj.oldIndex i))
   · intro i e' he'
@@ -618,8 +620,8 @@ noncomputable def contractOffRowEdge
     rcases Finset.not_disjoint_iff.1 hr with ⟨v, hvQ, hvR⟩
     apply Finset.mem_filter.2
     refine ⟨Finset.mem_univ r, ?_⟩
-    rw [Proj.vertex_image, row_vertex_image,
-      Finset.not_disjoint_iff]
+    have hrv := row_vertex_image r
+    rw [Proj.vertex_image, hrv, Finset.not_disjoint_iff]
     exact ⟨EdgeContractVertex.projection
         (V := State.W) (u := a) (v := b) v,
       Finset.mem_image.2 ⟨v, hvQ, rfl⟩,
@@ -975,13 +977,13 @@ noncomputable def reducedRetained
     (State : Observation44State G₀ D N Kcard)
     (hReduced : State.IsReduced) :
     (State.reducedRow hReduced).card = N := by
-  simpa [reducedRow, rowInduced] using State.row_card
+  exact State.row_card
 
 @[simp] theorem reducedRetained_card
     (State : Observation44State G₀ D N Kcard)
     (hReduced : State.IsReduced) :
     (State.reducedRetained hReduced).card = Kcard := by
-  simpa [reducedRetained, retainedInduced] using State.retained_card
+  exact State.retained_card
 
 /-- Property I1 survives the contractions and the final restriction to the
 row-support vertex type.  In particular, every retained auxiliary path still
@@ -1010,20 +1012,29 @@ theorem reducedRetained_metRows_card
   let x' : State.RowVertex := ⟨x, hxSupport⟩
   refine Finset.mem_filter.2
     ⟨Finset.mem_univ r, Finset.not_disjoint_iff.2 ⟨x', ?_, ?_⟩⟩
-  · simpa [x', reducedRetained, retainedInduced,
-      PathPacking.inSpanningGraph, PathPacking.mapLe, PathPacking.transfer]
-      using
-        (GraphPath.mem_induce_vertexSet
-          (State.retainedQ.path q) State.row.toPathPacking.vertexSet
-          (fun v hv => hReduced.2
-            (State.retainedQ.mem_vertexSet.2 ⟨q, hv⟩)) x').2 hxq
-  · simpa [x', reducedRow, rowInduced,
-      PerfectPathPacking.inSpanningGraph, PerfectPathPacking.mapLe,
-      PathPacking.inSpanningGraph, PathPacking.mapLe, PathPacking.transfer]
-      using
-        (GraphPath.mem_induce_vertexSet
-          (State.row.path r) State.row.toPathPacking.vertexSet
-          (State.row.toPathPacking.path_vertexSet_subset_vertexSet r) x').2 hxr
+  · have hmem :=
+      (GraphPath.mem_induce_vertexSet
+        (State.retainedQ.path q) State.row.toPathPacking.vertexSet
+        (fun v hv => hReduced.2
+          (State.retainedQ.mem_vertexSet.2 ⟨q, hv⟩)) x').2 hxq
+    have hEq : ((State.reducedRetained hReduced).path q).vertexSet
+        = ((State.retainedInduced hReduced).path q).vertexSet := by
+      show (((State.retainedInduced hReduced).inSpanningGraph.path q).mapLe
+          le_sup_right).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact GraphPath.transfer_vertexSet _ _ _
+    exact Eq.mpr (congrArg (fun s => x' ∈ s) hEq) hmem
+  · have hmem :=
+      (GraphPath.mem_induce_vertexSet
+        (State.row.path r) State.row.toPathPacking.vertexSet
+        (State.row.toPathPacking.path_vertexSet_subset_vertexSet r) x').2 hxr
+    have hEq : ((State.reducedRow hReduced).path r).vertexSet
+        = (State.rowInduced.path r).vertexSet := by
+      show ((State.rowInduced.inSpanningGraph.path r).mapLe
+          le_sup_left).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact GraphPath.transfer_vertexSet _ _ _
+    exact Eq.mpr (congrArg (fun s => x' ∈ s) hEq) hmem
 
 /-- The intersection hypothesis needed by Theorem 4.6, now for the actual
 retained auxiliary paths rather than length-zero contact paths. -/
@@ -1055,12 +1066,17 @@ theorem reducedRow_spansVertices
   rcases State.row.toPathPacking.mem_vertexSet.1 hv with ⟨i, hvi⟩
   apply (State.reducedRow hReduced).toPathPacking.mem_vertexSet.2
   refine ⟨i, ?_⟩
-  simpa [reducedRow, rowInduced, PerfectPathPacking.inSpanningGraph,
-    PerfectPathPacking.mapLe, PathPacking.inSpanningGraph,
-    PathPacking.mapLe, PathPacking.transfer] using
-      (GraphPath.mem_induce_vertexSet
-        (State.row.path i) State.row.toPathPacking.vertexSet
-        (State.row.toPathPacking.path_vertexSet_subset_vertexSet i) v).2 hvi
+  have hmem :=
+    (GraphPath.mem_induce_vertexSet
+      (State.row.path i) State.row.toPathPacking.vertexSet
+      (State.row.toPathPacking.path_vertexSet_subset_vertexSet i) v).2 hvi
+  have hEq : ((State.reducedRow hReduced).path i).vertexSet
+      = (State.rowInduced.path i).vertexSet := by
+    show ((State.rowInduced.inSpanningGraph.path i).mapLe
+        le_sup_left).vertexSet = _
+    rw [GraphPath.mapLe_vertexSet]
+    exact GraphPath.transfer_vertexSet _ _ _
+  exact Eq.mpr (congrArg (fun s => v ∈ s) hEq) hmem
 
 theorem reducedGraph_le_induced
     (State : Observation44State G₀ D N Kcard)
@@ -1258,16 +1274,19 @@ theorem reducedRow_isUniqueLinkage
     rcases R.toPathPacking.mem_edgeSet.1 heRow with ⟨i, hei⟩
     have heiInduced :
         e ∈ (State.rowInduced.path i).edgeSet := by
-      simpa [R, reducedRow, PerfectPathPacking.inSpanningGraph,
-        PerfectPathPacking.mapLe, PathPacking.inSpanningGraph,
-        PathPacking.mapLe, PathPacking.transfer] using hei
+      have hEq : (R.path i).edgeSet = (State.rowInduced.path i).edgeSet := by
+        show ((State.rowInduced.inSpanningGraph.path i).mapLe
+            le_sup_left).edgeSet = _
+        rw [GraphPath.mapLe_edgeSet]
+        exact GraphPath.transfer_edgeSet _ _ _
+      exact Eq.mp (congrArg (fun s => e ∈ s) hEq) hei
     have heiBase :
         Sym2.map Subtype.val e ∈ (State.row.path i).edgeSet := by
       exact
         (GraphPath.mem_induce_edgeSet
           (State.row.path i) State.row.toPathPacking.vertexSet
           (State.row.toPathPacking.path_vertexSet_subset_vertexSet i) e).1
-          (by simpa [rowInduced] using heiInduced)
+          heiInduced
     have heStateRow :
         Sym2.map Subtype.val e ∈ State.row.toPathPacking.edgeSet :=
       State.row.toPathPacking.mem_edgeSet.2 ⟨i, heiBase⟩
@@ -1322,12 +1341,17 @@ theorem goodQPathPackingInHPrime_metRows_card
         (Gamma.goodQPathPacking_intersects_row j i)).2
     intro hdisjoint
     apply hmeet
-    simpa [pick, PseudoGrid.goodQPathPackingInHPrime,
-      PseudoGrid.rowPerfectPackingInHPrime,
+    have hEqQ : (Gamma.goodQPathPackingInHPrime.path j).vertexSet
+        = (Gamma.qPath j.1).vertexSet := by
+      show ((Gamma.goodQPathPacking.inSpanningGraph.path j).mapLe
+          Gamma.goodQPathPacking_spanningGraph_le_hPrimeGraph).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact PathPacking.inSpanningGraph_path_vertexSet Gamma.goodQPathPacking j
+    rw [hEqQ] at hdisjoint
+    simpa [pick, PseudoGrid.rowPerfectPackingInHPrime,
       PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
       PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer,
-      PseudoGrid.goodQPathPacking, PseudoGrid.rowPerfectPacking] using
-        hdisjoint.symm
+      PseudoGrid.rowPerfectPacking] using hdisjoint.symm
   have hpick_injective : Function.Injective pick := by
     intro i k hik
     by_contra hne
@@ -1387,16 +1411,24 @@ noncomputable def observation44InitialState
     exact P.matchedSourceIndex_injective Q hij
   retained_vertex_subset := by
     intro j
-    simpa [PseudoGrid.goodQPathPackingInHPrime,
-      PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer,
-      PseudoGrid.goodQPathPacking] using
-      Gamma.qPath_subset_matched j.1
+    have h1 : (Gamma.goodQPathPackingInHPrime.path j).vertexSet
+        = (Gamma.qPath j.1).vertexSet := by
+      show ((Gamma.goodQPathPacking.inSpanningGraph.path j).mapLe
+          Gamma.goodQPathPacking_spanningGraph_le_hPrimeGraph).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact PathPacking.inSpanningGraph_path_vertexSet Gamma.goodQPathPacking j
+    rw [h1]
+    exact Gamma.qPath_subset_matched j.1
   retained_edge_subset := by
     intro j
-    simpa [PseudoGrid.goodQPathPackingInHPrime,
-      PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer,
-      PseudoGrid.goodQPathPacking] using
-      Gamma.qPath_edgeSet_subset_matched j.1
+    have h1 : (Gamma.goodQPathPackingInHPrime.path j).edgeSet
+        = (Gamma.qPath j.1).edgeSet := by
+      show ((Gamma.goodQPathPacking.inSpanningGraph.path j).mapLe
+          Gamma.goodQPathPacking_spanningGraph_le_hPrimeGraph).edgeSet = _
+      rw [GraphPath.mapLe_edgeSet]
+      exact GraphPath.transfer_edgeSet _ _ _
+    rw [h1]
+    exact Gamma.qPath_edgeSet_subset_matched j.1
   minor := Gamma.hPrimeGraph_isMinor
   row_card := by
     calc
