@@ -123,7 +123,7 @@ theorem ofPathPacking_vertexCongestionAtMost_one (P : PathPacking G S T) :
         intro hj
         exact Finset.disjoint_left.mp (P.node_disjoint hji) hj hi
       simp [hnot]
-    · simp
+    · exact fun h => absurd (Finset.mem_univ i) h
   · rw [vertexLoad]
     simp only [ofPathPacking, GraphPath.orient_vertexSet]
     have hnot : ∀ j : P.Index, v ∉ (P.path j).vertexSet := by

@@ -191,7 +191,7 @@ noncomputable def balancedAnchorRouting
       routes := Pperfect
       routes_card := by
         simpa [Pperfect, PerfectPathPacking.card,
-          PathPacking.toPerfectOfCardEq, PathPacking.card,
+          PathPacking.toPerfectOfCardEq, PathPacking.card, PathPacking.orient,
           hUimageCard] using hPcardU
       routes_stay := by
         simpa [Pperfect, PathPacking.toPerfectOfCardEq] using
@@ -923,6 +923,8 @@ noncomputable def matchingBridgeBatch
   classical
   simp [matchingBridgeBatch, CleanBridgeBatch.card,
     maximumEndpointMatching]
+  convert Fintype.card_coe _
+  exact Fintype.card_congr (Equiv.refl _)
 
 /-- Tails ending on one fixed saturated hub, with membership retained in the
 type. -/
@@ -1141,7 +1143,7 @@ noncomputable def hubPairConnector
     (hubPairConnector B hanchor (F := F) c a).source =
       (F.data
         ((hubAttachmentPairing B hanchor (F := F) c).first a).1).path.source := by
-  simp [hubPairConnector]
+  rfl
 
 @[simp] theorem hubPairConnector_target
     (F := B.cleanTailBridgeFamily hanchor)
@@ -1150,7 +1152,7 @@ noncomputable def hubPairConnector
     (hubPairConnector B hanchor (F := F) c a).target =
       (F.data
         ((hubAttachmentPairing B hanchor (F := F) c).second a).1).path.source := by
-  simp [hubPairConnector]
+  rfl
 
 theorem hubPairConnector_vertexSet_subset
     (F := B.cleanTailBridgeFamily hanchor)

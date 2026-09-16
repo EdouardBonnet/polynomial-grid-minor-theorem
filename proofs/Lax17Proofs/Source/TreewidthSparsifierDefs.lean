@@ -300,7 +300,7 @@ theorem orientedBranchSet_connected
         rw [orientedBranchSet]
         exact Finset.mem_union_right _ <|
           Finset.mem_biUnion.mpr ⟨e, Finset.mem_univ e, by
-            simpa [hsource] using hz⟩
+            simpa [S, hsource] using hz⟩
       · have hpathSource :
             (M.edgePathInSupportGraph e).dropLast.source =
               M.branchVertex x := by
@@ -482,7 +482,7 @@ noncomputable def toMinorModelSupportGraph
     · rcases hbackward with ⟨hsource, htarget⟩
       rcases M.orientedBranchSet_adjacent e with
         ⟨u, hu, v, hv, huv⟩
-      refine ⟨v, ?_, u, ?_, M.supportGraph.symm huv⟩
+      refine ⟨v, ?_, u, ?_, huv.symm⟩
       · simpa [htarget] using hv
       · simpa [hsource] using hu
 

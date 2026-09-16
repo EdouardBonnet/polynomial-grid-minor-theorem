@@ -199,12 +199,12 @@ noncomputable def exists_additiveSliceCleanup
         2 * Dhat ≤
           ((Finset.univ : Finset Rbar.Index).bipartiteBelow rel q).card := by
     intro q hq
-    simpa [PathSlicing.segmentIntersectingLeftIndices, rel] using
+    simpa [PathSlicing.segmentIntersectingLeftIndices, rel, Finset.bipartiteBelow] using
       hdense q hq
   have hcard' :
       2 * (Finset.univ : Finset Rbar.Index).card * wHat ≤
         Dhat * (sigma.pathsInSlice Qbar i).card := by
-    simpa [PathPacking.card] using hcard
+    simpa [PerfectPathPacking.card] using hcard
   let hex :=
     FiniteBipartitePruning.PruneTrace.exists_intersecting_subsets_additive
       (rel := rel) (wHat := wHat) (Dhat := Dhat)
@@ -233,14 +233,14 @@ noncomputable def exists_additiveSliceCleanup
       additive_loss := hloss }
   · constructor
     · intro r hr
-      simpa [PathSlicing.segmentIntersectingRightIndices, paths, rel] using
-        hleft r hr
+      simpa [PathSlicing.segmentIntersectingRightIndices, paths, rel,
+        Finset.bipartiteAbove] using hleft r hr
     · intro q hq
-      simpa [PathSlicing.segmentIntersectingLeftIndices, rows, rel] using
-        hright q hq
+      simpa [PathSlicing.segmentIntersectingLeftIndices, rows, rel,
+        Finset.bipartiteBelow] using hright q hq
   · intro r hr
-    simpa [PathSlicing.segmentIntersectingRightIndices, paths, rel] using
-      hsparse r hr
+    simpa [PathSlicing.segmentIntersectingRightIndices, paths, rel,
+      Finset.bipartiteAbove] using hsparse r hr
 
 /-- A recursive layer contains actual cuts, a width certificate, the
 additive cleanup of every slice, and the original/contracted localization

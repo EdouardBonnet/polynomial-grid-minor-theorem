@@ -182,7 +182,7 @@ theorem crossingDarts_card_le_maxDegree_mul_of_snd_subset
     have hneigh :
         d.1.fst ∈ MaxDegreeAtMost.neighborFinset (G := G) hdegree d.1.snd := by
       rw [MaxDegreeAtMost.mem_neighborFinset]
-      exact G.symm d.1.2
+      exact d.1.2.symm
     refine Finset.mem_biUnion.2 ⟨d.1.snd, hsndX, ?_⟩
     exact Finset.mem_image.2 ⟨d.1.fst, hneigh, rfl⟩
   let charge' : {d : G.Dart // d ∈ crossingDarts (G := G) A B} →
@@ -240,7 +240,7 @@ theorem crossingDarts_card_add_le_maxDegree_mul_middle
         have hneigh :
             d.1.fst ∈ MaxDegreeAtMost.neighborFinset (G := G) hdegree d.1.snd := by
           rw [MaxDegreeAtMost.mem_neighborFinset]
-          exact G.symm d.1.2
+          exact d.1.2.symm
         refine Finset.mem_biUnion.2 ⟨d.1.snd, hd.2, ?_⟩
         exact Finset.mem_image.2 ⟨d.1.fst, hneigh, rfl⟩
     | inr d =>
@@ -709,6 +709,8 @@ theorem selectedCutArcs_eq_cut [DecidableRel G.Adj]
           (RoutingArc.network G S T alphaNum alphaDen).head a ∉ R) := by
   classical
   ext a
+  rw [Finset.mem_filter]
+  simp only [Finset.mem_univ, true_and]
   cases a with
   | source v =>
       simp [selectedCutArcs,
@@ -1512,8 +1514,7 @@ theorem hasDisjointSTPaths_of_scaledEdgeWellLinked
       norm_num [Nat.cast_mul]
       have hlt := mul_lt_mul_of_pos_right hXlt
         (by positivity : 0 < 1 + (Δ : ℝ) * ((alphaDen : ℝ) / alphaNum))
-      convert hlt using 1
-      ring_nf
+      exact lt_of_eq_of_lt (by ring) hlt
     have hk_bound :
         (k : ℝ) *
             (1 + (Δ : ℝ) *
@@ -1618,8 +1619,7 @@ theorem hasDisjointSTPaths_of_scaledEdgeWellLinked_disjoint
       norm_num [Nat.cast_mul]
       have hlt := mul_lt_mul_of_pos_right hXlt
         (by positivity : 0 < 1 + (Δ : ℝ) * ((alphaDen : ℝ) / alphaNum))
-      convert hlt using 1
-      ring_nf
+      exact lt_of_eq_of_lt (by ring) hlt
     have hk_bound :
         (k : ℝ) *
             (1 + (Δ : ℝ) *

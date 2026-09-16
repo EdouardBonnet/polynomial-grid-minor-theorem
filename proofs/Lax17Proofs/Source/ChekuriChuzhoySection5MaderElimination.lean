@@ -115,7 +115,7 @@ theorem every_edge_incident_terminal_maderSplit
         (H.maderSplit p).right e ∈ terminals := by
   intro e
   rcases e with old | new
-  · simpa only [maderSplit_old_left, maderSplit_old_right] using hedges old.1
+  · exact hedges old.1
   · exact Or.inl (p.firstOther_mem_terminal hedges hs)
 
 /-- Incidence at a different nonterminal is unchanged by a split. -/
@@ -153,8 +153,7 @@ noncomputable def maderSplitIncidentEquivAway
         rcases value with old | new
         · refine ⟨old.1, ?_⟩
           rw [H.mem_incidentEdges]
-          simpa only [maderSplit_old_left, maderSplit_old_right] using
-            ((H.maderSplit p).mem_incidentEdges w (Sum.inl old)).mp hvalue
+          exact ((H.maderSplit p).mem_incidentEdges w (Sum.inl old)).mp hvalue
         · have hinc := ((H.maderSplit p).mem_incidentEdges w
               (Sum.inr new)).mp hvalue
           simp only [maderSplit_new_left, maderSplit_new_right] at hinc
@@ -167,8 +166,7 @@ noncomputable def maderSplitIncidentEquivAway
           · intro heq
             exact hsecondNotInc (by simpa [heq] using e.2)⟩, by
         rw [(H.maderSplit p).mem_incidentEdges]
-        simpa only [maderSplit_old_left, maderSplit_old_right] using
-          (H.mem_incidentEdges w e.1).mp e.2⟩
+        exact (H.mem_incidentEdges w e.1).mp e.2⟩
       left_inv := by
         rintro ⟨old | new, he⟩
         · rfl
@@ -190,7 +188,7 @@ noncomputable def maderSplitIncidentEquivAway
   classical
   obtain ⟨value, hvalue⟩ := e
   rcases value with old | new
-  · rfl
+  · exact rfl
   · have hinc := ((H.maderSplit p).mem_incidentEdges w
         (Sum.inr new)).mp hvalue
     have hfirstOther := p.firstOther_mem_terminal hedges hs
@@ -210,7 +208,7 @@ noncomputable def maderSplitIncidentEquivAway
   classical
   obtain ⟨value, hvalue⟩ := e
   rcases value with old | new
-  · rfl
+  · exact rfl
   · have hinc := ((H.maderSplit p).mem_incidentEdges w
         (Sum.inr new)).mp hvalue
     have hfirstOther := p.firstOther_mem_terminal hedges hs
@@ -500,7 +498,7 @@ theorem exists_terminalMultigraphCore
       (2 * k) (by simp [U])
       (by
         intro e
-        simpa only [doubleEdges_left, doubleEdges_right] using hedges e.1)
+        exact hedges e.1)
       hconn.doubleEdges_terminals
       (by intro t ht; exact le_rfl)
       (by intro w hw; exact H.doubleEdges_degree_even w)

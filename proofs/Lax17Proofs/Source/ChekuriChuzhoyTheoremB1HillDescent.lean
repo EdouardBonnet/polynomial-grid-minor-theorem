@@ -128,7 +128,7 @@ theorem atom_edgeSet_disjoint_rowPath
         simpa [AuxiliaryCorridor.rowPath, hQsource] using
           inter_linkage_path_eq_singleton_source_of_internallyDisjointFromSet
             (L := L) Q hQclean
-            (by simpa [hQsource, lower] using D.lower_mem)
+            (by simpa [AuxiliaryCorridor.rowPath, hQsource, lower] using D.lower_mem)
             htargetNot
       exact graphPath_edgeSet_disjoint_of_inter_subset_singleton
         Q (C.rowPath lower) Q.source (by simpa [hinter])
@@ -146,7 +146,7 @@ theorem atom_edgeSet_disjoint_rowPath
           simpa [AuxiliaryCorridor.rowPath, hQtarget] using
             inter_linkage_path_eq_singleton_target_of_internallyDisjointFromSet
               (L := L) Q hQclean hsourceNot
-              (by simpa [hQtarget, upper] using D.upper_mem)
+              (by simpa [AuxiliaryCorridor.rowPath, hQtarget, upper] using D.upper_mem)
         exact graphPath_edgeSet_disjoint_of_inter_subset_singleton
           Q (C.rowPath upper) Q.target (by simpa [hinter])
       · have hsourceNot :
