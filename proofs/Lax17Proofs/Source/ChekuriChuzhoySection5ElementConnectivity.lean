@@ -101,10 +101,14 @@ theorem exists_contractFiberBridge (H : FiniteEdgeIndexedGraph W) (e0 : H.Edge)
   · exact (h (hx.trans hy.symm)).elim
   · subst x
     subst y
-    exact ⟨⟨.cons e0 (Or.inl ⟨rfl, rfl⟩) (.nil _), by simp⟩⟩
+    exact ⟨⟨.cons e0 (by
+      unfold FiniteEdgeIndexedGraph.Joins
+      exact Or.inl ⟨rfl, rfl⟩) (.nil _), by simp⟩⟩
   · subst x
     subst y
-    exact ⟨⟨.cons e0 (Or.inr ⟨rfl, rfl⟩) (.nil _), by simp⟩⟩
+    exact ⟨⟨.cons e0 (by
+      unfold FiniteEdgeIndexedGraph.Joins
+      exact Or.inr ⟨rfl, rfl⟩) (.nil _), by simp⟩⟩
   · exact (h (hx.trans hy.symm)).elim
 
 /-- Provenance for a contracted walk.  The lift traverses only origins of its
@@ -142,21 +146,25 @@ theorem exists_contractWalkProvenance (H : FiniteEdgeIndexedGraph W) (e0 : H.Edg
         edge_provenance := by simp }⟩
   | @cons a c b e he P ih =>
       rcases ih with ⟨D⟩
-      rcases he with he | he
+      have hjoins := he
+      unfold FiniteEdgeIndexedGraph.Joins at hjoins
+      rcases hjoins with hcase | hcase
       · have hbridge : ContractVertex.projection
             (p := H.left e0) (q := H.right e0) (H.right e.1) =
             ContractVertex.projection
               (p := H.left e0) (q := H.right e0) D.sourceOrigin := by
           calc
-            _ = c := by simpa using he.2
+            _ = c := by simpa using hcase.2
             _ = _ := D.source_projects.symm
         rcases exists_contractFiberBridge H e0 hbridge with ⟨B⟩
         exact ⟨{
           sourceOrigin := H.left e.1
           targetOrigin := D.targetOrigin
-          source_projects := by simpa using he.1
+          source_projects := by simpa using hcase.1
           target_projects := D.target_projects
-          lift := .cons e.1 (Or.inl ⟨rfl, rfl⟩) (B.walk.append D.lift)
+          lift := .cons e.1 (by
+            unfold FiniteEdgeIndexedGraph.Joins
+            exact Or.inl ⟨rfl, rfl⟩) (B.walk.append D.lift)
           edge_provenance := by
             intro f hf
             simp only [NamedEdgeWalk.edgeList_cons, NamedEdgeWalk.edgeList_append,
@@ -172,15 +180,17 @@ theorem exists_contractWalkProvenance (H : FiniteEdgeIndexedGraph W) (e0 : H.Edg
             ContractVertex.projection
               (p := H.left e0) (q := H.right e0) D.sourceOrigin := by
           calc
-            _ = c := by simpa using he.2
+            _ = c := by simpa using hcase.2
             _ = _ := D.source_projects.symm
         rcases exists_contractFiberBridge H e0 hbridge with ⟨B⟩
         exact ⟨{
           sourceOrigin := H.right e.1
           targetOrigin := D.targetOrigin
-          source_projects := by simpa using he.1
+          source_projects := by simpa using hcase.1
           target_projects := D.target_projects
-          lift := .cons e.1 (Or.inr ⟨rfl, rfl⟩) (B.walk.append D.lift)
+          lift := .cons e.1 (by
+            unfold FiniteEdgeIndexedGraph.Joins
+            exact Or.inr ⟨rfl, rfl⟩) (B.walk.append D.lift)
           edge_provenance := by
             intro f hf
             simp only [NamedEdgeWalk.edgeList_cons, NamedEdgeWalk.edgeList_append,
@@ -522,7 +532,8 @@ noncomputable def TerminalElementCut.liftContract
             (p := H.left e0) (q := H.right e0) (H.left e) ∉ C.side := by
           simpa using hcross.2
         exact hleft (heq.symm ▸ hright)
-    let f : (H.contractEdge e0).Edge := ⟨e, hsurvives⟩
+    let f : (H.contractEdge e0).Edge :=
+      H.contractEdgeOfSurvives e0 e hsurvives
     have hremoved : f ∈ C.removedEdges := C.crossing_removed f
       (by simpa [f] using hl) (by simpa [f] using hr)
       ((contractEdge_crosses_iff H e0 C.side f).mpr hcross)

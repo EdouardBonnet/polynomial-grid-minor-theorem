@@ -94,7 +94,7 @@ theorem source_ne_target
         (L.path C.lowerIndex).vertexSet
         (L.path C.upperIndex).vertexSet :=
     L.toPathPacking.node_disjoint C.lowerIndex_ne_upperIndex
-  exact Finset.disjoint_left.mp hdisj hsource (by simpa [h] using htarget)
+  exact Finset.disjoint_left.mp hdisj hsource (by rw [h]; exact htarget)
 
 /-- Every endpoint-padded linkage contact of an outside-avoiding path belongs
 to a unique corridor row. -/

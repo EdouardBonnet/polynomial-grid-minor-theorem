@@ -858,7 +858,7 @@ noncomputable def replacedFamily
       have hj : j ≠ selected := by
         intro h
         exact hij h.symm
-      simpa [replaceFullColumn, hj] using
+      simpa [replaceFullColumn, hj, replacementPath] using
         H.toFullColumnHillInput.replacementPath_nodeDisjoint_other j hj
     · by_cases hj : j = selected
       · subst j
@@ -873,15 +873,15 @@ noncomputable def replacedFamily
     intro i
     by_cases hi : i = selected
     · subst i
-      simpa [replacementPath] using
-        H.toFullColumnHillInput.replacementPath_lowerBoundary_contact
+      simp only [replaceFullColumn_selected]
+      exact H.toFullColumnHillInput.replacementPath_lowerBoundary_contact
     · simpa [replaceFullColumn, hi] using F.lower_contact i
   upper_contact := by
     intro i
     by_cases hi : i = selected
     · subst i
-      simpa [replacementPath] using
-        H.toFullColumnHillInput.replacementPath_upperBoundary_contact
+      simp only [replaceFullColumn_selected]
+      exact H.toFullColumnHillInput.replacementPath_upperBoundary_contact
     · simpa [replaceFullColumn, hi] using F.upper_contact i
   avoidsOutside := by
     intro i

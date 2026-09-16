@@ -21,9 +21,9 @@ endpoints in `C`.  Vertices outside `C` are present but isolated. -/
 def inducedOnFinset {V : Type*} (G : _root_.SimpleGraph V) (C : Finset V) :
     _root_.SimpleGraph V where
   Adj u v := G.Adj u v ∧ u ∈ C ∧ v ∈ C
-  symm := by
+  symm := ⟨by
     intro u v huv
-    exact ⟨G.symm huv.1, huv.2.2, huv.2.1⟩
+    exact ⟨G.symm.symm u v huv.1, huv.2.2, huv.2.1⟩⟩
   loopless := ⟨by
     intro v hv
     exact G.loopless.irrefl v hv.1⟩
@@ -61,7 +61,9 @@ def toInducedOnFinset {V : Type*} {G : _root_.SimpleGraph V} {C : Finset V}
       (toInducedOnFinset (G := G) (C := C) p hp).support = p.support
   | .nil, _ => rfl
   | .cons _ p, hp => by
-      simp [toInducedOnFinset, support_toInducedOnFinset]
+      change _ :: (toInducedOnFinset p _).support = _ :: p.support
+      congr 1
+      exact support_toInducedOnFinset p _
 
 @[simp] theorem edges_toInducedOnFinset {V : Type*}
     {G : _root_.SimpleGraph V} {C : Finset V} {u v : V} :
@@ -69,7 +71,9 @@ def toInducedOnFinset {V : Type*} {G : _root_.SimpleGraph V} {C : Finset V}
       (toInducedOnFinset (G := G) (C := C) p hp).edges = p.edges
   | .nil, _ => rfl
   | .cons _ p, hp => by
-      simp [toInducedOnFinset, edges_toInducedOnFinset]
+      change _ :: (toInducedOnFinset p _).edges = _ :: p.edges
+      congr 1
+      exact edges_toInducedOnFinset p _
 
 end Walk
 
@@ -139,7 +143,8 @@ theorem inInducedOnFinset_staysIn (P : PathPacking G S T)
     {C : Finset V} (hP : P.StaysIn C) :
     (P.inInducedOnFinset hP).StaysIn C := by
   intro i
-  simpa [inInducedOnFinset_path_vertexSet] using hP i
+  rw [P.inInducedOnFinset_path_vertexSet hP i]
+  exact hP i
 
 end PathPacking
 
@@ -178,7 +183,8 @@ theorem inInducedOnFinset_staysIn (P : PerfectPathPacking G S T)
     {C : Finset V} (hP : P.toPathPacking.StaysIn C) :
     (P.inInducedOnFinset hP).toPathPacking.StaysIn C := by
   intro i
-  simpa [inInducedOnFinset_path_vertexSet] using hP i
+  rw [P.inInducedOnFinset_path_vertexSet hP i]
+  exact hP i
 
 end PerfectPathPacking
 
@@ -294,7 +300,7 @@ theorem clusterWithPackingGraph_adj_right_mem_vertexSet
     v ∈ clusterWithPackingVertexSet C P := by
   classical
   exact clusterWithPackingGraph_adj_left_mem_vertexSet P
-    ((clusterWithPackingGraph G C S T P).symm huv)
+    ((clusterWithPackingGraph G C S T P).symm.symm u v huv)
 
 namespace Walk
 
@@ -374,7 +380,8 @@ theorem inClusterWithPackingGraph_staysIn
     (P : PathPacking G S T) :
     (Q.inClusterWithPackingGraph hQ P).StaysIn C := by
   intro i
-  simpa [inClusterWithPackingGraph_path_vertexSet] using hQ i
+  rw [Q.inClusterWithPackingGraph_path_vertexSet hQ P i]
+  exact hQ i
 
 /-- The distinguished packing used to build a local cluster-plus-packing graph
 is itself available inside that local graph. -/
@@ -431,7 +438,8 @@ theorem inClusterWithPackingGraph_staysIn
     (P : PathPacking G S T) :
     (Q.inClusterWithPackingGraph hQ P).toPathPacking.StaysIn C := by
   intro i
-  simpa [inClusterWithPackingGraph_path_vertexSet] using hQ i
+  rw [Q.inClusterWithPackingGraph_path_vertexSet hQ P i]
+  exact hQ i
 
 /-- The distinguished perfect packing used to build a local
 cluster-plus-packing graph is itself available inside that local graph. -/

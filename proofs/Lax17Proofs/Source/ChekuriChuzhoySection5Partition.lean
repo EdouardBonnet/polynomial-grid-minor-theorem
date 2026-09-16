@@ -235,7 +235,7 @@ theorem violating_right_boundary_le
       (Section44.clusterBoundary G C).card := by
   have h := violating_left_boundary_le
     (G := G) hD cut.swap
-  simpa [Section44.edgeBoundary_comm] using h
+  exact h
 
 /-- Edgewise core of the source-potential split calculation, oriented so
 that the left inherited boundary pays the cut charge. -/
@@ -594,7 +594,7 @@ theorem splitClustering_potential_le_small
           (inheritedBoundary G cut.X cut.Y).card := by omega
     have h :=
       splitClustering_potential_le_of_left_small
-        (G := G) P hC hD hupper cut.swap (by simpa using hright) hsmall
+        (G := G) P hC hD hupper cut.swap hright hsmall
     simpa [splitClustering_swap (G := G) P cut] using h
 
 /-- The oriented potential calculation for PARTITION in Claim 5.6. -/
@@ -667,7 +667,7 @@ theorem splitClustering_potential_le_large
     have h :=
       splitClustering_potential_le_of_left_large
         (G := G) P hC hD hupper cut.swap
-          (by simpa using hright) hlarge
+          hright hlarge
     simpa [splitClustering_swap (G := G) P cut] using h
 
 /-! ## Recursive completion of Theorem 5.5 -/

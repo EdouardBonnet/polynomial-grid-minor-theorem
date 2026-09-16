@@ -138,7 +138,10 @@ theorem section45Input_of_pseudoGrid_depth64
         (Section45.Section45Input J R.card M Dhat ell) :=
     cores.section45Input_of_slicedHappyCores
       hintersects hell hscale
-        (by simpa [params, ell] using params.theorem415_rows)
+        (by
+          have h := params.theorem415_rows
+          rw [params.weakWidth_eq] at h
+          simpa [ell] using h)
         (by
           have h := params.theorem415_square
           rw [params.weakWidth_eq, params.retainedDepth_eq] at h

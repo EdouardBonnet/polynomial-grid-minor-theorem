@@ -69,11 +69,11 @@ vertex.  The polynomial grid-minor theorem is stated only for `2 <= g`.
 -/
 def gridGraph (g : ℕ) : _root_.SimpleGraph (GridVertex g) where
   Adj := GridAdj
-  symm := by
+  symm := ⟨by
     intro u v h
     rcases h with ⟨hrow, hcol⟩ | ⟨hcol, hrow⟩
     · exact Or.inl ⟨hrow.symm, hcol.symm⟩
-    · exact Or.inr ⟨hcol.symm, hrow.symm⟩
+    · exact Or.inr ⟨hcol.symm, hrow.symm⟩⟩
   loopless := ⟨by
     intro u h
     rcases h with ⟨_hrow, hcol⟩ | ⟨_hcol, hrow⟩

@@ -300,7 +300,7 @@ theorem charged_upper
       simp [ChargedAux, Finset.bipartiteAbove]
   | deleteLeft x hx hbad tail ih =>
       intro a ha
-      simpa [ChargedAux] using
+      exact
         ih (insert x P)
           (by
             intro a ha
@@ -444,7 +444,8 @@ theorem charged_lower
             · exact Finset.mem_union.2
                 (Or.inr (Finset.mem_sdiff.2
                   ⟨Finset.mem_erase.2 ⟨hax, haA⟩, haAf⟩))
-      simpa [ChargedAux, hLeftEq] using htail
+      rw [hLeftEq] at htail
+      exact htail
   | deleteRight hleft y hy hbad tail ih =>
       rename_i Acur Afinalcur Bcur Bfinalcur
       have hdenseTail :
@@ -679,7 +680,7 @@ theorem exists_intersecting_path_subfamilies
       ∀ q ∈ Qset,
         2 * D ≤ (Rset.bipartiteBelow rel q).card := by
     intro q hq
-    simpa [intersectingLeftIndices, rel] using hdense q hq
+    simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hdense q hq
   rcases
     FiniteBipartitePruning.PruneTrace.exists_intersecting_subsets
       (rel := rel) (w := w) (D := D) Rset Qset hD hdense' hcard
@@ -687,11 +688,11 @@ theorem exists_intersecting_path_subfamilies
   refine ⟨R', Q', hRsub, hQsub, ?_, hhalf, ?_⟩
   · constructor
     · intro r hr
-      simpa [intersectingRightIndices, rel] using hleft r hr
+      simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hleft r hr
     · intro q hq
-      simpa [intersectingLeftIndices, rel] using hright q hq
+      simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hright q hq
   · intro r hr
-    simpa [intersectingRightIndices, rel] using hdeleted r hr
+    simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hdeleted r hr
 
 end PathPacking
 
@@ -949,7 +950,7 @@ noncomputable def exists_slice_intersecting_subfamilies
       ∀ q ∈ sigma.pathsInSlice Qpack i,
         2 * D ≤ ((Finset.univ : Finset R.Index).bipartiteBelow rel q).card := by
     intro q hq
-    simpa [segmentIntersectingLeftIndices, rel] using hdense q hq
+    simpa [segmentIntersectingLeftIndices, rel, Finset.bipartiteBelow] using hdense q hq
   let hex :=
     FiniteBipartitePruning.PruneTrace.exists_intersecting_subsets
       (rel := rel) (w := w) (D := D)
@@ -977,14 +978,14 @@ noncomputable def exists_slice_intersecting_subfamilies
       sigma.SliceIntersectingPathSetPair Qpack i rows paths w D := by
     constructor
     · intro r hr
-      simpa [segmentIntersectingRightIndices, rel] using hleft r hr
+      simpa [segmentIntersectingRightIndices, rel, Finset.bipartiteAbove] using hleft r hr
     · intro q hq
-      simpa [segmentIntersectingLeftIndices, rel] using hright q hq
+      simpa [segmentIntersectingLeftIndices, rel, Finset.bipartiteBelow] using hright q hq
   have hsparse' :
       ∀ r ∈ (Finset.univ : Finset R.Index) \ rows,
         (sigma.segmentIntersectingRightIndices Qpack i paths r).card ≤ w := by
     intro r hr
-    simpa [segmentIntersectingRightIndices, rel] using hsparse r hr
+    simpa [segmentIntersectingRightIndices, rel, Finset.bipartiteAbove] using hsparse r hr
   exact
     { rows := rows
       paths := paths
@@ -1011,7 +1012,8 @@ theorem SliceIntersectingSubfamilies.actual_intersecting
     apply h.trans_eq
     congr 1
     ext q
-    rw [sigma.mem_segmentIntersectingRightIndices]
+    refine Iff.trans
+      (sigma.mem_segmentIntersectingRightIndices Qpack i Output.paths r q) ?_
     rw [PathPacking.mem_intersectingRightIndices]
     constructor
     · rintro ⟨hq, hrel⟩
@@ -1030,7 +1032,8 @@ theorem SliceIntersectingSubfamilies.actual_intersecting
     apply h.trans_eq
     congr 1
     ext r
-    rw [sigma.mem_segmentIntersectingLeftIndices]
+    refine Iff.trans
+      (sigma.mem_segmentIntersectingLeftIndices Qpack i Output.rows q r) ?_
     constructor
     · rintro ⟨hr, hrel⟩
       apply

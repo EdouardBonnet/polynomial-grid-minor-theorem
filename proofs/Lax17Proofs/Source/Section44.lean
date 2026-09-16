@@ -62,7 +62,7 @@ theorem mono_graph {G' : _root_.SimpleGraph V}
   · intro A B hA hB hdisj
     rcases h.2 hA hB hdisj with ⟨P, hcard, hstay⟩
     refine ⟨P.mapLe hGG', ?_, ?_⟩
-    · simpa using hcard
+    · exact hcard
     · intro i
       change ((P.path i).mapLe hGG').vertexSet ⊆ C
       simpa using hstay i
@@ -393,7 +393,10 @@ theorem vertexSet_subset_of_vertex_mem_and_edgeSet_disjoint_boundary
         have hmemTail :
             y ∈ (P.takeUntil hxP).walk.support ∨
               y ∈ (P.dropUntil hxP).walk.support.tail := by
-          simpa [_root_.SimpleGraph.Walk.support_append] using hsupport
+          have heq := _root_.SimpleGraph.Walk.support_append
+            (P.takeUntil hxP).walk (P.dropUntil hxP).walk
+          exact List.mem_append.mp
+            ((congrArg (fun l : List V => y ∈ l) heq).mp hsupport)
         exact hmemTail.elim Or.inl
           (fun htail => Or.inr (List.mem_of_mem_tail htail))
       rcases hmem with hyTake | hyDrop'
@@ -568,7 +571,10 @@ theorem vertexSet_subset_left_of_subset_union_and_edgeSet_disjoint_boundary
         have hmemTail :
             y ∈ (P.takeUntil hxP).walk.support ∨
               y ∈ (P.dropUntil hxP).walk.support.tail := by
-          simpa [_root_.SimpleGraph.Walk.support_append] using hsupport
+          have heq := _root_.SimpleGraph.Walk.support_append
+            (P.takeUntil hxP).walk (P.dropUntil hxP).walk
+          exact List.mem_append.mp
+            ((congrArg (fun l : List V => y ∈ l) heq).mp hsupport)
         exact hmemTail.elim Or.inl
           (fun htail => Or.inr (List.mem_of_mem_tail htail))
       rcases hmem with hyTake | hyDrop'
@@ -723,7 +729,7 @@ theorem endpoint_left_card_le_boundary_edges_of_not_subset_left
             rcases (P.cleanPrefixToSet_internallyDisjointFromSet Y hYnonempty)
                 hQpen_mem hpenY with hsrc | htgt
             · exact Finset.disjoint_left.mp hXY hQsourceX
-                (by simpa [hsrc] using hpenY)
+                (by rw [← hsrc]; exact hpenY)
             · exact hQpen_ne_target htgt)
       let e₁ : Sym2 V := s(Q.penultimate, Q.target)
       have he₁Q : e₁ ∈ Q.edgeSet := by
@@ -764,7 +770,7 @@ theorem endpoint_left_card_le_boundary_edges_of_not_subset_left
             hRsnd_mem hsndY with hsrc | htgt
           · exact False.elim (hRsnd_ne_source hsrc)
           · exact False.elim
-              (Finset.disjoint_left.mp hXY hRtargetX (by simpa [htgt] using hsndY))
+              (Finset.disjoint_left.mp hXY hRtargetX (by rw [← htgt]; exact hsndY))
       let e₂ : Sym2 V := s(R.walk.snd, R.source)
       have he₂R : e₂ ∈ R.edgeSet := by
         have hfirst : s(R.source, R.walk.snd) ∈ R.edgeSet :=
@@ -2771,7 +2777,7 @@ theorem clusterCount_mul_D_le_two_card_of_half_small
       (∑ c ∈ small, (contained c).card) ≤ I.card := by
     have hcardU : U.card = ∑ c ∈ small, (contained c).card := by
       dsimp [U]
-      rw [Finset.card_disjiUnion]
+      exact Finset.card_disjiUnion _ _ _
     exact hcardU.ge.trans (Finset.card_le_card hUsub)
   have hsmallD_le_I : small.card * Dhat ≤ I.card :=
     hsmall_lower.trans hsum_le_I
@@ -2952,11 +2958,11 @@ theorem surviving_card_le_two_retainedInHappyClusters_card
   have hUhappy_card :
       Uhappy.card = ∑ c ∈ happy, (contained c).card := by
     dsimp [Uhappy]
-    rw [Finset.card_disjiUnion]
+    exact Finset.card_disjiUnion _ _ _
   have hUunhappy_card :
       Uunhappy.card = ∑ c ∈ unhappy, (contained c).card := by
     dsimp [Uunhappy]
-    rw [Finset.card_disjiUnion]
+    exact Finset.card_disjiUnion _ _ _
   have hhappy_lower :
       happy.card * Dhat ≤ Uhappy.card := by
     rw [hUhappy_card]

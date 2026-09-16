@@ -39,8 +39,11 @@ def rhoScale : ℕ :=
 def cSplit : ℕ := 256 * rhoScale
 
 theorem cSplit_pos : 0 < cSplit := by
-  simp [cSplit, rhoScale, connectorScale,
-    AppendixA3Lemma75.finalAlphaDen]
+  have hD : 0 < AppendixA3Lemma75.finalAlphaDen := by
+    unfold AppendixA3Lemma75.finalAlphaDen
+    positivity
+  unfold cSplit rhoScale connectorScale
+  positivity
 
 private theorem connector_first_boost_floor (w : ℕ) :
     (3 * (connectorScale * w)) / (10 * 3 * 33) =
@@ -131,8 +134,13 @@ theorem exists_clusterSplitData
         72 *
           (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) *
             z := by
-    dsimp [rho, z]
-    rw [rhoScale]
+    have hrhoScaleEq :
+        rhoScale =
+          72 * (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) *
+            connectorScale := rfl
+    show rhoScale * w =
+        72 * (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) * (connectorScale * w)
+    rw [hrhoScaleEq]
     ring
   have hkappaPos : 0 < kappa := by
     simp [kappa, cSplit_pos, hw]
@@ -359,11 +367,29 @@ theorem exists_clusterSplitData
     · simpa [T] using hXmass
   have hfreshScale :
       2 * (65340 * w + 198 * w) ≤ kappa := by
-    dsimp [kappa]
-    rw [cSplit, rhoScale, connectorScale]
-    have hD : 0 < AppendixA3Lemma75.finalAlphaDen := by
-      simp [AppendixA3Lemma75.finalAlphaDen]
-    nlinarith
+    have hcSplitEq : cSplit = 256 * rhoScale := rfl
+    have hrhoScaleEq :
+        rhoScale =
+          72 * (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) *
+            connectorScale := rfl
+    have hconnectorScaleEq :
+        connectorScale = 653400 * AppendixA3Lemma75.finalAlphaDen := rfl
+    have hD0 : 0 < AppendixA3Lemma75.finalAlphaDen := by
+      unfold AppendixA3Lemma75.finalAlphaDen
+      positivity
+    have hD : 1 ≤ AppendixA3Lemma75.finalAlphaDen := hD0
+    have hconst :
+        131076 ≤
+          256 *
+            (72 * (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) *
+              (653400 * AppendixA3Lemma75.finalAlphaDen)) := by
+      nlinarith [hD]
+    show 2 * (65340 * w + 198 * w) ≤ cSplit * w
+    rw [hcSplitEq, hrhoScaleEq, hconnectorScaleEq]
+    calc 2 * (65340 * w + 198 * w) = 131076 * w := by ring
+      _ ≤ 256 * (72 * (48600 * AppendixA3Lemma75.finalAlphaDen + 2700) *
+              (653400 * AppendixA3Lemma75.finalAlphaDen)) * w :=
+          Nat.mul_le_mul_right w hconst
   have hleftRawLarge :
       65340 * w ≤ ((X ∩ A) \ xBig).card := by
     have hinter :

@@ -548,11 +548,10 @@ private theorem hasDisjoint_of_synchronized_to_boundary
     intro i
     have hQperfectStay :
         Qperfect.toPathPacking.StaysIn C := by
-      simpa [Qperfect] using PathPacking.orient_staysIn hQstay
+      exact PathPacking.orient_staysIn hQstay
     have hQrevStay : Qrev.toPathPacking.StaysIn C :=
       PerfectPathPacking.reverse_staysIn Qperfect hQperfectStay
-    simpa [Qaligned, Qsync, tokenEquiv] using
-      hQrevStay (tokenEquiv i)
+    exact hQrevStay (tokenEquiv i)
   have hRstay : ∀ i : ι, (Rg.path i).vertexSet ⊆ C := by
     intro i
     let PH := (R.path i).mapLe hHC

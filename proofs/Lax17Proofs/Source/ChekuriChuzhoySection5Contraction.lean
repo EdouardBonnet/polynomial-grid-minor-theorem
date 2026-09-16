@@ -262,6 +262,17 @@ noncomputable def contractEdge (H : FiniteEdgeIndexedGraph W) (e0 : H.Edge) :
         (p := H.left e0) (q := H.right e0) (H.right e.1)
       end_ne := fun e => e.2 }
 
+/-- Regard a surviving original edge as an edge of the contracted graph. -/
+noncomputable def contractEdgeOfSurvives (H : FiniteEdgeIndexedGraph W)
+    (e0 e : H.Edge) (he : H.SurvivesContraction e0 e) :
+    (H.contractEdge e0).Edge := by
+  change {e : H.Edge // H.SurvivesContraction e0 e}
+  exact ⟨e, he⟩
+
+@[simp] theorem contractEdgeOfSurvives_val (H : FiniteEdgeIndexedGraph W)
+    (e0 e : H.Edge) (he : H.SurvivesContraction e0 e) :
+    (H.contractEdgeOfSurvives e0 e he).1 = e := rfl
+
 @[simp] theorem contractEdge_left (H : FiniteEdgeIndexedGraph W) (e0 : H.Edge)
     (e : (H.contractEdge e0).Edge) :
     (H.contractEdge e0).left e = ContractVertex.projection
@@ -328,8 +339,9 @@ noncomputable def contractEdgeIncidentEquiv
       exact ContractVertex.eq_of_projection_eq_of_right_not_endpoint h
         (fun hte => hp (hte ▸ ht)) (fun hte => hq (hte ▸ ht))⟩
   invFun e :=
-    ⟨⟨e.1, survivesContraction_of_incident_terminal H e0 e.1 ht hp hq
-      ((H.mem_incidentEdges t e.1).mp e.2)⟩, by
+    ⟨H.contractEdgeOfSurvives e0 e.1
+      (survivesContraction_of_incident_terminal H e0 e.1 ht hp hq
+        ((H.mem_incidentEdges t e.1).mp e.2)), by
       rw [(H.contractEdge e0).mem_incidentEdges]
       rcases (H.mem_incidentEdges t e.1).mp e.2 with h | h
       · exact Or.inl (congrArg (ContractVertex.projection

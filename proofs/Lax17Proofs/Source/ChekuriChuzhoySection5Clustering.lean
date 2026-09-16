@@ -104,6 +104,7 @@ theorem mem_crossBlockOriginalEdges
   classical
   simp [mem_crossBlockOriginalEdges, _root_.SimpleGraph.mem_edgeSet]
 
+open Classical in
 theorem crossBlockOriginalEdges_subset_edgeFinset (P : VertexClustering V) :
     crossBlockOriginalEdges G P ⊆ G.edgeFinset := by
   classical
@@ -433,6 +434,7 @@ theorem edgePotential_le_of_crosses
         omega
       · simpa using h
 
+open Classical in
 /-- Sum of edge potentials over the finite original edge set. -/
 noncomputable def clusteringPotential
     (G : _root_.SimpleGraph V) (P : VertexClustering V)
@@ -489,6 +491,7 @@ theorem clusteringPotential_le_crossBlockOriginalEdges_card_mul
     _ = (crossBlockOriginalEdges G P).card *
         (base + 2 * schedule.bound) := by simp
 
+open Classical in
 theorem clusteringPotential_le_edgeFinset_card_mul
     (P : VertexClustering V) (base : ℕ) (schedule : ContributionSchedule) :
     clusteringPotential G P base schedule ≤

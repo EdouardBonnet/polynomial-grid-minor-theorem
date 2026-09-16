@@ -97,6 +97,26 @@ def pathToSource {V : Type u} {G : SimpleGraph V}
     (pathToSource P).edgeSet = P.edges :=
   rfl
 
+@[simp] private theorem pathToPublic_source {V : Type u}
+    {G : SimpleGraph V} (P : Lax17Proofs.SimpleGraph.GraphPath G) :
+    (pathToPublic P).source = P.source :=
+  rfl
+
+@[simp] private theorem pathToPublic_target {V : Type u}
+    {G : SimpleGraph V} (P : Lax17Proofs.SimpleGraph.GraphPath G) :
+    (pathToPublic P).target = P.target :=
+  rfl
+
+@[simp] private theorem pathToSource_source {V : Type u}
+    {G : SimpleGraph V} (P : Lax17.Paths.Path G) :
+    (pathToSource P).source = P.source :=
+  rfl
+
+@[simp] private theorem pathToSource_target {V : Type u}
+    {G : SimpleGraph V} (P : Lax17.Paths.Path G) :
+    (pathToSource P).target = P.target :=
+  rfl
+
 /-- Reindex and orient an internal node-disjoint packing as a public
 fixed-cardinality linkage. -/
 noncomputable def pathPackingToPublic
@@ -142,7 +162,8 @@ theorem pathPackingToPublic_internallyAvoids
     (Lax17Proofs.SimpleGraph.GraphPath.orient_isEndpoint
       (P.path (e i)) (P.connects (e i))).2
         (havoid (e i) (by simpa [pathPackingToPublic, e] using hv) hC)
-  simpa [pathPackingToPublic, e, Lax17.Paths.Path.InternallyAvoids,
+  simpa [pathPackingToPublic, pathToPublic, e,
+    Lax17.Paths.Path.InternallyAvoids,
     Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using hendpoint
 
 /-- Pairwise source bridges survive the finite reindexing used by the public
@@ -163,10 +184,14 @@ theorem pathPackingToPublic_hasPairwiseBridgesIn
   refine ⟨{
     path := pathToPublic β.orientedPath
     source_on_first := by
-      simpa [pathPackingToPublic, e] using
+      have hsrc :
+          (pathToPublic β.orientedPath).source = β.orientedPath.source := rfl
+      simpa [pathPackingToPublic, e, hsrc] using
         β.orientedPath_source_mem_left
     target_on_second := by
-      simpa [pathPackingToPublic, e] using
+      have htgt :
+          (pathToPublic β.orientedPath).target = β.orientedPath.target := rfl
+      simpa [pathPackingToPublic, e, htgt] using
         β.orientedPath_target_mem_right
     internally_avoids_rows := ?_ }, ?_⟩
   · intro r v hv hrow
@@ -180,7 +205,7 @@ theorem pathPackingToPublic_hasPairwiseBridgesIn
       (P.mem_vertexSet).2 ⟨e r, hrowSource⟩
     have hendpoint :=
       β.orientedPath_internallyDisjoint hvSource hpacking
-    simpa [Lax17.Paths.Path.InternallyAvoids,
+    simpa [pathToPublic, Lax17.Paths.Path.InternallyAvoids,
       Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using hendpoint
   · simpa [Lax17.Paths.Path.StaysIn] using hβstay
 
@@ -254,8 +279,7 @@ theorem vertexLinkageToSource_staysIn
     (hstay : ∀ i : Fin k, (P.path i).StaysIn C) :
     (vertexLinkageToSource P).StaysIn C := by
   intro i
-  simpa [vertexLinkageToSource, pathToSource,
-    Lax17.Paths.Path.StaysIn] using hstay i
+  exact hstay i
 
 /-- Public internal avoidance becomes internal avoidance for the corresponding
 finite path packing. -/
@@ -287,11 +311,9 @@ theorem vertexLinkageToSource_hasPairwiseBridgesIn
     Lax17Proofs.SimpleGraph.PathPacking.BridgeBetween.of_orientedPath
       (vertexLinkageToSource P) R
         (by
-          simpa [R, vertexLinkageToSource, pathToSource] using
-            β.source_on_first)
+          exact β.source_on_first)
         (by
-          simpa [R, vertexLinkageToSource, pathToSource] using
-            β.target_on_second)
+          exact β.target_on_second)
         (by
           intro v hv hpacking
           rcases
@@ -299,13 +321,11 @@ theorem vertexLinkageToSource_hasPairwiseBridgesIn
             ⟨r, hr⟩
           have hendpoint :=
             β.internally_avoids_rows r v
-              (by simpa [R, pathToSource] using hv)
-              (by simpa [vertexLinkageToSource, pathToSource] using hr)
+              hv hr
           simpa [R, pathToSource,
             Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using hendpoint)
   refine ⟨βsource, ?_⟩
-  simpa [βsource, R, pathToSource,
-    Lax17.Paths.Path.StaysIn] using hβstay
+  exact hβstay
 
 @[simp] theorem edgeLinkageToSource_card
     {V : Type u} [DecidableEq V] {G : SimpleGraph V}
@@ -335,7 +355,10 @@ noncomputable def vertexLinkageToPerfectSource
   change
     (((vertexLinkageToSource P).orient.path i).vertexSet =
       (P.path i).vertices)
-  rw [Lax17Proofs.SimpleGraph.PathPacking.orient_path_vertexSet]
+  have hv :=
+    Lax17Proofs.SimpleGraph.PathPacking.orient_path_vertexSet
+      (vertexLinkageToSource P) i
+  rw [hv]
   rfl
 
 /-- Internal and public node-well-linkedness are equivalent. -/
@@ -359,7 +382,7 @@ theorem nodeWellLinkedIn_iff
     rcases hlinked hA hB hAB with ⟨P, hstay⟩
     refine ⟨vertexLinkageToSource P, by simp, ?_⟩
     intro i
-    simpa [vertexLinkageToSource] using hstay i
+    exact hstay i
 
 /-- Internal and public node-linkedness are equivalent. -/
 theorem nodeLinkedIn_iff
@@ -382,7 +405,7 @@ theorem nodeLinkedIn_iff
     rcases hlinked hA hB with ⟨P, hstay⟩
     refine ⟨vertexLinkageToSource P, by simp, ?_⟩
     intro i
-    simpa [vertexLinkageToSource] using hstay i
+    exact hstay i
 
 /-- Internal and public edge-well-linkedness are equivalent. -/
 theorem edgeWellLinkedIn_iff
@@ -405,7 +428,7 @@ theorem edgeWellLinkedIn_iff
     rcases hlinked hA hB hAB with ⟨P, hstay⟩
     refine ⟨edgeLinkageToSource P, by simp, ?_⟩
     intro i
-    simpa [edgeLinkageToSource] using hstay i
+    exact hstay i
 
 /-- Translate the clean public strong path-of-sets structure to the structure
 used by the detailed proof. -/
@@ -435,6 +458,9 @@ noncomputable def strongPathOfSetsToSource
       connector_internally_disjoint_clusters := by
         intro i hi j a
         have hst := (P.connector i hi).connects a
+        have hconn :
+            ((vertexLinkageToSource (P.connector i hi)).path a).InternallyDisjointFromSet
+              (P.cluster j) := P.connector_avoids_clusters i hi j a
         change
           ((vertexLinkageToSource (P.connector i hi)).path a).source ∈
               P.right i ∧
@@ -448,14 +474,18 @@ noncomputable def strongPathOfSetsToSource
           Lax17Proofs.SimpleGraph.GraphPath.InternallyDisjointFromSet,
           Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint,
           Lax17.Paths.Path.InternallyAvoids] using
-            P.connector_avoids_clusters i hi j a
+            hconn
       connector_mutually_nodeDisjoint := by
         intro i j hi hj hij a b
+        have hdisj :
+            ((vertexLinkageToSource (P.connector i hi)).path a).NodeDisjoint
+              ((vertexLinkageToSource (P.connector j hj)).path b) :=
+          P.connectors_disjoint hi hj hij a b
         simpa [vertexLinkageToPerfectSource,
           Lax17Proofs.SimpleGraph.PathPacking.toPerfectOfCardEq,
           Lax17Proofs.SimpleGraph.PathPacking.orient,
           Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
-            P.connectors_disjoint hi hj hij a b }
+            hdisj }
   left_nodeWellLinked i :=
     (nodeWellLinkedIn_iff G (P.cluster i) (P.left i)).mpr
       (P.left_well_linked i)
@@ -499,11 +529,11 @@ noncomputable def strongPathOfSetsToPublic
           Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
             P.connector_mutually_nodeDisjoint hi hj hij
               ((Fintype.equivOfCardEq (by
-                simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-                  (P.connector_card i hi).symm)) a)
+                rw [Fintype.card_fin]
+                exact (P.connector_card i hi).symm)) a)
               ((Fintype.equivOfCardEq (by
-                simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-                  (P.connector_card j hj).symm)) b) }
+                rw [Fintype.card_fin]
+                exact (P.connector_card j hj).symm)) b) }
   left_well_linked i :=
     (nodeWellLinkedIn_iff G (P.cluster i) (P.left i)).mp
       (P.left_nodeWellLinked i)
@@ -536,18 +566,21 @@ noncomputable def strongTreeOfSetsToSource
       connector := fun i j hij =>
         vertexLinkageToPerfectSource (T.connector i j hij)
           (T.interface_card i j hij)
-          (T.interface_card j i (T.metaTree.symm hij))
+          (T.interface_card j i (T.metaTree.symm.symm _ _ hij))
       connector_card := by
         intro i j hij
         exact Fintype.card_fin w
       connector_internally_disjoint_clusters := by
         intro i j hij r a
         have hst := (T.connector i j hij).connects a
+        have hconnT :
+            ((vertexLinkageToSource (T.connector i j hij)).path a).InternallyDisjointFromSet
+              (T.cluster r) := T.connector_avoids_clusters i j hij r a
         change
           ((vertexLinkageToSource (T.connector i j hij)).path a).source ∈
               T.interface i j hij ∧
             ((vertexLinkageToSource (T.connector i j hij)).path a).target ∈
-              T.interface j i (T.metaTree.symm hij) at hst
+              T.interface j i (T.metaTree.symm.symm _ _ hij) at hst
         simpa [vertexLinkageToPerfectSource,
           Lax17Proofs.SimpleGraph.PathPacking.toPerfectOfCardEq,
           Lax17Proofs.SimpleGraph.PathPacking.orient,
@@ -555,14 +588,18 @@ noncomputable def strongTreeOfSetsToSource
           Lax17Proofs.SimpleGraph.GraphPath.InternallyDisjointFromSet,
           Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint,
           Lax17.Paths.Path.InternallyAvoids] using
-            T.connector_avoids_clusters i j hij r a
+            hconnT
       connector_mutually_nodeDisjoint := by
         intro i j hij p q hpq hedge a b
+        have hdisjT :
+            ((vertexLinkageToSource (T.connector i j hij)).path a).NodeDisjoint
+              ((vertexLinkageToSource (T.connector p q hpq)).path b) :=
+          T.connectors_disjoint i j hij p q hpq hedge a b
         simpa [vertexLinkageToPerfectSource,
           Lax17Proofs.SimpleGraph.PathPacking.toPerfectOfCardEq,
           Lax17Proofs.SimpleGraph.PathPacking.orient,
           Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
-            T.connectors_disjoint i j hij p q hpq hedge a b }
+            hdisjT }
   interface_nodeWellLinked i j hij :=
     (nodeWellLinkedIn_iff G (T.cluster i) (T.interface i j hij)).mpr
       (T.interface_well_linked i j hij)
@@ -604,11 +641,11 @@ noncomputable def strongTreeOfSetsToPublic
           Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
             T.connector_mutually_nodeDisjoint i j hij p q hpq hedge
               ((Fintype.equivOfCardEq (by
-                simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-                  (T.connector_card i j hij).symm)) a)
+                rw [Fintype.card_fin]
+                exact (T.connector_card i j hij).symm)) a)
               ((Fintype.equivOfCardEq (by
-                simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-                  (T.connector_card p q hpq).symm)) b) }
+                rw [Fintype.card_fin]
+                exact (T.connector_card p q hpq).symm)) b) }
   interface_well_linked i j hij :=
     (nodeWellLinkedIn_iff G (T.cluster i) (T.interface i j hij)).mp
       (T.interface_nodeWellLinked i j hij)
@@ -638,8 +675,8 @@ noncomputable def hairyPathOfSetsToPublic
       (H.base.connector j hj).toPathPacking.mem_vertexSet.mpr
     let e : Fin w ≃ (H.base.connector j hj).Index :=
       Fintype.equivOfCardEq (by
-        simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-          (H.base.connector_card j hj).symm)
+        rw [Fintype.card_fin]
+        exact (H.base.connector_card j hj).symm)
     exact
       ⟨e a, by
         simpa [Lax17Proofs.Bridge.strongPathOfSetsToPublic,
@@ -666,22 +703,22 @@ noncomputable def hairyPathOfSetsToPublic
       Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
         H.hairConnector_mutually_nodeDisjoint hij
           ((Fintype.equivOfCardEq (by
-            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-              (H.hairConnector_card i).symm)) a)
+            rw [Fintype.card_fin]
+            exact (H.hairConnector_card i).symm)) a)
           ((Fintype.equivOfCardEq (by
-            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-              (H.hairConnector_card j).symm)) b)
+            rw [Fintype.card_fin]
+            exact (H.hairConnector_card j).symm)) b)
   hair_linkages_disjoint_connectors := by
     intro i j hj a b
     simpa [strongPathOfSetsToPublic, pathPackingToPublic,
       Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
         H.hairConnector_disjoint_baseConnectors i j hj
           ((Fintype.equivOfCardEq (by
-            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-              (H.hairConnector_card i).symm)) a)
+            rw [Fintype.card_fin]
+            exact (H.hairConnector_card i).symm)) a)
           ((Fintype.equivOfCardEq (by
-            simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-              (H.base.connector_card j hj).symm)) b)
+            rw [Fintype.card_fin]
+            exact (H.base.connector_card j hj).symm)) b)
   hair_linkages_avoid_base := by
     intro i j a
     exact pathPackingToPublic_internallyAvoids
@@ -748,8 +785,8 @@ noncomputable def hairyClusterSplitToPublic
     simpa [pathPackingToPublic, Lax17.Paths.Path.StaysIn] using
       D.hairConnector_staysIn_cluster
         (Fintype.equivOfCardEq (by
-          simpa [Lax17Proofs.SimpleGraph.PathPacking.card] using
-            D.hairConnector_card.symm) i)
+          rw [Fintype.card_fin]
+          exact D.hairConnector_card.symm) i)
   hairLinkage_avoids_base := by
     intro i
     exact pathPackingToPublic_internallyAvoids
@@ -845,6 +882,7 @@ theorem pairInside_iff
   simp [Lax17Proofs.SimpleGraph.SinghLau.PairInside,
     Lax17.SpanningTreeRounding.PairInside, Finset.subset_iff]
 
+open Classical in
 /-- The canonical public edge enumeration is the usual graph edge finset. -/
 theorem spanningEdges_eq
     {V : Type u} [Fintype V] [DecidableEq V] (G : SimpleGraph V) :
@@ -887,8 +925,9 @@ noncomputable def feasiblePointToSource
   nonnegative e he := x.nonnegative e (by
     rwa [spanningEdges_eq])
   total := by
-    rw [← spanningEdges_eq]
-    exact x.total
+    have h := x.total
+    rw [spanningEdges_eq] at h
+    exact h
   forest S hS := by
     rw [spanningInternalEdges_eq]
     exact x.forest S hS
@@ -925,14 +964,14 @@ theorem terminalIncidentEdges_eq
     {V : Type u} [Fintype V] [DecidableEq V]
     (H : Lax17.TerminalConnectivity.EdgeIndexedGraph V) (v : V) :
     (edgeIndexedGraphToSource H).incidentEdges v = H.incidentEdges v := by
-  ext e
+  classical
+  unfold edgeIndexedGraphToSource
+  refine Finset.ext (fun e : H.Edge => ?_)
   rw [
-    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_incidentEdges]
-  constructor
-  · intro he
-    exact Finset.mem_filter.mpr ⟨Finset.mem_univ e, he⟩
-  · intro he
-    exact (Finset.mem_filter.mp he).2
+    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_incidentEdges,
+    Lax17.TerminalConnectivity.EdgeIndexedGraph.incidentEdges,
+    Finset.mem_filter]
+  simp
 
 /-- Public and detailed named-edge boundaries agree. -/
 theorem terminalBoundary_eq
@@ -940,14 +979,14 @@ theorem terminalBoundary_eq
     (H : Lax17.TerminalConnectivity.EdgeIndexedGraph V) (S : Finset V) :
     (edgeIndexedGraphToSource H).boundary S = H.boundary S := by
   classical
-  ext e
+  unfold edgeIndexedGraphToSource
+  refine Finset.ext (fun e : H.Edge => ?_)
   rw [
-    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_boundary]
-  constructor
-  · intro he
-    exact Finset.mem_filter.mpr ⟨Finset.mem_univ e, he⟩
-  · intro he
-    exact (Finset.mem_filter.mp he).2
+    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_boundary,
+    Lax17.TerminalConnectivity.EdgeIndexedGraph.boundary,
+    Finset.mem_filter]
+  simp [Lax17.TerminalConnectivity.EdgeIndexedGraph.Crosses,
+    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.Crosses]
 
 /-- Public and detailed available named-edge boundaries agree. -/
 theorem terminalAvailableBoundary_eq
@@ -957,19 +996,16 @@ theorem terminalAvailableBoundary_eq
     (edgeIndexedGraphToSource H).availableBoundary removed side =
       H.availableBoundary removed side := by
   classical
-  ext e
+  unfold edgeIndexedGraphToSource
+  refine Finset.ext (fun e : H.Edge => ?_)
   rw [
-    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_availableBoundary]
-  constructor
-  · rintro ⟨hcross, hleft, hright⟩
-    apply Finset.mem_filter.mpr
-    refine ⟨?_, hleft, hright⟩
-    exact Finset.mem_filter.mpr ⟨Finset.mem_univ e, hcross⟩
-  · intro he
-    have havailable := Finset.mem_filter.mp he
-    exact
-      ⟨(Finset.mem_filter.mp havailable.1).2,
-        havailable.2.1, havailable.2.2⟩
+    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.mem_availableBoundary,
+    Lax17.TerminalConnectivity.EdgeIndexedGraph.availableBoundary,
+    Finset.mem_filter,
+    Lax17.TerminalConnectivity.EdgeIndexedGraph.boundary,
+    Finset.mem_filter]
+  simp [Lax17.TerminalConnectivity.EdgeIndexedGraph.Crosses,
+    Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.Crosses]
 
 /-- Public and detailed terminal element-connectivity predicates agree. -/
 theorem terminalElementConnectedAtLeast_iff
@@ -1084,22 +1120,14 @@ theorem maderSplitBoundary_eq
     apply
       ((edgeIndexedGraphToSource
         (H.splitOff (splitPairToPublic p))).mem_boundary S e).mpr
-    rcases e with e | e <;>
-      simpa [Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.Crosses,
-        Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.maderSplit,
-        Lax17.TerminalConnectivity.EdgeIndexedGraph.splitOff,
-        edgeIndexedGraphToSource, splitPairToPublic] using hcross
+    rcases e with e | e <;> exact hcross
   · intro he
     have hcross :=
       ((edgeIndexedGraphToSource
         (H.splitOff (splitPairToPublic p))).mem_boundary S e).mp he
     apply
       (((edgeIndexedGraphToSource H).maderSplit p).mem_boundary S e).mpr
-    rcases e with e | e <;>
-      simpa [Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.Crosses,
-        Lax17Proofs.SimpleGraph.ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.maderSplit,
-        Lax17.TerminalConnectivity.EdgeIndexedGraph.splitOff,
-        edgeIndexedGraphToSource, splitPairToPublic] using hcross
+    rcases e with e | e <;> exact hcross
 
 /-- Public and detailed local edge-connectivity thresholds agree. -/
 theorem pairEdgeConnectedAtLeast_iff
@@ -1396,7 +1424,7 @@ noncomputable def pseudoGridToPublic
     row_connects := fun i => ⟨P.source_mem i, P.target_mem i⟩
     rows_disjoint := by
       intro i j hij
-      simpa [pathToPublic,
+      simpa [
         Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
           P.node_disjoint hij
     depth_pos := Γ.depth_pos
@@ -1409,12 +1437,16 @@ noncomputable def pseudoGridToPublic
     column := fun j => pathToPublic (Γ.qPath j)
     columns_disjoint := by
       intro i j hij
-      simpa [pathToPublic,
+      simpa [
         Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
           Γ.qPath_nodeDisjoint hij
     column_reaches_X_cleanly := by
       intro j
-      simpa [pathToPublic,
+      have hsrc :
+          (pathToPublic (Γ.qPath j)).source = (Γ.qPath j).source := rfl
+      have htgt :
+          (pathToPublic (Γ.qPath j)).target = (Γ.qPath j).target := rfl
+      simpa [hsrc, htgt,
         Lax17Proofs.SimpleGraph.GraphPath.ExactlyOneEndpointIn,
         Lax17Proofs.SimpleGraph.GraphPath.InternallyDisjointFromSet,
         Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint,
@@ -1429,7 +1461,7 @@ noncomputable def pseudoGridToPublic
         intro hpUnion
         rcases Finset.mem_biUnion.mp hpUnion with ⟨i, _hi, hpi⟩
         exact hp i hpi
-      simpa [pathToPublic,
+      simpa [
         Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
           Γ.remaining_disjoint_qPath p hpRemaining j
     few_columns_miss_reserved := by
@@ -1444,7 +1476,7 @@ noncomputable def pseudoGridToPublic
         exact hj (hmiss j hnot)
       rcases hintersects with ⟨p, hp, hmeet⟩
       exact ⟨p, hp, by
-        simpa [pathToPublic,
+        simpa [
           Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using hmeet⟩
   }
 
@@ -1485,10 +1517,14 @@ noncomputable def hairyPathOfSetsToSource
           |>.mem_vertexSet.mp hvConnector with
       ⟨a, ha⟩
     dsimp [strongPathOfSetsToSource] at a ha
-    rw [vertexLinkageToPerfectSource_path_vertexSet] at ha
+    have ha' :=
+      Eq.mp (congrArg (fun s => v ∈ s)
+        (vertexLinkageToPerfectSource_path_vertexSet
+          (H.base.connector j hj) (H.base.right_card j)
+          (H.base.left_card ⟨j.1 + 1, hj⟩) a)) ha
     exact
       Finset.disjoint_left.mp (H.hair_disjoint_connectors i j hj a)
-        hvHair ha
+        hvHair ha'
   x := H.baseEndpoint
   y := H.hairEndpoint
   x_subset_cluster := H.baseEndpoint_subset
@@ -1509,16 +1545,24 @@ noncomputable def hairyPathOfSetsToSource
     exact Fintype.card_fin w
   hairConnector_mutually_nodeDisjoint := by
     intro i j hij a b
-    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint,
-      vertexLinkageToPerfectSource_path_vertexSet,
-      vertexLinkageToPerfectSource_path_vertexSet]
+    have hva :=
+      vertexLinkageToPerfectSource_path_vertexSet (H.hairLinkage i)
+        (H.baseEndpoint_card i) (H.hairEndpoint_card i) a
+    have hvb :=
+      vertexLinkageToPerfectSource_path_vertexSet (H.hairLinkage j)
+        (H.baseEndpoint_card j) (H.hairEndpoint_card j) b
+    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint, hva, hvb]
     exact H.hair_linkages_disjoint hij a b
   hairConnector_disjoint_baseConnectors := by
     intro i j hj a b
     dsimp [strongPathOfSetsToSource] at b ⊢
-    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint,
-      vertexLinkageToPerfectSource_path_vertexSet,
-      vertexLinkageToPerfectSource_path_vertexSet]
+    have hva :=
+      vertexLinkageToPerfectSource_path_vertexSet (H.hairLinkage i)
+        (H.baseEndpoint_card i) (H.hairEndpoint_card i) a
+    have hvb :=
+      vertexLinkageToPerfectSource_path_vertexSet (H.base.connector j hj)
+        (H.base.right_card j) (H.base.left_card ⟨j.1 + 1, hj⟩) b
+    rw [Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint, hva, hvb]
     exact H.hair_linkages_disjoint_connectors i j hj a b
   hairConnector_internally_disjoint_baseClusters := by
     intro i j
@@ -1554,7 +1598,7 @@ noncomputable def crossbarToSource
   main_connects i := Or.inl (C.main_connects i)
   main_nodeDisjoint := by
     intro i j hij
-    simpa [pathToSource,
+    simpa [
       Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
         C.main_disjoint hij
   spokePath i := pathToSource (C.spokePath i)
@@ -1563,51 +1607,53 @@ noncomputable def crossbarToSource
     by_cases hsource : (C.spokePath i).source = C.attachment i
     · left
       refine ⟨?_, ?_⟩
-      · simpa [pathToSource, hsource] using C.attachment_on_main i
+      · simpa [hsource] using C.attachment_on_main i
       · have hexit := C.exit_is_other_endpoint i
         simp [hsource] at hexit
-        simpa [pathToSource, ← hexit] using C.exit_in_X i
+        simpa [← hexit] using C.exit_in_X i
     · right
       have htarget : C.attachment i = (C.spokePath i).target :=
         (C.attachment_is_endpoint i).resolve_left
           (fun h => hsource h.symm)
       refine ⟨?_, ?_⟩
-      · simpa [pathToSource, htarget] using C.attachment_on_main i
+      · simpa [htarget] using C.attachment_on_main i
       · have hexit := C.exit_is_other_endpoint i
         simp [hsource] at hexit
-        simpa [pathToSource, ← hexit] using C.exit_in_X i
+        simpa [← hexit] using C.exit_in_X i
   spoke_nodeDisjoint := by
     intro i j hij
-    simpa [pathToSource,
+    simpa [
       Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
         C.spoke_disjoint hij
   spoke_meets_own_main := by
     intro i
     refine ⟨C.attachment i, ?_, ?_⟩
-    · simpa [pathToSource,
+    · simpa [
         Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using
           C.attachment_is_endpoint i
-    · simpa [pathToSource,
+    · simpa [
         Lax17Proofs.SimpleGraph.GraphPath.MeetsExactlyAt] using
           C.exact_attachment i
   spoke_exits_own_main := by
     intro i
     refine ⟨C.attachment i, ?_, ?_, ?_, ?_⟩
-    · simpa [pathToSource,
+    · simpa [
         Lax17Proofs.SimpleGraph.GraphPath.IsEndpoint] using
           C.attachment_is_endpoint i
-    · simpa [pathToSource,
+    · simpa [
         Lax17Proofs.SimpleGraph.GraphPath.MeetsExactlyAt] using
           C.exact_attachment i
-    · simpa [pathToSource,
-        Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint,
-        ← C.exit_is_other_endpoint i] using C.exit_in_X i
-    · simpa [pathToSource,
-        Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint,
-        ← C.exit_is_other_endpoint i] using C.exit_off_main i
+    · have hexitX := C.exit_in_X i
+      rw [C.exit_is_other_endpoint i] at hexitX
+      simp only [Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint]
+      exact hexitX
+    · have hexitMain := C.exit_off_main i
+      rw [C.exit_is_other_endpoint i] at hexitMain
+      simp only [Lax17Proofs.SimpleGraph.GraphPath.otherEndpoint]
+      exact hexitMain
   spoke_disjoint_other_main := by
     intro i j hij
-    simpa [pathToSource,
+    simpa [
       Lax17Proofs.SimpleGraph.GraphPath.NodeDisjoint] using
         (C.spoke_avoids_other_main hij.symm).symm
 
@@ -2376,14 +2422,27 @@ theorem logarithmicCutMatchingExpansion :
     have hboundary :=
       (Lax17Proofs.SimpleGraph.CutMatchingGame.isHalfEdgeExpander_iff
         rounds).mp hexpands S hS hsmall
-    simpa [T, Lax17.Expansion.CutMatchingTranscript.edgeBoundaryCount,
-      Lax17.Expansion.MatchingRound.boundary,
-      Lax17.Expansion.MatchingRound.Crosses,
-      Bridge.matchingRoundToPublic,
-      Lax17Proofs.SimpleGraph.CutMatchingGame.edgeBoundaryCount,
-      Lax17Proofs.SimpleGraph.CutMatchingGame.LazyRound.edgeBoundary,
-      Lax17Proofs.SimpleGraph.CutMatchingGame.LazyRound.edgeCrosses] using
-        hboundary
+    have hround :
+        ∀ R : Lax17Proofs.SimpleGraph.CutMatchingGame.LazyRound V,
+          ((Bridge.matchingRoundToPublic R).boundary S).card =
+            (R.edgeBoundary S).card := by
+      intro R
+      classical
+      unfold Bridge.matchingRoundToPublic
+      apply congrArg Finset.card
+      unfold Lax17.Expansion.MatchingRound.boundary
+        Lax17Proofs.SimpleGraph.CutMatchingGame.LazyRound.edgeBoundary
+      exact Finset.filter_congr fun x _ => Iff.rfl
+    have hcount :
+        Lax17.Expansion.CutMatchingTranscript.edgeBoundaryCount T S =
+          Lax17Proofs.SimpleGraph.CutMatchingGame.edgeBoundaryCount
+            rounds S := by
+      unfold Lax17.Expansion.CutMatchingTranscript.edgeBoundaryCount
+        Lax17Proofs.SimpleGraph.CutMatchingGame.edgeBoundaryCount
+      simp only [T, List.map_map, Function.comp_def]
+      exact congrArg List.sum (List.map_congr_left fun R _ => hround R)
+    rw [hcount]
+    exact hboundary
 
 /--
 ---
@@ -2623,12 +2682,7 @@ theorem crossbarStitching :
   have hbridges :=
     Bridge.pathPackingToPublic_hasPairwiseBridgesIn
       S.rows g S.rows_card (S.bridge_in_even_cluster i)
-  simpa [rows, clusterIndex, Psource,
-    Bridge.strongPathOfSetsToSource,
-    Lax17.PathOfSets.System.firstIndex,
-    Lax17.PathOfSets.System.lastIndex,
-    Lax17Proofs.SimpleGraph.PathOfSetsSystem.firstIndex,
-    Lax17Proofs.SimpleGraph.PathOfSetsSystem.lastIndex] using hbridges
+  exact hbridges
 
 end Exposed
 

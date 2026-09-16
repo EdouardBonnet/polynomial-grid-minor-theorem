@@ -33,7 +33,7 @@ theorem mem_composeBranchSet {U W V : Type*}
     (M : MinorModel F H) (N : MinorModel H G) (u : U) (x : V) :
     x ∈ composeBranchSet M N u ↔
       ∃ w ∈ M.branchSet u, x ∈ N.branchSet w := by
-  simp [composeBranchSet]
+  exact Finset.mem_disjiUnion
 
 private theorem branchSet_subset_composeBranchSet {U W V : Type*}
     {F : _root_.SimpleGraph U} {H : _root_.SimpleGraph W}
@@ -74,7 +74,7 @@ private theorem reachable_in_composeBranchSet_of_walk {U W V : Type*}
             ⟨x, hx⟩ ⟨y, by simpa using hy⟩ :=
         N.branch_connected a.1 ⟨x, hx⟩ ⟨y, by simpa using hy⟩
       have hreach' := hreach.map (G.induceHomOfLE hsubset).toHom
-      simpa using hreach'
+      convert hreach' using 1 <;> apply Subtype.ext <;> rfl
   | @cons a a' b haa' p ih =>
       intro x y hx hy
       rcases N.adjacent (_root_.SimpleGraph.induce_adj.mp haa') with
@@ -102,7 +102,7 @@ private theorem reachable_in_composeBranchSet_of_walk {U W V : Type*}
       have hhead' :
           (G.induce {z : V | z ∈ composeBranchSet M N u}).Reachable
             ⟨x, hxc⟩ ⟨x₀, hx₀c⟩ := by
-        simpa using hhead
+        convert hhead using 1 <;> apply Subtype.ext <;> rfl
       exact hhead'.trans (hedge.trans htail)
 
 /-- Compose two branch-set models of graph minors. -/

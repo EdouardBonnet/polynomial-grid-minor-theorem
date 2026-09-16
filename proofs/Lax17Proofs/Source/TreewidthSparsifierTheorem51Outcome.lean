@@ -161,7 +161,7 @@ theorem exists_quotient_cut_preserving_outcome
   have hall :=
     ThinningUnion.exists_outcome_preserving_all_cuts
       Q Q' hC (by norm_num : 0 < 128) hconn htail hcapacity
-  simpa [H, owner, I, Q, Q', C] using hall
+  exact hall
 
 end BuildState.ExpanderBlocks
 

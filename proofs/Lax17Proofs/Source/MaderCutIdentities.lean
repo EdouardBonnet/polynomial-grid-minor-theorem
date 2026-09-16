@@ -89,6 +89,7 @@ private theorem maderSplit_boundary_indicator_sum
     apply Finset.sum_congr rfl
     intro e _
     simp [cutIndicator, Crosses]
+    rfl
   rw [hold]
   congr 1
   by_cases hother : p.firstOther ≠ p.secondOther
@@ -97,6 +98,7 @@ private theorem maderSplit_boundary_indicator_sum
         uniq := fun u => Subtype.ext (Subsingleton.elim u.1 ()) }
     rw [Fintype.sum_unique]
     simp [cutIndicator, Crosses, hother]
+    congr 1
   · simp [hother]
 
 private theorem original_boundary_indicator_sum

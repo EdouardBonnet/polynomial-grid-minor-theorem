@@ -399,7 +399,8 @@ theorem localRedPath_connectorPath_label_unique
   · have hvGap :
         v ∈ P.cluster (E.gapIndex hbudget k) := by
       apply P.right_subset_cluster (E.gapIndex hbudget k)
-      simpa [hsource] using
+      rw [hsource]
+      exact
         (E.connectorAt hbudget k).source_mem
           ((E.connectorAt hbudget k).indexOfSource
             (E.connectorSource hbudget k y))
@@ -432,7 +433,8 @@ theorem localRedPath_connectorPath_label_unique
         E.gapIndex_succ_lt hbudget k⟩
     have hvNext : v ∈ P.cluster next := by
       apply P.left_subset_cluster next
-      simpa [next, htarget] using
+      rw [htarget]
+      exact
         (E.connectorAt hbudget k).target_mem
           ((E.connectorAt hbudget k).indexOfSource
             (E.connectorSource hbudget k y))

@@ -126,8 +126,7 @@ theorem contractCommonEdge_hit_iff
   have hqImage :
       ((State.contractCommonEdge hab r₀ hrow q₀ hq Proj).retainedQ.path q).vertexSet =
         (State.retainedQ.path (Proj.oldIndex q)).vertexSet.image projection := by
-    simpa [Observation44State.contractCommonEdge, projection] using
-      Proj.vertex_image q
+    exact Proj.vertex_image q
   rw [PathPacking.PathsIntersect, PathPacking.PathsIntersect,
     hrowImage, hqImage]
   constructor
@@ -219,8 +218,7 @@ theorem contractOffRowEdge_hit_iff
       ((State.contractOffRowEdge
         hab haRow i₀ hret q₀ hq hparent).retainedQ.path q).vertexSet =
           (State.retainedQ.path (Proj.oldIndex q)).vertexSet.image projection := by
-    simpa [Observation44State.contractOffRowEdge, Proj, projection] using
-      Proj.vertex_image q
+    exact Proj.vertex_image q
   rw [PathPacking.PathsIntersect, PathPacking.PathsIntersect,
     hrowImage, hqImage]
   constructor
@@ -498,6 +496,20 @@ theorem reduced_hit_iff_state_hit
       PathPacking.PathsIntersect
         (Root.state.row.path r) (Root.state.retainedQ.path q) := by
   classical
+  have hEqRow : ∀ i, ((Root.state.reducedRow hReduced).path i).vertexSet
+      = (Root.state.rowInduced.path i).vertexSet := by
+    intro i
+    show ((Root.state.rowInduced.inSpanningGraph.path i).mapLe
+        le_sup_left).vertexSet = _
+    rw [GraphPath.mapLe_vertexSet]
+    exact GraphPath.transfer_vertexSet _ _ _
+  have hEqQ : ∀ i, ((Root.state.reducedRetained hReduced).path i).vertexSet
+      = ((Root.state.retainedInduced hReduced).path i).vertexSet := by
+    intro i
+    show (((Root.state.retainedInduced hReduced).inSpanningGraph.path i).mapLe
+        le_sup_right).vertexSet = _
+    rw [GraphPath.mapLe_vertexSet]
+    exact GraphPath.transfer_vertexSet _ _ _
   rw [PathPacking.PathsIntersect, PathPacking.PathsIntersect,
     Finset.not_disjoint_iff, Finset.not_disjoint_iff]
   constructor
@@ -505,57 +517,43 @@ theorem reduced_hit_iff_state_hit
     refine ⟨x.1, ?_, ?_⟩
     · have hxr' :
           x ∈
-            (Root.state.rowInduced.path r).vertexSet := by
-        simpa [Observation44State.reducedRow,
-          PerfectPathPacking.inSpanningGraph, PerfectPathPacking.mapLe,
-          PathPacking.inSpanningGraph, PathPacking.mapLe,
-          PathPacking.transfer] using hxr
+            (Root.state.rowInduced.path r).vertexSet :=
+        Eq.mp (congrArg (fun s => x ∈ s) (hEqRow r)) hxr
       exact
         (GraphPath.mem_induce_vertexSet
           (Root.state.row.path r)
           Root.state.row.toPathPacking.vertexSet
           (Root.state.row.toPathPacking.path_vertexSet_subset_vertexSet r)
-          x).1 (by
-            simpa [Observation44State.rowInduced] using hxr')
+          x).1 hxr'
     · have hxq' :
           x ∈
-            ((Root.state.retainedInduced hReduced).path q).vertexSet := by
-        simpa [Observation44State.reducedRetained,
-          PathPacking.inSpanningGraph, PathPacking.mapLe,
-          PathPacking.transfer] using hxq
+            ((Root.state.retainedInduced hReduced).path q).vertexSet :=
+        Eq.mp (congrArg (fun s => x ∈ s) (hEqQ q)) hxq
       exact
         (GraphPath.mem_induce_vertexSet
           (Root.state.retainedQ.path q)
           Root.state.row.toPathPacking.vertexSet
           (fun v hv => hReduced.2
             (Root.state.retainedQ.mem_vertexSet.2 ⟨q, hv⟩))
-          x).1 (by
-            simpa [Observation44State.retainedInduced] using hxq')
+          x).1 hxq'
   · rintro ⟨x, hxr, hxq⟩
     have hxSupport : x ∈ Root.state.row.toPathPacking.vertexSet :=
       Root.state.row.toPathPacking.mem_vertexSet.2 ⟨r, hxr⟩
     let x' : Root.state.RowVertex := ⟨x, hxSupport⟩
     refine ⟨x', ?_, ?_⟩
-    · simpa [x', Observation44State.reducedRow,
-        Observation44State.rowInduced,
-        PerfectPathPacking.inSpanningGraph, PerfectPathPacking.mapLe,
-        PathPacking.inSpanningGraph, PathPacking.mapLe,
-        PathPacking.transfer] using
-          (GraphPath.mem_induce_vertexSet
+    · exact Eq.mpr (congrArg (fun s => x' ∈ s) (hEqRow r))
+        ((GraphPath.mem_induce_vertexSet
             (Root.state.row.path r)
             Root.state.row.toPathPacking.vertexSet
             (Root.state.row.toPathPacking.path_vertexSet_subset_vertexSet r)
-            x').2 hxr
-    · simpa [x', Observation44State.reducedRetained,
-        Observation44State.retainedInduced,
-        PathPacking.inSpanningGraph, PathPacking.mapLe,
-        PathPacking.transfer] using
-          (GraphPath.mem_induce_vertexSet
+            x').2 hxr)
+    · exact Eq.mpr (congrArg (fun s => x' ∈ s) (hEqQ q))
+        ((GraphPath.mem_induce_vertexSet
             (Root.state.retainedQ.path q)
             Root.state.row.toPathPacking.vertexSet
             (fun v hv => hReduced.2
               (Root.state.retainedQ.mem_vertexSet.2 ⟨q, hv⟩))
-            x').2 hxq
+            x').2 hxq)
 
 /-- Exact reduced incidence with the fixed initial pseudo-grid paths. -/
 theorem reduced_hit_iff_root_hit
@@ -588,9 +586,10 @@ theorem reduced_hit_iff_root_hit
     (q : Root.state.retainedQ.Index) :
     (Gamma.goodQPathPackingInHPrime.path (Root.qRoot q)).vertexSet =
       (Gamma.qPath (Root.qRoot q).1).vertexSet := by
-  simp [PseudoGrid.goodQPathPackingInHPrime,
-    PseudoGrid.goodQPathPacking, PathPacking.inSpanningGraph,
-    PathPacking.mapLe, PathPacking.transfer]
+  show ((Gamma.goodQPathPacking.inSpanningGraph.path (Root.qRoot q)).mapLe
+      Gamma.goodQPathPacking_spanningGraph_le_hPrimeGraph).vertexSet = _
+  rw [GraphPath.mapLe_vertexSet]
+  exact GraphPath.transfer_vertexSet _ _ _
 
 /-- Root incidence rewritten entirely in the original graph. -/
 theorem root_hit_iff_original_hit

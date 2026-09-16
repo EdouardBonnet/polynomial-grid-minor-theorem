@@ -148,7 +148,7 @@ noncomputable def successorOfAuxEquiv
                 (e (S.corridor.index ⟨0, by omega⟩))).vertexSet =
             {(fixedColumn i).source}
         rw [hlower]
-        simpa [S.column_eq_fixed i] using hold
+        simpa [S.column_eq_fixed i, AuxiliaryCorridor.rowPath] using hold
       upper_contact := by
         intro i
         have hold := S.columns.upper_contact i
@@ -159,7 +159,7 @@ noncomputable def successorOfAuxEquiv
                   ⟨activeCount + 1, by omega⟩))).vertexSet =
             {(fixedColumn i).target}
         rw [hupper]
-        simpa [S.column_eq_fixed i] using hold
+        simpa [S.column_eq_fixed i, AuxiliaryCorridor.rowPath] using hold
       avoidsOutside := by
         intro i j hj
         let jold : S.linkage.Index := e.symm j

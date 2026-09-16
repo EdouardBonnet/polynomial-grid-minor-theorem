@@ -217,6 +217,7 @@ theorem endpoint_mem (i : Fin (16 * t)) (k : Fin 2) :
   · exact Sym2.out_fst_mem _
   · exact Sym2.out_snd_mem _
 
+open Classical in
 theorem edgeAt_out_ne
     (hMH : M ⊆ H.edgeFinset) (i : Fin (16 * t)) :
     (edgeAt M hcard i).out.1 ≠ (edgeAt M hcard i).out.2 := by
@@ -231,6 +232,7 @@ theorem edgeAt_out_ne
     simpa [Sym2.mk] using hedgeSet
   exact hadj.ne
 
+open Classical in
 theorem endpoint_injective
     (hMH : M ⊆ H.edgeFinset)
     (hdisjoint : EdgeFamilyVertexDisjoint M) :
@@ -281,6 +283,7 @@ noncomputable def slotCoordinate
     then Sum.inl ⟨endpoint M hcard z.1 z.2, hv⟩
     else Sum.inr z
 
+open Classical in
 theorem slotCoordinate_injective
     (hMH : M ⊆ H.edgeFinset)
     (hdisjoint : EdgeFamilyVertexDisjoint M) :
@@ -299,6 +302,7 @@ theorem slotCoordinate_injective
   · cases hzw
   · exact Sum.inr_injective hzw
 
+open Classical in
 /-- The safe local value in a real endpoint slot is the avoiding choice for
 that edge; dummy slots use zero. -/
 noncomputable def expected
@@ -330,6 +334,7 @@ noncomputable def retained
   exact (M.filter fun e =>
     e ∈ (I.thinnedGraph outcome).edgeSet).card
 
+open Classical in
 theorem expected_eq_avoiding
     (hMH : M ⊆ H.edgeFinset)
     (hMblue :
@@ -350,6 +355,7 @@ theorem expected_eq_avoiding
   classical
   simp [expected, hv]
 
+open Classical in
 theorem safe_word_le_retained
     (hMH : M ⊆ H.edgeFinset)
     (hMblue :
@@ -472,6 +478,7 @@ theorem safe_word_le_retained
     _ = surviving.card := by rw [Fintype.card_coe]
     _ = retained I M (fun v => ω (Sum.inl v)) := by rfl
 
+open Classical in
 /-- Fixed-boundary concentration for genuine thinning outcomes. -/
 theorem bad_outcomes_mul_failureFactor_le_total
     (hcard : M.card = 16 * t)
@@ -508,6 +515,7 @@ variable (I : BlueThinningInput H)
 variable {t : ℕ} (M : Finset (Sym2 V))
 variable (hcard : M.card = 16 * t)
 
+open Classical in
 /-- The prescribed endpoint word for a mixed boundary family.  Blue edges
 use their avoiding choices; non-blue edges use dummy zero bits because their
 survival is deterministic. -/
@@ -531,6 +539,7 @@ noncomputable def expected
     · exact 0
   · exact 0
 
+open Classical in
 theorem expected_eq_avoiding
     (hMH : M ⊆ H.edgeFinset)
     (z : Fin (16 * t) × Fin 2)
@@ -554,6 +563,7 @@ theorem expected_eq_avoiding
   classical
   simp [expected, heblue, hv]
 
+open Classical in
 /-- A safe endpoint word retains every selected mixed-family edge: the blue
 case uses the avoiding-choice lemma, and the non-blue case is automatic. -/
 theorem safe_word_le_retained
@@ -680,6 +690,7 @@ theorem safe_word_le_retained
     _ = BoundaryFamily.retained I M (fun v => ω (Sum.inl v)) := by
       rfl
 
+open Classical in
 /-- Fixed-boundary concentration for a mixed red/blue edge family. -/
 theorem bad_outcomes_mul_failureFactor_le_total
     (hcard : M.card = 16 * t)
@@ -709,6 +720,7 @@ noncomputable def retainedEdgeCount
   exact (B.filter fun e =>
     e ∈ (I.thinnedGraph outcome).edgeSet).card
 
+open Classical in
 /-- The fixed-family lower-tail bound.  A maximum-degree-four family first
 loses a factor eight when made vertex-disjoint and a factor sixteen in the
 four-valued concentration estimate. -/
@@ -775,6 +787,7 @@ theorem retainedEdgeCount_bad_mul_failureFactor_le_total
     _ ≤ Fintype.card (BlueThinningInput.Outcome (H := H)) := by
       simpa [badM] using hfixed
 
+open Classical in
 /-- Mixed red/blue version of the retained-edge lower-tail estimate.  This is
 the form required by the physical segment quotient. -/
 theorem retainedEdgeCount_mixed_bad_mul_failureFactor_le_total
@@ -830,6 +843,7 @@ theorem retainedEdgeCount_mixed_bad_mul_failureFactor_le_total
     _ ≤ Fintype.card (BlueThinningInput.Outcome (H := H)) := by
       simpa [badM] using hfixed
 
+open Classical in
 /-- Instance-stable form of the mixed fixed-family estimate.  Stating the
 support hypothesis in `edgeSet` avoids exposing the implementation `Fintype`
 chosen when `edgeFinset` is elaborated in another module. -/

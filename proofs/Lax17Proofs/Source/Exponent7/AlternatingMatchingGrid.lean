@@ -334,12 +334,16 @@ theorem forwardVerticalPath_source_mem_block
   · rw [forwardVerticalPath]
     simp only [dif_pos heven]
     apply B.mem_columnBlock_of_mem_oddLocalRow
-    simpa using (B.odd c).source_mem (oddEdgeOfEven r hr heven)
+    have h := (B.odd c).source_mem (oddEdgeOfEven r hr heven)
+    simp only [oddRowMatching_left_oddEdgeOfEven] at h
+    exact h
   · have hodd : r.1 % 2 = 1 := by omega
     rw [forwardVerticalPath]
     simp only [dif_neg heven]
     apply B.mem_columnBlock_of_mem_evenLocalRow
-    simpa [hodd] using (B.even c).source_mem (evenEdgeOfOdd r hr hodd)
+    have h := (B.even c).source_mem (evenEdgeOfOdd r hr hodd)
+    simp only [evenRowMatching_left_evenEdgeOfOdd] at h
+    exact h
 
 theorem forwardVerticalPath_target_mem_block
     (B : AlternatingClusterRealizations g P)
@@ -350,12 +354,16 @@ theorem forwardVerticalPath_target_mem_block
   · rw [forwardVerticalPath]
     simp only [dif_pos heven]
     apply B.mem_columnBlock_of_mem_oddLocalRow
-    simpa using (B.odd c).target_mem (oddEdgeOfEven r hr heven)
+    have h := (B.odd c).target_mem (oddEdgeOfEven r hr heven)
+    simp only [oddRowMatching_right_oddEdgeOfEven] at h
+    exact h
   · have hodd : r.1 % 2 = 1 := by omega
     rw [forwardVerticalPath]
     simp only [dif_neg heven]
     apply B.mem_columnBlock_of_mem_evenLocalRow
-    simpa [hodd] using (B.even c).target_mem (evenEdgeOfOdd r hr hodd)
+    have h := (B.even c).target_mem (evenEdgeOfOdd r hr hodd)
+    simp only [evenRowMatching_right_evenEdgeOfOdd] at h
+    exact h
 
 theorem forwardVerticalPath_internallyDisjoint_globalRow
     (B : AlternatingClusterRealizations g P)

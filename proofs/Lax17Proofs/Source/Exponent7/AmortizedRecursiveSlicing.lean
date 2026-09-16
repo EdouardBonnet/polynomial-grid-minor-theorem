@@ -405,7 +405,6 @@ theorem Dstar_le_amortizedChildWidth
       2 * Dstar + delta + 3 * amortizedRowCap h q ≤ q := by
     omega
   apply (Nat.le_div_iff_mul_le (by norm_num : 0 < 2)).2
-  dsimp [amortizedChildWidth]
   omega
 
 /-- Each child has at most half the parent width. -/

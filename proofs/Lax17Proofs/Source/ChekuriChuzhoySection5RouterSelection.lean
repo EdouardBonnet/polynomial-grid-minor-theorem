@@ -136,14 +136,16 @@ private theorem edgeKey_eq_of_joins
 theorem edgeBundle_eq_edgeBundleKey
     (S : RouterPathSkeleton G cluster) (i j : Fin n) :
     S.edgeBundle i j = S.edgeBundleKey s(i, j) := by
+  classical
   ext e
-  simp only [RouterPathSkeleton.mem_edgeBundle, mem_edgeBundleKey]
+  simp only [mem_edgeBundleKey]
   constructor
-  · exact edgeKey_eq_of_joins S
+  · intro he
+    exact edgeKey_eq_of_joins S (S.mem_edgeBundle.mp he)
   · intro h
     rcases Sym2.eq_iff.mp h with h | h
-    · exact Or.inl h
-    · exact Or.inr ⟨h.2, h.1⟩
+    · exact S.mem_edgeBundle.mpr (Or.inl h)
+    · exact S.mem_edgeBundle.mpr (Or.inr ⟨h.2, h.1⟩)
 
 theorem edgeBundleKey_disjoint_of_ne
     (S : RouterPathSkeleton G cluster)

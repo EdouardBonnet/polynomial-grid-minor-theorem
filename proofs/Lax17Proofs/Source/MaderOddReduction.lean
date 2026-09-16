@@ -239,9 +239,18 @@ private theorem augmentation_edge_is_old_of_not_mem
     ∃ old : H.Edge, e = Sum.inl old := by
   rcases e with old | new
   · exact ⟨old, rfl⟩
-  · cases new <;> simp [threeAugmentationEdges,
-      threeEdgeAugmentationFirstEdge, threeEdgeAugmentationSecondEdge,
-      threeEdgeAugmentationThirdEdge] at he
+  · exfalso
+    apply he
+    show (Sum.inr new : H.Edge ⊕ ThreeAugmentationEdge) ∈
+      ({Sum.inr ThreeAugmentationEdge.first,
+        Sum.inr ThreeAugmentationEdge.second,
+        Sum.inr ThreeAugmentationEdge.third} :
+        Finset (H.Edge ⊕ ThreeAugmentationEdge))
+    cases new
+    · exact Finset.mem_insert_self _ _
+    · exact Finset.mem_insert_of_mem (Finset.mem_insert_self _ _)
+    · exact Finset.mem_insert_of_mem
+        (Finset.mem_insert_of_mem (Finset.mem_singleton_self _))
 
 /-- The actual odd-degree reduction.  The even theorem is required only on
 the augmented vertex type. -/

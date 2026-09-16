@@ -47,6 +47,7 @@ def labelledImage {X : Type v} [Fintype X] [DecidableEq X]
     v ∈ labelledImage label S ↔
       ∃ x ∈ S, (label x).1 = v := by
   simp [labelledImage]
+  rfl
 
 theorem labelledImage_subset
     {X : Type v} [Fintype X] [DecidableEq X]

@@ -521,7 +521,7 @@ theorem auxIndexListConnects_auxGetVertMids
       | zero =>
           simp [auxGetVertMids]
           have hadj := R.walk.adj_getVert_succ (i := start) (by omega)
-          simpa using hadj
+          exact hadj
       | succ n =>
           simp [auxGetVertMids]
           constructor

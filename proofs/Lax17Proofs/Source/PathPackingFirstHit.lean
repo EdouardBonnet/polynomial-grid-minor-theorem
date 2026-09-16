@@ -89,8 +89,9 @@ theorem exists_firstHitData
           (P.path i).vertexSet)
       intro v hv
       have hvCleaned : v ∈ (cleaned.path i).vertexSet := by
-        simpa [PathPacking.toPerfectUsedTerminals,
-          PathPacking.orient_path_vertexSet] using hv
+        change v ∈ (cleaned.orient.path i).vertexSet at hv
+        rw [cleaned.orient_path_vertexSet i] at hv
+        exact hv
       exact widened.cleanToRight_path_vertexSet_subset i hvCleaned }⟩
 
 /-! ## Simultaneous first-hit prefix and suffix -/

@@ -208,17 +208,15 @@ noncomputable def perfect
 theorem perfect_internallyDisjointRoot
     (C : RootCleanLeafPackingFamily G leafRouter root q) (i : Fin m) :
     (C.perfect i).toPathPacking.InternallyDisjointFromSet root := by
-  simpa [perfect, PerfectPathPacking.copyTerminals] using
-    (C.packing i).toPerfectUsedTerminals_internallyDisjointFromSet
-      (C.internallyDisjointRoot i)
+  exact (C.packing i).toPerfectUsedTerminals_internallyDisjointFromSet
+    (C.internallyDisjointRoot i)
 
 theorem perfect_internallyDisjointLeaves
     (C : RootCleanLeafPackingFamily G leafRouter root q) (i : Fin m) :
     (C.perfect i).toPathPacking.InternallyDisjointFromSet
       (ChekuriChuzhoySection5Phase1Leaves.selectedUnion leafRouter) := by
-  simpa [perfect, PerfectPathPacking.copyTerminals] using
-    (C.packing i).toPerfectUsedTerminals_internallyDisjointFromSet
-      (C.internallyDisjointLeaves i)
+  exact (C.packing i).toPerfectUsedTerminals_internallyDisjointFromSet
+    (C.internallyDisjointLeaves i)
 
 /-- The leaf-side endpoints retained when the cleaned paths are restricted to
 the root block extracted for router `i`. -/
@@ -960,8 +958,7 @@ theorem exists_bufferedSupportPath_or_leafPairRoutingPackage
     | _ i j =>
       have hij : T.Adj i j := by
         simpa [_root_.SimpleGraph.mem_edgeSet] using hp
-      simpa [S.edgeBundle_eq_edgeBundleKey i j] using
-        hTbundle i j hij
+      exact hTbundle i j hij
   rcases exists_bufferedSupportPath_or_leafSelection
       T hTtree hm hcard with hpath | hselection
   · rcases hpath with ⟨order, horder, hadj⟩

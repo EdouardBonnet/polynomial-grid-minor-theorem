@@ -79,7 +79,9 @@ noncomputable def slicePrefixPacking
     (r : (slicePrefixPacking sigma i).Index) :
     ((slicePrefixPacking sigma i).path r).target =
       (sigma.sliceRowPath i r).source := by
-  simp [slicePrefixPacking, SimpleGraph.PathSlicing.sliceRowPath_source]
+  have h : (sigma.sliceRowPath i r).source = sigma.cut r i.castSucc :=
+    SimpleGraph.PathSlicing.sliceRowPath_source sigma i r
+  simp [slicePrefixPacking, h]
 
 /-- The actual target of the half-open slice path lies on its original row. -/
 theorem sliceRowPath_target_mem_main
@@ -173,7 +175,9 @@ noncomputable def liftSliceLinkage
     (p : L.Index) :
     ((liftSliceLinkage sigma Q i Qset L).path p).vertexSet =
       (SimpleGraph.Exponent8.liftInducedPath (L.path p)).vertexSet := by
-  simp [liftSliceLinkage, PerfectPathPacking.mapLe, PathPacking.mapLe]
+  show ((SimpleGraph.Exponent8.liftInducedPath (L.path p)).mapLe
+      (sliceRawGraph_le sigma Q i Qset)).vertexSet = _
+  rw [GraphPath.mapLe_vertexSet]
 
 /-- Every vertex of a localized exact support lies on a canonical sliced row. -/
 theorem exists_sliceRowPath_of_mem_support
@@ -196,8 +200,14 @@ theorem exists_sliceRowPath_of_mem_support
       ((sliceRowsInRawGraph sigma Q i Qset).path r)
       (sliceSupportVertexSetFor sigma Q i Qset)
       (sliceRowsInRawGraph_stayIn_support sigma Q i Qset r) z).1 hzr
-  simpa [sliceRowsInRawGraph, PerfectPathPacking.mapLe,
-    PathPacking.mapLe] using hraw
+  have hEq : ((sliceRowsInRawGraph sigma Q i Qset).path r).vertexSet
+      = (sigma.sliceRowPath i r).vertexSet := by
+    show (((sliceRowPerfectPacking sigma i).inSpanningGraph.path r).mapLe
+        le_sup_left).vertexSet = _
+    rw [GraphPath.mapLe_vertexSet]
+    exact PerfectPathPacking.inSpanningGraph_path_vertexSet _ _
+  rw [← hEq]
+  exact hraw
 
 theorem liftSliceLinkage_staysIn_support
     (sigma : PathSlicing R M) (Q : PathPacking G S T)
@@ -214,7 +224,7 @@ theorem liftSliceLinkage_staysIn_support
     (liftSliceLinkage sigma Q i Qset L).toPathPacking.StaysIn
       (sliceSupportVertexSetFor sigma Q i Qset) := by
   intro p
-  rw [liftSliceLinkage_path_vertexSet]
+  rw [liftSliceLinkage_path_vertexSet sigma Q i Qset L p]
   exact
     SimpleGraph.Exponent8.liftInducedPath_vertexSet_subset (L.path p)
 
@@ -860,7 +870,8 @@ theorem dropLast_edgeSet_subset_local (P : GraphPath G) :
   classical
   intro e he
   have heWalk : e ∈ P.walk.dropLast.edges := by
-    simpa [GraphPath.dropLast, GraphPath.edgeSet] using he
+    simp only [GraphPath.edgeSet, List.mem_toFinset] at he
+    exact he
   have hsub :
       P.walk.dropLast.edges ⊆ P.walk.edges :=
     ((_root_.SimpleGraph.Walk.isSubwalk_rfl P.walk).dropLast).edges_subset
@@ -969,7 +980,9 @@ theorem liftInducedPath_edgeSet_eq_image
           (_root_.SimpleGraph.Embedding.induce (↑U : Set V)).toHom).edges.toFinset ↔
       e ∈ P.walk.edges.toFinset.image (Sym2.map Subtype.val)
   rw [_root_.SimpleGraph.Walk.edges_map]
-  simp
+  have hco : ⇑(_root_.SimpleGraph.Embedding.induce (G := K) (↑U : Set V))
+      = Subtype.val := rfl
+  simp [hco]
 
 /-- Edge-image notation for a graph on a finite vertex subtype. -/
 noncomputable def ambientEdgeImage

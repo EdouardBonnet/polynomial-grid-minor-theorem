@@ -310,7 +310,7 @@ theorem localRedPath_connectorPath_intersection
   · have hvGap :
         v ∈ P.cluster (E.gapIndex hbudget k) := by
       apply P.right_subset_cluster (E.gapIndex hbudget k)
-      simpa [hsource] using
+      simpa [connectorAt, hsource] using
         (E.connectorAt hbudget k).source_mem
           ((E.connectorAt hbudget k).indexOfSource
             (E.connectorSource hbudget k x))
@@ -336,7 +336,7 @@ theorem localRedPath_connectorPath_intersection
         E.gapIndex_succ_lt hbudget k⟩
     have hvNext : v ∈ P.cluster next := by
       apply P.left_subset_cluster next
-      simpa [next, htarget] using
+      simpa [connectorAt, next, htarget] using
         (E.connectorAt hbudget k).target_mem
           ((E.connectorAt hbudget k).indexOfSource
             (E.connectorSource hbudget k x))

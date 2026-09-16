@@ -75,9 +75,10 @@ def mapLe
     simpa [GraphPath.mapLe] using hmem
   groups := S.groups
   internally_disjoint_clusters := by
-    intro e r
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      S.internally_disjoint_clusters e r
+    intro e r v hv hvr
+    have hv' : v ∈ (S.hostPath e).vertexSet := by
+      rwa [GraphPath.mapLe_vertexSet] at hv
+    exact S.internally_disjoint_clusters e r hv' hvr
   one_per_group_node_disjoint := by
     intro selected hselected e he f hf hef
     simpa [GraphPath.NodeDisjoint] using
@@ -499,11 +500,11 @@ theorem
             m * w ≤ (S.graph.edgeBundle s(i, j)).card :=
           mul_width_le_bundleCard_of_heavy
             S.graph s(i, j) (by omega) hwidth hheavy
-        simpa [S', graph_edgeBundle_eq_skeleton_edgeBundleKey
-          S s(i, j)] using hcard
+        rw [graph_edgeBundle_eq_skeleton_edgeBundleKey S s(i, j)] at hcard
+        exact hcard
   exact
     S'.exists_bandwidthTreeOfSetsSystem_with_same_clusters T
-      (by omega) hw hTtree hTdegree (by simpa [S'] using hSgroups) hbundle
+      (by omega) hw hTtree hTdegree (by exact hSgroups) hbundle
       hclusterConnected hclusterDisjoint hband hcap
 
 /-- The complete qualitative Phase 1-to-Phase 2 bridge.  A root-clean leaf

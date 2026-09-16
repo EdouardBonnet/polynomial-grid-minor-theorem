@@ -200,7 +200,7 @@ theorem DegreeEquals.two_not_adj_to_of_ne {V : Type*} [DecidableEq V]
     ¬ G.Adj w v := by
   intro hw
   exact DegreeEquals.two_not_adj_of_ne h ha hb hab hwa hwb
-    (G.symm hw)
+    (G.symm.symm w v hw)
 
 /-- Finite graph core of the cross local no-skip argument.
 
@@ -222,12 +222,12 @@ theorem DegreeEquals.cross_four_no_skip_left {α : Type*} [DecidableEq α]
     ¬ G.Adj A M ∧ ¬ G.Adj A D ∧ ¬ G.Adj U D := by
   constructor
   · exact DegreeEquals.two_not_adj_to_of_ne hM
-      ((G.symm hUM)) hMD hUD hAU_ne hAD
+      (G.symm.symm U M hUM) hMD hUD hAU_ne hAD
   constructor
   · exact DegreeEquals.two_not_adj_of_ne hA hLA hAU hLU
       (fun h => hLD h.symm) (fun h => hUD h.symm)
   · exact DegreeEquals.two_not_adj_of_ne hU
-      ((G.symm hAU)) hUM hAM hAD.symm hDM
+      (G.symm.symm A U hAU) hUM hAM hAD.symm hDM
 
 /-- Paper-shaped finite graph core of the cross local no-skip argument.
 

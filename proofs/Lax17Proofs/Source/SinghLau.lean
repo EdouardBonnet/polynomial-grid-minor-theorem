@@ -56,14 +56,26 @@ noncomputable def incidentEdges
   classical
   exact G.edgeFinset.filter fun e => v ∈ e
 
+/-- The host edge set, packaged behind a noncomputable definition so finite
+vertex types do not need to expose a chosen decidable adjacency relation. -/
+noncomputable def allEdges
+    (G : _root_.SimpleGraph V) : Finset (Sym2 V) := by
+  classical
+  exact G.edgeFinset
+
+@[simp] theorem mem_allEdges {G : _root_.SimpleGraph V} {e : Sym2 V} :
+    e ∈ allEdges G ↔ e ∈ G.edgeSet := by
+  classical
+  simp [allEdges]
+
 /-- Feasibility for the unweighted bounded-degree spanning-tree relaxation
 used by Singh--Lau. -/
 structure FeasibleBoundedDegreePoint
     (G : _root_.SimpleGraph V) (B : Nat) where
   weight : Sym2 V → Rat
-  nonnegative : ∀ e ∈ G.edgeFinset, 0 ≤ weight e
+  nonnegative : ∀ e ∈ allEdges G, 0 ≤ weight e
   total :
-    ∑ e ∈ G.edgeFinset, weight e = (Fintype.card V - 1 : Nat)
+    ∑ e ∈ allEdges G, weight e = (Fintype.card V - 1 : Nat)
   forest :
     ∀ S : Finset V, S ≠ Finset.univ →
       ∑ e ∈ internalEdges G S, weight e ≤ (S.card - 1 : Nat)

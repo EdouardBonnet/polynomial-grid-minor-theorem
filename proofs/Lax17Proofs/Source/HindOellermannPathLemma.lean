@@ -127,7 +127,7 @@ theorem nonterminal_endpoints_mem_vertexSet_of_edge_mem
     · refine ⟨a, ?_, ?_, ?_⟩
       · simpa [hb, Sym2.eq_swap] using hab.symm
       · have hadj : (elementMengerGraph H terminals k).Adj edgeNode a := by
-          simpa [hb] using (elementMengerGraph H terminals k).symm habAdj
+          simpa [hb] using (elementMengerGraph H terminals k).adj_symm habAdj
         simpa [edgeNode, leftNode, rightNode] using
           (edge_adj_iff_eq_nonterminal_endpoints e0 hleft hright a).1 hadj
       · have haSupport : a ∈ P.walk.support := by

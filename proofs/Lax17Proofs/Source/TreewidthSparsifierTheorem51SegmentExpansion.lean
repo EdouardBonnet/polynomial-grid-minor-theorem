@@ -508,8 +508,8 @@ noncomputable def exactRailSegmentPathInAssembled
     (E.exactRailSegmentPathInAssembled
       hbudget hrecords B hB i).vertexSet =
         (E.exactRailSegmentPathAt
-          hbudget hrecords B hB i).vertexSet := by
-  simp [exactRailSegmentPathInAssembled]
+          hbudget hrecords B hB i).vertexSet :=
+  GraphPath.mapLe_vertexSet _ _
 
 /-- The unsuppressed degree-greater-than-two vertices on one segment are
 exactly accounted for by its recorded branch events and glue exceptions. -/
@@ -1467,6 +1467,7 @@ theorem blueSegmentTransitionPath_endpoint_mem_externalVertices
     (E.exactRailSegmentPathInAssembled hbudget hrecords B hB i) v).mpr
       ⟨by simpa [i] using hvSegment, w, hvw, by simpa [i] using hwNot⟩
 
+open Classical in
 /-- Blue transitions incident with a fixed physical segment. -/
 noncomputable def blueTransitionsIncidentSegment
     (E : ExpanderBlocks P count)
@@ -2969,8 +2970,8 @@ theorem exists_unsplitUsableConnection_edgeBoundary
       · change
           named ∉ edgesOfSubgraph
             (E.assembledSupport hbudget) E.blueSupport le_sup_right
-        rw [mem_edgesOfSubgraph]
-        exact heNotBlue
+        exact fun hmem =>
+          heNotBlue ((mem_edgesOfSubgraph _ _ _ named).mp hmem)
     rcases heCrossOwner with hforward | hbackward
     · have hleftX : e.out.1 ∈ X :=
         (E.mem_physicalSegmentSide
@@ -3056,8 +3057,8 @@ theorem exists_unsplitUsableConnection_edgeBoundary
       obtain ⟨g, hgQ, hgCut⟩ :=
         path_exists_edgeBoundary_of_endpoints_opposite
           Qthin hcover hdisjoint
-          (by simpa [Qthin] using hsourceX)
-          (by simpa [Qthin] using htargetY)
+          (by simpa [Qthin, GraphPath.transfer] using hsourceX)
+          (by simpa [Qthin, GraphPath.transfer] using htargetY)
       exact ⟨g, hgCut, by simpa [Qthin] using hgQ⟩
     · have htargetX : Q.target ∈ X :=
         (E.mem_physicalSegmentSide
@@ -3068,8 +3069,8 @@ theorem exists_unsplitUsableConnection_edgeBoundary
       obtain ⟨g, hgQ, hgCut⟩ :=
         path_exists_edgeBoundary_of_endpoints_opposite
           Qthin.reverse hcover hdisjoint
-          (by simpa [Qthin] using htargetX)
-          (by simpa [Qthin] using hsourceY)
+          (by simpa [Qthin, GraphPath.transfer] using htargetX)
+          (by simpa [Qthin, GraphPath.transfer] using hsourceY)
       exact ⟨g, hgCut, by simpa [Qthin] using hgQ⟩
 
 /-- Canonical physical cut edge charged by an unsplit usable connection. -/

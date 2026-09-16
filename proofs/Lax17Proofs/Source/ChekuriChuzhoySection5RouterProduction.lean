@@ -131,6 +131,7 @@ theorem legalContractedOrigin_injective
     Function.Injective (legalContractedOrigin G P) := by
   exact indexedOriginalEdge_injective G P
 
+open Classical in
 theorem legalContractedOrigin_mem_edgeFinset
     (G : _root_.SimpleGraph V) (P : VertexClustering V)
     (e : (legalContractedGraph G P).Edge) :
@@ -150,6 +151,7 @@ theorem legalContractedOrigin_mem_edgeFinset
     (legalContractedGraph G P).right e =
       contractedVertex P (chosenRight (legalContractedOrigin G P e)) := rfl
 
+open Classical in
 /-- Complete original-edge provenance for one legal contracted edge. -/
 theorem legalContractedEdge_provenance
     (G : _root_.SimpleGraph V) (P : VertexClustering V)

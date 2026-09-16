@@ -970,7 +970,7 @@ theorem hasDisjointSTPaths_of_edgeWellLinkedIn_disjoint
       ⟨i, havoid⟩
     let R : GraphPath H := (Q.path i).inInducedOnFinset (hQstay i)
     have hRconn : R.Connects S T := by
-      simpa [R, GraphPath.inInducedOnFinset] using Q.connects i
+      exact Q.connects i
     rcases hsep R hRconn with ⟨v, hvR, hvX⟩
     have hvQ : v ∈ (Q.path i).vertexSet := by
       simpa [R] using hvR
@@ -1009,7 +1009,7 @@ theorem exists_pathPacking_staysIn_of_edgeWellLinkedIn_disjoint
       ⟨i, havoid⟩
     let R : GraphPath H := (Q.path i).inInducedOnFinset (hQstay i)
     have hRconn : R.Connects S T := by
-      simpa [R, GraphPath.inInducedOnFinset] using Q.connects i
+      exact Q.connects i
     rcases hsep R hRconn with ⟨v, hvR, hvX⟩
     have hvQ : v ∈ (Q.path i).vertexSet := by
       simpa [R] using hvR
@@ -1028,6 +1028,7 @@ def emptyPathPacking (G : _root_.SimpleGraph V) (A B : Finset V) :
 @[simp] theorem emptyPathPacking_card (A B : Finset V) :
     (emptyPathPacking G A B).card = 0 := by
   simp [emptyPathPacking, PathPacking.card]
+  exact Fintype.card_eq_zero
 
 theorem emptyPathPacking_staysIn (A B C : Finset V) :
     (emptyPathPacking G A B).StaysIn C := by
@@ -1130,7 +1131,7 @@ theorem nodeWellLinkedIn_of_card_le_three_of_isCluster {C T : Finset V}
     refine ⟨
       { Index := PUnit
         path := fun _ => P
-        connects := fun _ => Or.inl ⟨by simpa [P] using haA, by simpa [P] using hbB⟩
+        connects := fun _ => Or.inl ⟨haA, hbB⟩
         node_disjoint := ?_ }, ?_, ?_⟩
     · intro i j hij
       cases i
@@ -1401,12 +1402,13 @@ theorem weak_pathOfSetsSystem_to_strong_width_one
       rcases mem_union.mp hv with hvleft | hvright
       · exact mem_union_left _ <|
           P.toPathOfSetsSystem.leftTrim_subset_left hle i
-            (by simpa [Q] using hvleft)
+            (by simpa [Q, PathOfSetsSystem.restrictWidth] using hvleft)
       · exact mem_union_right _ <|
           P.toPathOfSetsSystem.rightTrim_subset_right hle i
-            (by simpa [Q] using hvright)
+            (by simpa [Q, PathOfSetsSystem.restrictWidth] using hvright)
     have hEdge : EdgeWellLinkedIn G (Q.cluster i) (Q.left i ∪ Q.right i) := by
-      simpa [Q] using (P.nails_edgeWellLinked i).mono_terminals hsubset
+      simpa [Q, PathOfSetsSystem.restrictWidth] using
+        (P.nails_edgeWellLinked i).mono_terminals hsubset
     apply nodeLinkedIn_of_edgeWellLinked_card_le_one
     · exact Q.left_subset_cluster i
     · exact Q.right_subset_cluster i

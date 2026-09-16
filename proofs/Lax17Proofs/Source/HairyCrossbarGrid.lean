@@ -47,7 +47,7 @@ noncomputable def localCrossbarAsAmbient
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).mainPath a).vertexSet =
       ((Classical.choice (hcrossbars i hi)).mainPath a).vertexSet := by
-  simp [localCrossbarAsAmbient]
+  simp [localCrossbarAsAmbient, Crossbar.mapLe]
 
 @[simp] theorem localCrossbarAsAmbient_mainPath_edgeSet
     {V : Type u} [DecidableEq V] {G : _root_.SimpleGraph V} {ell w g : ℕ}
@@ -60,7 +60,7 @@ noncomputable def localCrossbarAsAmbient
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).mainPath a).edgeSet =
       ((Classical.choice (hcrossbars i hi)).mainPath a).edgeSet := by
-  simp [localCrossbarAsAmbient]
+  simp [localCrossbarAsAmbient, Crossbar.mapLe]
 
 /-- An ambiently viewed local crossbar main path still uses only edges of the
 local graph it came from. -/
@@ -127,7 +127,7 @@ theorem localCrossbarAsAmbient_mainPath_vertexSet_subset_localVertexSet
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).mainPath a).vertexSet ⊆
       Hsys.base.cluster i ∪ (Hsys.hairConnector i).toPathPacking.vertexSet := by
-  simpa [localCrossbarAsAmbient] using
+  simpa using
     localCrossbar_mainPath_vertexSet_subset_localVertexSet Hsys hcrossbars i hi a
 
 /-- The source of a local crossbar spoke path lies in the local footprint. -/
@@ -180,7 +180,7 @@ theorem localCrossbarAsAmbient_spokePath_vertexSet_subset_localVertexSet
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).spokePath a).vertexSet ⊆
       Hsys.base.cluster i ∪ (Hsys.hairConnector i).toPathPacking.vertexSet := by
-  simpa [localCrossbarAsAmbient] using
+  simpa [localCrossbarAsAmbient, Crossbar.mapLe] using
     localCrossbar_spokePath_vertexSet_subset_localVertexSet Hsys hcrossbars i hi a
 
 @[simp] theorem localCrossbarAsAmbient_spokePath_vertexSet
@@ -194,7 +194,7 @@ theorem localCrossbarAsAmbient_spokePath_vertexSet_subset_localVertexSet
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).spokePath a).vertexSet =
       ((Classical.choice (hcrossbars i hi)).spokePath a).vertexSet := by
-  simp [localCrossbarAsAmbient]
+  simp [localCrossbarAsAmbient, Crossbar.mapLe]
 
 @[simp] theorem localCrossbarAsAmbient_spokePath_edgeSet
     {V : Type u} [DecidableEq V] {G : _root_.SimpleGraph V} {ell w g : ℕ}
@@ -207,7 +207,7 @@ theorem localCrossbarAsAmbient_spokePath_vertexSet_subset_localVertexSet
     (a : (localCrossbarAsAmbient Hsys hcrossbars i hi).Index) :
     ((localCrossbarAsAmbient Hsys hcrossbars i hi).spokePath a).edgeSet =
       ((Classical.choice (hcrossbars i hi)).spokePath a).edgeSet := by
-  simp [localCrossbarAsAmbient]
+  simp [localCrossbarAsAmbient, Crossbar.mapLe]
 
 /-- An ambiently viewed local crossbar spoke still uses only edges of the
 local graph it came from. -/
@@ -538,7 +538,8 @@ noncomputable def selectedOddCrossbarGridMainPacking
     (hlen : 2 * m ≤ ell) (i : Fin m) :
     (selectedOddCrossbarGridMainPacking Hsys hcrossbars hlen i).card =
       g ^ 2 := by
-  simp [selectedOddCrossbarGridMainPacking]
+  exact (PathPacking.reindex_card _ _).trans
+    (selectedOddCrossbarFinMainPacking_card Hsys hcrossbars hlen i)
 
 /-- The grid-indexed selected odd-cluster main paths are pairwise
 node-disjoint. -/
@@ -695,11 +696,8 @@ theorem selectedOddCrossbarGridSpoke_connects
     (selectedOddCrossbarGridSpokePath Hsys hcrossbars hlen i x).ConnectsPathToSet
       (selectedOddCrossbarGridMainPath Hsys hcrossbars hlen i x)
       (Hsys.y (oddClusterIndex hlen i)) := by
-  simpa [selectedOddCrossbarGridSpokePath, selectedOddCrossbarGridMainPath,
-    selectedOddCrossbarGridMainPacking, selectedOddCrossbarFinMainPacking]
-    using
-      (selectedOddCrossbarFin Hsys hcrossbars hlen i).spoke_connects
-        (gridVertexEquivFin g x)
+  exact (selectedOddCrossbarFin Hsys hcrossbars hlen i).spoke_connects
+    (gridVertexEquivFin g x)
 
 /-- The grid-indexed selected spokes are pairwise node-disjoint. -/
 theorem selectedOddCrossbarGridSpoke_nodeDisjoint
@@ -734,11 +732,8 @@ theorem selectedOddCrossbarGridSpoke_meets_own_main
       (selectedOddCrossbarGridSpokePath Hsys hcrossbars hlen i x).IsEndpoint v ∧
         (selectedOddCrossbarGridMainPath Hsys hcrossbars hlen i x).MeetsExactlyAt
           (selectedOddCrossbarGridSpokePath Hsys hcrossbars hlen i x) v := by
-  simpa [selectedOddCrossbarGridSpokePath, selectedOddCrossbarGridMainPath,
-    selectedOddCrossbarGridMainPacking, selectedOddCrossbarFinMainPacking]
-    using
-      (selectedOddCrossbarFin Hsys hcrossbars hlen i).spoke_meets_own_main
-        (gridVertexEquivFin g x)
+  exact (selectedOddCrossbarFin Hsys hcrossbars hlen i).spoke_meets_own_main
+    (gridVertexEquivFin g x)
 
 /-- A selected grid-indexed spoke is disjoint from every other selected main
 path in the same crossbar. -/
@@ -821,7 +816,8 @@ noncomputable def selectedOddLocalCrossbarGridMainPacking
     (hlen : 2 * m ≤ ell) (i : Fin m) :
     (selectedOddLocalCrossbarGridMainPacking Hsys hcrossbars hlen i).card =
       g ^ 2 := by
-  simp [selectedOddLocalCrossbarGridMainPacking]
+  exact (PathPacking.reindex_card _ _).trans
+    (selectedOddLocalCrossbarFinAsAmbient Hsys hcrossbars hlen i).mainPathPacking_card
 
 /-- The source endpoints of the concrete selected local grid-indexed main
 paths. -/
@@ -1145,12 +1141,9 @@ theorem selectedOddLocalCrossbarGridMainPath_edgeSet_subset_hairLocalGraph
     (hlen : 2 * m ≤ ell) (i : Fin m) (x : GridVertex g) :
     ↑(selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x).edgeSet ⊆
       (Hsys.hairLocalGraph (oddClusterIndex hlen i)).edgeSet := by
-  simpa [selectedOddLocalCrossbarGridMainPath,
-    selectedOddLocalCrossbarFinAsAmbient, selectedOddLocalCrossbarAsAmbient]
-    using
-      localCrossbarAsAmbient_finReindex_mainPathPacking_path_edgeSet_subset_hairLocalGraph
-        Hsys hcrossbars (oddClusterIndex hlen i)
-        (oddClusterIndex_oneBasedOdd hlen i) (gridVertexEquivFin g x)
+  exact localCrossbarAsAmbient_finReindex_mainPathPacking_path_edgeSet_subset_hairLocalGraph
+    Hsys hcrossbars (oddClusterIndex hlen i)
+    (oddClusterIndex_oneBasedOdd hlen i) (gridVertexEquivFin g x)
 
 /-- A concrete selected local main path stays in the local base-cluster plus
 hair-connector footprint. -/
@@ -1166,11 +1159,9 @@ theorem selectedOddLocalCrossbarGridMainPath_vertexSet_subset_localVertexSet
     (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x).vertexSet ⊆
       Hsys.base.cluster (oddClusterIndex hlen i) ∪
         (Hsys.hairConnector (oddClusterIndex hlen i)).toPathPacking.vertexSet := by
-  simpa [selectedOddLocalCrossbarGridMainPath, selectedOddLocalCrossbarGridMainPacking,
-    selectedOddLocalCrossbarFinAsAmbient, selectedOddLocalCrossbarAsAmbient] using
-      localCrossbarAsAmbient_finReindex_mainPathPacking_path_vertexSet_subset_localVertexSet
-        Hsys hcrossbars (oddClusterIndex hlen i)
-        (oddClusterIndex_oneBasedOdd hlen i) (gridVertexEquivFin g x)
+  exact localCrossbarAsAmbient_finReindex_mainPathPacking_path_vertexSet_subset_localVertexSet
+    Hsys hcrossbars (oddClusterIndex hlen i)
+    (oddClusterIndex_oneBasedOdd hlen i) (gridVertexEquivFin g x)
 
 /-- Every endpoint of a concrete selected local main path lies in the selected
 base cluster. -/
@@ -1306,10 +1297,13 @@ theorem selectedOddLocalCrossbarGridMainPerfectPacking_path_vertexSet_disjoint_h
     Disjoint
       ((selectedOddLocalCrossbarGridMainPerfectPacking Hsys hcrossbars hlen i).path x).vertexSet
       (Hsys.hairCluster (oddClusterIndex hlen i)) := by
-  simpa [selectedOddLocalCrossbarGridMainPerfectPacking,
-    PathPacking.toPerfectUsedTerminals, selectedOddLocalCrossbarGridMainPath] using
-    selectedOddLocalCrossbarGridMainPath_vertexSet_disjoint_hairCluster
-      Hsys hcrossbars hlen i x
+  have hv :
+      ((selectedOddLocalCrossbarGridMainPerfectPacking Hsys hcrossbars hlen i).path x).vertexSet =
+        (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x).vertexSet :=
+    PathPacking.orient_path_vertexSet _ _
+  rw [hv]
+  exact selectedOddLocalCrossbarGridMainPath_vertexSet_disjoint_hairCluster
+    Hsys hcrossbars hlen i x
 
 /-- The oriented perfect main-path packing keeps the same local footprint
 containment as the underlying selected main paths. -/
@@ -1325,10 +1319,13 @@ theorem selectedOddLocalCrossbarGridMainPerfectPacking_path_vertexSet_subset_loc
     ((selectedOddLocalCrossbarGridMainPerfectPacking Hsys hcrossbars hlen i).path x).vertexSet ⊆
       Hsys.base.cluster (oddClusterIndex hlen i) ∪
         (Hsys.hairConnector (oddClusterIndex hlen i)).toPathPacking.vertexSet := by
-  simpa [selectedOddLocalCrossbarGridMainPerfectPacking,
-    PathPacking.toPerfectUsedTerminals, selectedOddLocalCrossbarGridMainPath] using
-      selectedOddLocalCrossbarGridMainPath_vertexSet_subset_localVertexSet
-        Hsys hcrossbars hlen i x
+  have hv :
+      ((selectedOddLocalCrossbarGridMainPerfectPacking Hsys hcrossbars hlen i).path x).vertexSet =
+        (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x).vertexSet :=
+    PathPacking.orient_path_vertexSet _ _
+  rw [hv]
+  exact selectedOddLocalCrossbarGridMainPath_vertexSet_subset_localVertexSet
+    Hsys hcrossbars hlen i x
 
 /-- A concrete selected local spoke uses only edges of its local hair graph. -/
 theorem selectedOddLocalCrossbarGridSpokePath_edgeSet_subset_hairLocalGraph
@@ -1383,11 +1380,8 @@ theorem selectedOddLocalCrossbarGridSpoke_connects
     (selectedOddLocalCrossbarGridSpokePath Hsys hcrossbars hlen i x).ConnectsPathToSet
       (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x)
       (Hsys.y (oddClusterIndex hlen i)) := by
-  simpa [selectedOddLocalCrossbarGridSpokePath,
-    selectedOddLocalCrossbarGridMainPath]
-    using
-      (selectedOddLocalCrossbarFinAsAmbient Hsys hcrossbars hlen i).spoke_connects
-        (gridVertexEquivFin g x)
+  exact (selectedOddLocalCrossbarFinAsAmbient Hsys hcrossbars hlen i).spoke_connects
+    (gridVertexEquivFin g x)
 
 /-- Concrete selected local spokes in one odd cluster are pairwise
 node-disjoint. -/
@@ -1423,11 +1417,8 @@ theorem selectedOddLocalCrossbarGridSpoke_meets_own_main
       (selectedOddLocalCrossbarGridSpokePath Hsys hcrossbars hlen i x).IsEndpoint v ∧
         (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i x).MeetsExactlyAt
           (selectedOddLocalCrossbarGridSpokePath Hsys hcrossbars hlen i x) v := by
-  simpa [selectedOddLocalCrossbarGridSpokePath,
-    selectedOddLocalCrossbarGridMainPath]
-    using
-      (selectedOddLocalCrossbarFinAsAmbient Hsys hcrossbars hlen i).spoke_meets_own_main
-        (gridVertexEquivFin g x)
+  exact (selectedOddLocalCrossbarFinAsAmbient Hsys hcrossbars hlen i).spoke_meets_own_main
+    (gridVertexEquivFin g x)
 
 /-- A concrete selected local spoke is disjoint from every other concrete
 selected local main path in the same crossbar. -/
@@ -2443,8 +2434,7 @@ theorem selectedOddLocalCrossbarGridHairEndpointImage_perfectLinkage
     (hPcardU.trans hcard).trans
       (selectedOddLocalCrossbarGridHairEndpointImage_card Hsys hcrossbars hlen i W).symm
   refine ⟨P.toPerfectOfCardEq hPcardImageU hPcardImageW, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hPcardU
+  · exact hPcardU
   · exact PathPacking.orient_staysIn hstay
 
 /-- Concrete-local version of one cut-matching round: selected local spokes
@@ -2642,11 +2632,11 @@ theorem exists_selectedOddLocalCrossbarGridStitchingPieces
       using hQ₂
   · simpa [selectedOddLocalCrossbarGridMainSourceSet_card Hsys hcrossbars hlen j]
       using hQ₃
-  · simpa [iMid] using hLmid
-  · simpa [iMid] using hRmid
+  · exact hLmid
+  · exact hRmid
   · simpa [iOdd] using hQ₁stay
-  · simpa [iMid] using hQ₂stay
-  · simpa [iMid] using hQ₃stay
+  · exact hQ₂stay
+  · exact hQ₃stay
 
 /-- Consecutive selected odd clusters can be stitched with the separation data
 needed for the later concatenation into full backbone paths. -/
@@ -2725,13 +2715,13 @@ theorem exists_selectedOddLocalCrossbarGridStitchingPieces_with_separation
       using hQ₂
   · simpa [selectedOddLocalCrossbarGridMainSourceSet_card Hsys hcrossbars hlen j]
       using hQ₃
-  · simpa [iMid] using hLmid
-  · simpa [iMid] using hRmid
+  · exact hLmid
+  · exact hRmid
   · simpa [iOdd] using hQ₁stay
-  · simpa [iMid] using hQ₂stay
-  · simpa [iMid] using hQ₃stay
-  · simpa [iMid] using hQ₁middle
-  · simpa [iMid] using hQ₃middle
+  · exact hQ₂stay
+  · exact hQ₃stay
+  · exact hQ₁middle
+  · exact hQ₃middle
   · simpa using hQ₁Q₃
 
 /-- Concrete selected odd clusters provide the two partial concatenations around
@@ -2822,10 +2812,10 @@ theorem exists_selectedOddLocalCrossbarGridPartialConcatPackings
       using hQ₁₂
   · simpa [selectedOddLocalCrossbarGridMainTargetSet_card Hsys hcrossbars hlen i]
       using hQ₂₃
-  · simpa [iMid] using hLmid
-  · simpa [iMid] using hRmid
+  · exact hLmid
+  · exact hRmid
   · simpa [iOdd, iMid] using hQ₁₂stay
-  · simpa [iMid] using hQ₂₃stay
+  · exact hQ₂₃stay
   · simpa [hnextOdd] using hQ₁Q₃
 
 /-- Concrete full two-gap stitching between consecutive selected odd clusters.
@@ -2890,9 +2880,9 @@ theorem exists_selectedOddLocalCrossbarGridConcatPacking
   · simpa [hnextOdd] using Q
   · simpa [selectedOddLocalCrossbarGridMainTargetSet_card Hsys hcrossbars hlen i]
       using hQcard
-  · simpa [iOdd, iMid] using hQstay
+  · exact hQstay
   · simpa [iOdd] using hQfirst
-  · simpa [hnextOdd] using hQlast
+  · exact hQlast
 
 /-- The selected full two-gap stitching packing between consecutive odd local
 crossbars. -/
@@ -4514,10 +4504,8 @@ theorem selectedOddLocalCrossbarGridTransportedAttachment_meetsExactly
   have hmain :
       (selectedOddLocalCrossbarGridTransportedMainPath Hsys hcrossbars hlen i x).vertexSet =
         (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i y).vertexSet := by
-    simp [selectedOddLocalCrossbarGridTransportedMainPath,
-      selectedOddLocalCrossbarGridMainPerfectPacking,
-      PathPacking.toPerfectUsedTerminals,
-      selectedOddLocalCrossbarGridMainPath, y]
+    exact PathPacking.orient_path_vertexSet
+      (selectedOddLocalCrossbarGridMainPacking Hsys hcrossbars hlen i) y
   have hspoke :
       (selectedOddLocalCrossbarGridTransportedSpokePath Hsys hcrossbars hlen i x).vertexSet =
         (selectedOddLocalCrossbarGridSpokePath Hsys hcrossbars hlen i y).vertexSet := by
@@ -4618,13 +4606,16 @@ theorem selectedOddLocalCrossbarGridTransportedSpokePath_mem_hairCluster_eq_hair
           (selectedOddLocalCrossbarGridTransportedMainPath
             Hsys hcrossbars hlen i x).vertexSet :=
       by
-        simpa [selectedOddLocalCrossbarGridTransportedAttachment,
-          selectedOddLocalCrossbarGridTransportedMainPath,
-          selectedOddLocalCrossbarGridMainPerfectPacking,
-          selectedOddLocalCrossbarGridMainPath,
-          PathPacking.toPerfectUsedTerminals] using
-          selectedOddLocalCrossbarGridAttachment_mem_main Hsys hcrossbars hlen i
-            (selectedOddLocalCrossbarGridTransportedCoord Hsys hcrossbars hlen i x)
+        have hv :
+            (selectedOddLocalCrossbarGridTransportedMainPath
+              Hsys hcrossbars hlen i x).vertexSet =
+              (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i
+                (selectedOddLocalCrossbarGridTransportedCoord
+                  Hsys hcrossbars hlen i x)).vertexSet :=
+          PathPacking.orient_path_vertexSet _ _
+        rw [selectedOddLocalCrossbarGridTransportedAttachment, hv]
+        exact selectedOddLocalCrossbarGridAttachment_mem_main Hsys hcrossbars hlen i
+          (selectedOddLocalCrossbarGridTransportedCoord Hsys hcrossbars hlen i x)
     exact False.elim
       (Finset.disjoint_left.mp
         (selectedOddLocalCrossbarGridTransportedMainPath_vertexSet_disjoint_hairCluster
@@ -4991,11 +4982,14 @@ theorem selectedOddLocalCrossbarGridTransportedMainPath_vertexSet_disjoint_spoke
   have hcoord : e x ≠ e y := by
     intro h
     exact hxy (e.injective h)
-  simpa [selectedOddLocalCrossbarGridTransportedMainPath,
-    selectedOddLocalCrossbarGridMainPerfectPacking,
-    PathPacking.toPerfectUsedTerminals,
-    selectedOddLocalCrossbarGridMainPath,
-    selectedOddLocalCrossbarGridTransportedSpokePath,
+  have hv :
+      (selectedOddLocalCrossbarGridTransportedMainPath
+        Hsys hcrossbars hlen i x).vertexSet =
+        (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i (e x)).vertexSet :=
+    PathPacking.orient_path_vertexSet _ _
+  rw [hv]
+  simpa [selectedOddLocalCrossbarGridTransportedSpokePath,
+    selectedOddLocalCrossbarGridOrientedSpokePath,
     selectedOddLocalCrossbarGridTransportedCoord, GraphPath.NodeDisjoint, e] using
     selectedOddLocalCrossbarGridSpoke_disjoint_other_main Hsys hcrossbars hlen i hcoord
 
@@ -6201,13 +6195,16 @@ theorem selectedOddLocalCrossbarGridTransportedAttachment_mem_mainPath
     (hlen : 2 * m ≤ ell) (i : Fin m) (x : GridVertex g) :
     selectedOddLocalCrossbarGridTransportedAttachment Hsys hcrossbars hlen i x ∈
       (selectedOddLocalCrossbarGridTransportedMainPath Hsys hcrossbars hlen i x).vertexSet := by
-  simpa [selectedOddLocalCrossbarGridTransportedAttachment,
-    selectedOddLocalCrossbarGridTransportedMainPath,
-    selectedOddLocalCrossbarGridMainPerfectPacking,
-    selectedOddLocalCrossbarGridMainPath,
-    PathPacking.toPerfectUsedTerminals] using
-    selectedOddLocalCrossbarGridAttachment_mem_main Hsys hcrossbars hlen i
-      (selectedOddLocalCrossbarGridTransportedCoord Hsys hcrossbars hlen i x)
+  have hv :
+      (selectedOddLocalCrossbarGridTransportedMainPath
+        Hsys hcrossbars hlen i x).vertexSet =
+        (selectedOddLocalCrossbarGridMainPath Hsys hcrossbars hlen i
+          (selectedOddLocalCrossbarGridTransportedCoord
+            Hsys hcrossbars hlen i x)).vertexSet :=
+    PathPacking.orient_path_vertexSet _ _
+  rw [selectedOddLocalCrossbarGridTransportedAttachment, hv]
+  exact selectedOddLocalCrossbarGridAttachment_mem_main Hsys hcrossbars hlen i
+    (selectedOddLocalCrossbarGridTransportedCoord Hsys hcrossbars hlen i x)
 
 /-- A transported attachment lies in the row trace of the same initial
 coordinate. -/
@@ -6485,7 +6482,7 @@ theorem exists_selectedOddLocalCrossbarGridTransportedMatchingRound_initialIndex
     left_card := by
       simp [L]
     middle_card := by
-      simpa [U'] using hMcard
+      exact hMcard.trans (by simp [U'])
     right_card := by
       simp [R0]
     left_staysIn := by
@@ -6557,9 +6554,9 @@ theorem exists_selectedOddLocalCrossbarGridTransportedMatchingPieces_edgeLocal
     ⟨L, M, R, hLcard, hMcard, hRcard, hLstay, hRstay, hMstay,
       hLedge, hRedge⟩
   refine ⟨L, M, R, ?_, ?_, ?_, ?_, ?_, hMstay, hLedge, hRedge⟩
-  · simpa [U'] using hLcard
-  · simpa [U'] using hMcard
-  · simpa [W'] using hRcard
+  · exact hLcard.trans (by simp [U'])
+  · exact hMcard.trans (by simp [U'])
+  · exact hRcard.trans (by simp [W'])
   · simpa [selectedOddLocalCrossbarGridTransportedAttachmentImage,
       selectedOddLocalCrossbarGridTransportedHairEndpointImage, U'] using hLstay
   · simpa [selectedOddLocalCrossbarGridTransportedAttachmentImage,
@@ -7901,11 +7898,11 @@ noncomputable def coordinateMatchingGraph
   Adj x y :=
     (∃ hx : x ∈ U, (R.middleCoordMatching ⟨x, hx⟩).1 = y) ∨
       (∃ hy : y ∈ U, (R.middleCoordMatching ⟨y, hy⟩).1 = x)
-  symm := by
+  symm := ⟨by
     intro x y hxy
     rcases hxy with ⟨hx, hmatch⟩ | ⟨hy, hmatch⟩
     · exact Or.inr ⟨hx, hmatch⟩
-    · exact Or.inl ⟨hy, hmatch⟩
+    · exact Or.inl ⟨hy, hmatch⟩⟩
   loopless := ⟨by
     intro x hxx
     rcases hxx with ⟨hx, hmatch⟩ | ⟨hx, hmatch⟩
@@ -8286,10 +8283,10 @@ noncomputable def auxGraph
       Hsys hcrossbars hlen) :
     _root_.SimpleGraph (GridVertex g) where
   Adj x y := ∃ r : F.Index, (F.roundGraph r).Adj x y
-  symm := by
+  symm := ⟨by
     intro x y hxy
     rcases hxy with ⟨r, hxy⟩
-    exact ⟨r, (F.roundGraph r).symm hxy⟩
+    exact ⟨r, hxy.symm⟩⟩
   loopless := ⟨by
     intro x hxx
     rcases hxx with ⟨r, hxx⟩
@@ -8874,7 +8871,7 @@ theorem leftCanonicalSpoke_vertexSet_subset_hairLocalVertexSet
     ((F.round e.round).leftCanonicalSpokeOfSourceCoord e.source).vertexSet ⊆
       Hsys.hairLocalVertexSet (oddClusterIndex hlen (F.cluster e.round)) := by
   simpa [SelectedOddLocalCrossbarGridTransportedMatchingRound.leftCanonicalSpokeOfSourceCoord,
-    left] using
+    left, HairyPathOfSetsSystem.hairLocalVertexSet] using
     selectedOddLocalCrossbarGridTransportedSpokePath_vertexSet_subset_localVertexSet
       Hsys hcrossbars hlen (F.cluster e.round) e.left
 
@@ -8894,7 +8891,7 @@ theorem rightCanonicalSpoke_vertexSet_subset_hairLocalVertexSet
     ((F.round e.round).rightCanonicalSpokeOfSourceCoord e.source).vertexSet ⊆
       Hsys.hairLocalVertexSet (oddClusterIndex hlen (F.cluster e.round)) := by
   simpa [SelectedOddLocalCrossbarGridTransportedMatchingRound.rightCanonicalSpokeOfSourceCoord,
-    right] using
+    right, HairyPathOfSetsSystem.hairLocalVertexSet] using
     selectedOddLocalCrossbarGridTransportedSpokePath_vertexSet_subset_localVertexSet
       Hsys hcrossbars hlen (F.cluster e.round) e.right
 
@@ -9146,7 +9143,7 @@ theorem leftContact_mem_walk_dropLast_support
     simpa [walk] using
       (List.mem_toFinset.mpr e.walk.dropLast.start_mem_support)
   rw [← e.walk.support_dropLast e.walk_not_nil]
-  simpa [e.walk_source_eq_leftContact] using hmem
+  simpa [leftContact, left] using hmem
 
 /-- The half-open support of the supporting walk is connected. -/
 theorem walk_dropLast_support_connected
@@ -10638,7 +10635,7 @@ noncomputable def edgeBoundaryOutsideSeparatorIncident
       · exact hright
     have hleftNotB : e.1.left ∉ B := by
       intro hleftB
-      exact hnoAB hrightA hleftB (F.auxGraph.symm e.1.auxGraph_adj)
+      exact hnoAB hrightA hleftB e.1.auxGraph_adj.symm
     have hleftS : e.1.left ∈ S := by
       have hmem : e.1.left ∈ A ∪ B ∪ S := by
         rw [hcover]
@@ -10832,7 +10829,7 @@ theorem exists_auxGraph_adj_crossing_of_isHalfEdgeExpander
   have hcross : e.Crosses S := (F.mem_edgeBoundary S e).1 he
   rcases hcross with ⟨hleft, hright⟩ | ⟨hright, hleft⟩
   · exact ⟨e.left, hleft, e.right, hright, e.auxGraph_adj⟩
-  · exact ⟨e.right, hright, e.left, hleft, F.auxGraph.symm e.auxGraph_adj⟩
+  · exact ⟨e.right, hright, e.left, hleft, e.auxGraph_adj.symm⟩
 
 /-- The simplified auxiliary graph of a half-expander transcript is
 preconnected.  The proof is the standard reachable-set cut argument: if `b`
@@ -11581,7 +11578,7 @@ noncomputable def toMinorModel
     · simpa [hleft, hright] using C.adjacent e
     · rcases C.adjacent e with ⟨a, ha, b, hb, hab⟩
       exact ⟨b, by simpa [hright] using hb,
-        a, by simpa [hleft] using ha, G.symm hab⟩
+        a, by simpa [hleft] using ha, hab.symm⟩
 
 /-- A direct-adjacency certificate witnesses that the auxiliary coordinate graph
 is a minor of the host graph. -/
@@ -11903,7 +11900,7 @@ theorem adjacent
   · refine ⟨e.rightContact, ?_, e.walk.penultimate, ?_, ?_⟩
     · simpa [hright] using C.rightContact_mem_branch e
     · simpa [hleft] using C.walk_penultimate_mem_branch e
-    · exact G.symm e.walk_penultimate_adj_rightContact
+    · exact e.walk_penultimate_adj_rightContact.symm
 
 /-- Forget the allocation proof to a direct-adjacency certificate. -/
 noncomputable def toAuxGraphMinorCertificate
@@ -13897,9 +13894,7 @@ noncomputable def selectedOddCrossbarGridSpokePerfectPacking
     (hlen : 2 * m ≤ ell) (i : Fin m) :
     (selectedOddCrossbarGridSpokePerfectPacking Hsys hcrossbars hlen i).card =
       g ^ 2 := by
-  simpa [selectedOddCrossbarGridSpokePerfectPacking,
-    PathPacking.toPerfectOfCardEq, PerfectPathPacking.card, PathPacking.card]
-    using selectedOddCrossbarGridSpokePacking_card Hsys hcrossbars hlen i
+  exact selectedOddCrossbarGridSpokePacking_card Hsys hcrossbars hlen i
 
 /-- The selected spokes indexed by an arbitrary set of grid coordinates,
 oriented as a perfect packing from the corresponding attachment image to the
@@ -14319,8 +14314,7 @@ theorem selectedOddCrossbarGridHairEndpointImage_perfectLinkage
     (hPcardU.trans hcard).trans
       (selectedOddCrossbarGridHairEndpointImage_card Hsys hcrossbars hlen i W).symm
   refine ⟨P.toPerfectOfCardEq hPcardImageU hPcardImageW, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hPcardU
+  · exact hPcardU
   · exact PathPacking.orient_staysIn hstay
 
 /-- One cut-matching round supplies three compatible pieces: selected spokes

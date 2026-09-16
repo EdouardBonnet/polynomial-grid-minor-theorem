@@ -167,7 +167,7 @@ noncomputable def exactBundlePathPacking
       A hcandidateGlobal hcandidateJoins hleftRight hclusterDisjoint r hr).card =
       width := by
   classical
-  simpa [exactBundlePathPacking, PathPacking.card] using A.exact_card r hr
+  exact (Fintype.card_coe (A.exact r)).trans (A.exact_card r hr)
 
 /-- Perfect form of `exactBundlePathPacking`; endpoint injectivity and exact
 cardinality ensure that every selected endpoint is used once. -/
@@ -265,7 +265,7 @@ theorem sym2_eq_of_pathEdgeIndex_eq
 theorem pathEdgeIndex_symm
     {m : Nat} {i j : Fin m}
     (hij : (_root_.SimpleGraph.pathGraph m).Adj i j) :
-    pathEdgeIndex ((_root_.SimpleGraph.pathGraph m).symm hij) =
+    pathEdgeIndex ((_root_.SimpleGraph.pathGraph m).adj_symm hij) =
       pathEdgeIndex hij := by
   have hij' := hij
   rw [_root_.SimpleGraph.pathGraph_adj] at hij'
@@ -517,7 +517,7 @@ noncomputable def connector
     (D : BufferedPathAssemblyData S T width cap alphaNum alphaDen order)
     (i j : Fin m) (hij : (_root_.SimpleGraph.pathGraph m).Adj i j) :
     PerfectPathPacking G (D.interface i j hij)
-      (D.interface j i ((_root_.SimpleGraph.pathGraph m).symm hij)) := by
+      (D.interface j i ((_root_.SimpleGraph.pathGraph m).adj_symm hij)) := by
   classical
   by_cases h : i.1 + 1 = j.1
   · let P := D.edgePacking (pathEdgeIndex hij)
@@ -558,7 +558,7 @@ theorem edgePacking_internallyDisjointFromSet
     intro b
     exact S.internally_disjoint_clusters b.1 t
   have horient := PathPacking.orient_internallyDisjointFromSet hP a
-  simpa [edgePacking, exactBundlePerfectPacking, P] using horient
+  exact horient
 
 theorem edgePacking_internallyDisjointFromSet_all
     (D : BufferedPathAssemblyData S T width cap alphaNum alphaDen order)
@@ -572,9 +572,26 @@ theorem edgePacking_mutuallyNodeDisjoint
     (D.edgePacking r).toPathPacking.MutuallyNodeDisjoint
     (D.edgePacking t).toPathPacking := by
   intro a b
-  simpa [edgePacking, exactBundlePerfectPacking, exactBundlePathPacking,
-    PathPacking.toPerfectOfCardEq, GraphPath.NodeDisjoint] using
-    D.exactFamily.hostPath_nodeDisjoint_of_ne S D.global
+  let Pr := exactBundlePathPacking S D.global D.global_transversal Finset.univ
+    (bufferedEdgeLeft order) (bufferedEdgeRight order) D.candidate
+    D.exactFamily (fun r _ => D.candidate_global r)
+    (fun r _ e he => D.candidate_joins r e he)
+    (fun r _ => D.edge_left_ne_right r)
+    (fun r _ => D.edge_cluster_disjoint r) r (Finset.mem_univ r)
+  let Pt := exactBundlePathPacking S D.global D.global_transversal Finset.univ
+    (bufferedEdgeLeft order) (bufferedEdgeRight order) D.candidate
+    D.exactFamily (fun r _ => D.candidate_global r)
+    (fun r _ e he => D.candidate_joins r e he)
+    (fun r _ => D.edge_left_ne_right r)
+    (fun r _ => D.edge_cluster_disjoint r) t (Finset.mem_univ t)
+  have hva : ((D.edgePacking r).path a).vertexSet = (S.hostPath a.1).vertexSet :=
+    PathPacking.orient_path_vertexSet Pr a
+  have hvb : ((D.edgePacking t).path b).vertexSet = (S.hostPath b.1).vertexSet :=
+    PathPacking.orient_path_vertexSet Pt b
+  show Disjoint ((D.edgePacking r).path a).vertexSet
+    ((D.edgePacking t).path b).vertexSet
+  rw [hva, hvb]
+  exact D.exactFamily.hostPath_nodeDisjoint_of_ne S D.global
     D.global_transversal Finset.univ (bufferedEdgeLeft order)
     (bufferedEdgeRight order) D.candidate
     (fun r _ => D.candidate_global r)
@@ -591,12 +608,13 @@ theorem connector_internallyDisjointFromSet
       (D.connector i j hij).toPathPacking.InternallyDisjointFromSet
         (cluster t) := by
     by_cases h : i.1 + 1 = j.1
-    · simpa [connector, h] using
-        D.edgePacking_internallyDisjointFromSet_all (pathEdgeIndex hij) t
+    · simp only [connector, h, dif_pos]
+      exact D.edgePacking_internallyDisjointFromSet_all (pathEdgeIndex hij) t
     · have hreverse := PerfectPathPacking.reverse_internallyDisjointFromSet
         (D.edgePacking (pathEdgeIndex hij))
         (D.edgePacking_internallyDisjointFromSet_all (pathEdgeIndex hij) t)
-      simpa [connector, h] using hreverse
+      simp only [connector, h, dite_false]
+      exact hreverse
   exact hconnector a
 
 theorem connector_mutuallyNodeDisjoint

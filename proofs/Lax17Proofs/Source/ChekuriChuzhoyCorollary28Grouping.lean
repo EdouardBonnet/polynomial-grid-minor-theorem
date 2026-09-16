@@ -303,7 +303,7 @@ theorem exists_treeGroupedTransversal
         (fun h => hab (hassignInj h)) }
   refine ⟨E, ?_⟩
   intro j
-  simpa [E, GroupedTransversal.selected] using hquota j
+  exact hquota j
 
 /-- Full finite producer from an Observation 2.12 tree grouping through the
 paper-facing conclusion of Corollary 2.11 (preprint Corollary 2.8). -/

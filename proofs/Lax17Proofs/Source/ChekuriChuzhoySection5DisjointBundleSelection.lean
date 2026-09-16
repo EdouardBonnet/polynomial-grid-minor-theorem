@@ -82,8 +82,7 @@ theorem exists_exactGroupTransversal_retaining_pairwiseDisjoint_bundles
       apply hab
       apply ULift.ext
       exact Subtype.ext h
-    simpa [block] using
-      hdisjoint a.down.2 b.down.2 habDown
+    exact hdisjoint a.down.2 b.down.2 habDown
 
   have hblockSubset : ∀ j, block j ⊆ items := by
     intro j

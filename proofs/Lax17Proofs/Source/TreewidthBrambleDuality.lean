@@ -769,7 +769,7 @@ noncomputable def starPartialDecomposition (G : _root_.SimpleGraph V)
             cases u
             have hfalse : False := by
               have hadj := hleaf.1
-              simpa [starTree] using hadj
+              exact _root_.SimpleGraph.irrefl _ hadj
             exact hfalse.elim
         | inr i =>
             have hdiff :

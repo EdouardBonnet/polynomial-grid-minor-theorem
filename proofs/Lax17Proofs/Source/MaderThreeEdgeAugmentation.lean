@@ -32,7 +32,11 @@ inductive ThreeAugmentationEdge
   | first
   | second
   | third
-  deriving DecidableEq, Fintype
+  deriving DecidableEq
+
+-- The `deriving Fintype` enum fast path is broken at this toolchain; the
+-- generic `derive_fintype%` elaborator produces the same instance.
+instance : Fintype ThreeAugmentationEdge := derive_fintype% _
 
 @[simp] theorem card_threeAugmentationEdge :
     Fintype.card ThreeAugmentationEdge = 3 := by
@@ -376,6 +380,14 @@ private theorem maderSplit_liftThreeEdgeAugmentation_boundary_card_of_center_not
   simp only [MaderSplitPair.liftThreeEdgeAugmentation_firstOther,
     MaderSplitPair.liftThreeEdgeAugmentation_secondOther,
     hFirstMem, hSecondMem] at hAug
+  have hAug' :
+      ((H.threeEdgeAugmentation s).boundary X).card =
+        (((H.threeEdgeAugmentation s).maderSplit
+            p.liftThreeEdgeAugmentation).boundary X).card +
+          if p.firstOther ∈ oldVertexSet X ∧ p.secondOther ∈ oldVertexSet X then
+            2
+          else
+            0 := hAug
   omega
 
 /-- Splitting a lifted old pair still leaves exactly the projected split cut,
@@ -401,7 +413,8 @@ theorem maderSplit_liftThreeEdgeAugmentation_boundary_card_alignedOldCut
     (((H.threeEdgeAugmentation s).maderSplit
         p.liftThreeEdgeAugmentation).boundary (alignedOldCut s X)).card =
       ((H.maderSplit p).boundary X).card := by
-  simp [maderSplit_liftThreeEdgeAugmentation_boundary_card]
+  rw [maderSplit_liftThreeEdgeAugmentation_boundary_card]
+  simp
 
 /-- Every old cut-threshold predicate is unchanged after splitting the old
 pair and its lift. -/
@@ -415,8 +428,8 @@ theorem pairwiseEdgeConnectedAtLeast_maderSplit_liftThreeEdgeAugmentation_iff
   constructor
   · intro h X hx hy
     have hcut := h (alignedOldCut s X) (by simpa) (by simpa)
-    simpa [maderSplit_liftThreeEdgeAugmentation_boundary_card_alignedOldCut]
-      using hcut
+    rw [maderSplit_liftThreeEdgeAugmentation_boundary_card_alignedOldCut] at hcut
+    exact hcut
   · intro h X hx hy
     have hold : k ≤ ((H.maderSplit p).boundary (oldVertexSet X)).card :=
       h (oldVertexSet X) (by simpa using hx) (by simpa using hy)

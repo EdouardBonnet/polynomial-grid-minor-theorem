@@ -117,7 +117,7 @@ theorem HindMaderTerminalCore.terminalGraph_pairwise
     exact (mem_image_terminalMap_iff C X b).not.mpr hb
   have hcut := C.terminal_pairwise a b hab
     (X.image C.terminalMap) hmapa hmapb
-  simpa [C.boundary_image X] using hcut
+  exact le_of_le_of_eq hcut (congrArg Finset.card (C.boundary_image X))
 
 theorem isEdgeConnected_of_pairwise
     (K : FiniteEdgeIndexedGraph W) (q : Nat)
@@ -166,10 +166,12 @@ theorem HindMaderTerminalCore.terminalGraph_degree
     rcases (C.graph.mem_incidentEdges (C.terminalMap t) e).1 hinc with h | h
     · left
       apply C.terminalMap_injective
-      simpa using h
+      rw [C.map_terminalGraph_left e]
+      exact h
     · right
       apply C.terminalMap_injective
-      simpa using h
+      rw [C.map_terminalGraph_right e]
+      exact h
 
 /-- Final connectivity-and-degree output on exactly the original terminal
 labels. -/

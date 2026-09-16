@@ -160,10 +160,10 @@ noncomputable def heavySupport
     _root_.SimpleGraph (Fin m) where
   Adj u v :=
     u ≠ v ∧ heavyThreshold m h ≤ H.bundleCapacity s(u, v)
-  symm := by
+  symm := ⟨by
     intro u v huv
     refine ⟨huv.1.symm, ?_⟩
-    simpa [FiniteEdgeIndexedGraph.bundleCapacity, Sym2.eq_swap] using huv.2
+    simpa [FiniteEdgeIndexedGraph.bundleCapacity, Sym2.eq_swap] using huv.2⟩
   loopless := ⟨by
     intro v hv
     exact hv.1 rfl⟩
@@ -1201,7 +1201,15 @@ noncomputable def claim517FeasiblePoint
     intro p _hp
     exact claim517Weight_nonnegative H hm hh hdegree p
   total := by
+    classical
     have htotal := claim517Weight_total H hm hh hdegree
+    have hall :
+        SimpleGraph.SinghLau.allEdges (heavySupport H h) =
+          (heavySupport H h).edgeFinset := by
+      ext p
+      simp [SimpleGraph.SinghLau.mem_allEdges,
+        SimpleGraph.mem_edgeFinset]
+    rw [hall]
     simpa [Nat.cast_sub (by omega : 1 ≤ m)] using htotal
   forest := by
     intro S hSproper
@@ -1238,7 +1246,8 @@ theorem claim517_exists_boundedDegreeAuxiliarySpanningTree
     claim517FeasiblePoint H hm hh hdegree hconnected
   rcases
       SimpleGraph.SinghLau.boundedDegreeSpanningTree_proved
-        (heavySupport H h) 2 (by simpa using hm) point with
+        (heavySupport H h) 2
+          (by simpa only [Fintype.card_fin] using (show 1 < m by omega)) point with
     ⟨T, hTsupport, hTtree, hTdegree⟩
   refine ⟨T, hTsupport, hTtree, by simpa using hTdegree, ?_⟩
   intro u v huv

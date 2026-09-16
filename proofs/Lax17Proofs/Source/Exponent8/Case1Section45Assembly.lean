@@ -363,7 +363,7 @@ theorem section45Input
             exact T.rows_subset_cleanup a hpRows)
           (T.parent k)
           (L.happyCleanup (T.parent k)).toOrdinary hw houtside)
-      · simpa [connector, a, b] using hxp
+      · exact hxp
       · exact T.cluster_subset_support k hxC
     · intro l hlen hchain i j hi hj hij
       intro p q

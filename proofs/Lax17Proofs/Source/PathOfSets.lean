@@ -116,10 +116,18 @@ def mapLe (P : PathOfSetsSystem G ell w) {G' : _root_.SimpleGraph V}
     simpa using P.connector_card i hi
   connector_internally_disjoint_clusters := by
     intro i hi j a
-    change (((P.connector i hi).path a).mapLe hGG').InternallyDisjointFromSet
-      (P.cluster j)
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      P.connector_internally_disjoint_clusters i hi j a
+    intro v hv hvCluster
+    have hv' : v ∈ ((P.connector i hi).path a).vertexSet := by
+      rw [← GraphPath.mapLe_vertexSet ((P.connector i hi).path a) hGG']
+      exact hv
+    rcases P.connector_internally_disjoint_clusters i hi j a hv' hvCluster with
+      hsource | htarget
+    · exact Or.inl (by
+        change v = ((P.connector i hi).path a).source
+        exact hsource)
+    · exact Or.inr (by
+        change v = ((P.connector i hi).path a).target
+        exact htarget)
   connector_mutually_nodeDisjoint := by
     intro i j hi hj hij a b
     change GraphPath.NodeDisjoint
@@ -349,13 +357,13 @@ noncomputable def restrictWidth (P : PathOfSetsSystem G ell w)
     exact P.connectorIndexSet_card hle i hi
   connector_internally_disjoint_clusters := by
     intro i hi j a
-    simpa [rightTrim, hi, leftTrim_of_next, PerfectPathPacking.copyTerminals] using
-      P.connector_internally_disjoint_clusters i hi j a.1
+    change ((P.connector i hi).path a.1).InternallyDisjointFromSet (P.cluster j)
+    exact P.connector_internally_disjoint_clusters i hi j a.1
   connector_mutually_nodeDisjoint := by
     intro i j hi hj hij a b
-    simpa [rightTrim, hi, hj, leftTrim_of_next,
-      PerfectPathPacking.copyTerminals, GraphPath.NodeDisjoint] using
-      P.connector_mutually_nodeDisjoint hi hj hij a.1 b.1
+    change GraphPath.NodeDisjoint ((P.connector i hi).path a.1)
+      ((P.connector j hj).path b.1)
+    exact P.connector_mutually_nodeDisjoint hi hj hij a.1 b.1
 
 /-- Restrict a path-of-sets system to its first `ell'` clusters.
 
@@ -1441,7 +1449,8 @@ theorem exists_twoGap_stitchingPieces_between_subsets
   have hQ₁card : Q₁.card = R.card := by
     simp [Q₁, C₁]
   have hQ₃card : Q₃.card = L.card := by
-    simp [Q₃, C₂]
+    dsimp [Q₃]
+    exact C₂.restrictTargetSet_card L hL₂
   have hLmid_card : Lmid.card = R.card := by
     exact (Q₁.card_eq_right_card).symm.trans hQ₁card
   have hRmid_card : Rmid.card = L.card := by
@@ -1521,7 +1530,8 @@ theorem exists_twoGap_stitchingPieces_between_subsets_with_separation
   have hQ₁card : Q₁.card = R.card := by
     simp [Q₁, C₁]
   have hQ₃card : Q₃.card = L.card := by
-    simp [Q₃, C₂]
+    dsimp [Q₃]
+    exact C₂.restrictTargetSet_card L hL₂
   have hLmid_card : Lmid.card = R.card := by
     exact (Q₁.card_eq_right_card).symm.trans hQ₁card
   have hRmid_card : Rmid.card = L.card := by
@@ -2110,8 +2120,8 @@ theorem exists_twoGap_concatPackingData_between_subsets
             (Q₃.source_mem (Q₂.indexOfSourceTarget Q₃ k))
             (by simpa [hsource] using hvCluster))
       · exact Or.inr (by
-          simpa [Q₂₃, PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint,
-            GraphPath.IsEndpoint] using htarget)
+          change v = (Q₃.path (Q₂.indexOfSourceTarget Q₃ k)).target
+          exact htarget)
   have hQfirst :
       Q.toPathPacking.InternallyDisjointFromSet (P.cluster i) := by
     simpa [Q] using
@@ -2160,8 +2170,8 @@ theorem exists_twoGap_concatPackingData_between_subsets
           concat_path_inter_eq_right_inter Q₁ Q₂₃ hpath hnode
             (by simpa [i₁] using hQ₁middle) hRdisj a
       _ = (Q₂.path (middleIndexEquiv a)).vertexSet := by
-        simpa [middleIndexEquiv, middleIndexMap] using
-          hQ₂₃trace (Q₁.indexOfSourceTarget Q₂₃ a)
+        change _ = (Q₂.path (middleIndexMap a)).vertexSet
+        exact hQ₂₃trace (Q₁.indexOfSourceTarget Q₂₃ a)
   refine ⟨Q, ⟨{
     Lmid := Lmid
     Rmid := Rmid

@@ -181,7 +181,7 @@ theorem exists_intersecting_path_subfamilies_additive_core
       ∀ q ∈ Qset,
         2 * Dhat ≤ (Rset.bipartiteBelow rel q).card := by
     intro q hq
-    simpa [intersectingLeftIndices, rel] using hdense q hq
+    simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hdense q hq
   rcases
     FiniteBipartitePruning.PruneTrace.exists_intersecting_subsets_additive_core
       (rel := rel) (wHat := wHat) (Dhat := Dhat) Rset Qset hdense'
@@ -189,11 +189,11 @@ theorem exists_intersecting_path_subfamilies_additive_core
   refine ⟨R', Q', hRsub, hQsub, ?_, hloss, ?_⟩
   · constructor
     · intro r hr
-      simpa [intersectingRightIndices, rel] using hleft r hr
+      simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hleft r hr
     · intro q hq
-      simpa [intersectingLeftIndices, rel] using hright q hq
+      simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hright q hq
   · intro r hr
-    simpa [intersectingRightIndices, rel] using hdeleted r hr
+    simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hdeleted r hr
 
 /-- Chuzhoy--Tan Lemma 4.8 with the exact additive loss added to its original
 conclusions. -/
@@ -222,7 +222,7 @@ theorem exists_intersecting_path_subfamilies_additive
       ∀ q ∈ Qset,
         2 * Dhat ≤ (Rset.bipartiteBelow rel q).card := by
     intro q hq
-    simpa [intersectingLeftIndices, rel] using hdense q hq
+    simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hdense q hq
   rcases
     FiniteBipartitePruning.PruneTrace.exists_intersecting_subsets_additive
       (rel := rel) (wHat := wHat) (Dhat := Dhat)
@@ -232,11 +232,11 @@ theorem exists_intersecting_path_subfamilies_additive
   refine ⟨R', Q', hRsub, hQsub, ?_, hloss, hhalf, ?_⟩
   · constructor
     · intro r hr
-      simpa [intersectingRightIndices, rel] using hleft r hr
+      simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hleft r hr
     · intro q hq
-      simpa [intersectingLeftIndices, rel] using hright q hq
+      simpa [intersectingLeftIndices, rel, Finset.bipartiteBelow] using hright q hq
   · intro r hr
-    simpa [intersectingRightIndices, rel] using hdeleted r hr
+    simpa [intersectingRightIndices, rel, Finset.bipartiteAbove] using hdeleted r hr
 
 /-- Coarse additive loss, with the original row-family cardinality on the
 right-hand side.  This corollary keeps the old half-retention statement too. -/

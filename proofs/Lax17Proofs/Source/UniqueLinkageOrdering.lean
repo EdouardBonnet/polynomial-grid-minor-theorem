@@ -286,7 +286,7 @@ theorem exists_shortcutAround
 ambient edge `vi--uj`, and the suffix of the disjoint row `Pj` starting at
 `uj`.  This is the path used in the cyclic rerouting contradiction in
 Appendix B, Claim B.2. -/
-noncomputable def crossPrefixSuffix
+noncomputable abbrev crossPrefixSuffix
     (Pi Pj : GraphPath G) {vi uj : V}
     (hvi : vi ∈ Pi.vertexSet) (huj : uj ∈ Pj.vertexSet)
     (hdisj : Disjoint Pi.vertexSet Pj.vertexSet)
@@ -779,26 +779,27 @@ theorem rotateClosed_one
           exact Nat.succ_lt_succ hp.2⟩ =
       p i.succ := by
   classical
-  simp [rotateClosed, RelSeries.smash, RelSeries.drop, Fin.addCases]
-  by_cases h : 1 < p.length - i.1
-  · simp [h]
-    apply congrArg p.toFun
-    ext
-    simp [Nat.add_comm]
-  · simp [h]
-    have hi_last : i.1 + 1 = p.length := by omega
-    have hi_succ : i.succ = (Fin.last p.length) := by
-      ext
-      simpa [Fin.val_succ] using hi_last
-    simp [RelSeries.take]
-    rw [show (⟨1 - (p.length - i.1), by omega⟩ : Fin (p.length + 1)) =
-        (0 : Fin (p.length + 1)) by
-      ext
-      simp
-      omega]
-    rw [hi_succ]
-    change p.head = p.last
-    exact hp.1
+  let d := p.drop i.castSucc
+  let q := p.take i.castSucc
+  have hconnect : d.last = q.head := by
+    simpa [d, q] using hp.1.symm
+  have hdpos : 0 < d.length := by
+    simp [d]
+  let z : Fin d.length := ⟨0, hdpos⟩
+  have hone : 1 < (d.smash q hconnect).length + 1 := by
+    rw [RelSeries.smash_length]
+    omega
+  change (d.smash q hconnect) ⟨1, hone⟩ = p i.succ
+  have hindex :
+      (⟨1, hone⟩ : Fin ((d.smash q hconnect).length + 1)) =
+        (z.castAdd q.length).succ := by
+    apply Fin.ext
+    simp [z]
+  rw [hindex, RelSeries.smash_succ_castAdd]
+  change p.toFun _ = p.toFun i.succ
+  apply congrArg p.toFun
+  apply Fin.ext
+  simp [d, z, RelSeries.drop, Nat.add_comm]
 
 theorem rotateClosed_apply_forward
     (p : RelSeries (relationSetRel rel)) (hp : Closed (rel := rel) p)
@@ -956,7 +957,21 @@ theorem closed_dependency_series_not_first_type1_of_minimal
     exact hne hhead_eq_next
   have hstep1 :
       LinkageDependency R (p ⟨1, by omega⟩) (p ⟨2, by omega⟩) := by
-    simpa [relationSetRel] using p.step ⟨1, by omega⟩
+    have hs := p.step ⟨1, by omega⟩
+    change LinkageDependency R
+      (p.toFun (Fin.castSucc (⟨1, by omega⟩ : Fin p.length)))
+      (p.toFun (Fin.succ (⟨1, by omega⟩ : Fin p.length))) at hs
+    have hidx1 :
+        Fin.castSucc (⟨1, by omega⟩ : Fin p.length) =
+          (⟨1, by omega⟩ : Fin (p.length + 1)) := by
+      apply Fin.ext
+      rfl
+    have hidx2 :
+        Fin.succ (⟨1, by omega⟩ : Fin p.length) =
+          (⟨2, by omega⟩ : Fin (p.length + 1)) := by
+      apply Fin.ext
+      rfl
+    simpa only [hidx1, hidx2] using hs
   have hshortcut :
       LinkageDependency R p.head (p ⟨2, by omega⟩) :=
     linkageDependency_of_before_of_linkageDependency hbefore hne hstep1
@@ -1340,7 +1355,7 @@ noncomputable def reroutedPath (C : LinkageDependencyCycle R)
     R.toPathPacking.node_disjoint hrow_ne
   have hadj : G.Adj (C.vertex i) (C.witness p) := by
     have h := C.adj_next p
-    simpa [p, C.next_pred i] using G.symm h
+    simpa [p, C.next_pred i] using G.adj_symm h
   exact GraphPath.crossPrefixSuffix
     (R.path (C.row i)) (R.path (C.row p))
     (C.vertex_mem i) (C.witness_mem p) hdisj hadj
@@ -1374,7 +1389,7 @@ theorem reroutedPath_vertexSet_subset_parts (C : LinkageDependencyCycle R)
     R.toPathPacking.node_disjoint hrow_ne
   have hadj : G.Adj (C.vertex i) (C.witness p) := by
     have h := C.adj_next p
-    simpa [p, C.next_pred i] using G.symm h
+    simpa [p, C.next_pred i] using G.adj_symm h
   simpa [reroutedPath, p] using
     (GraphPath.crossPrefixSuffix_vertexSet_subset_parts
       (R.path (C.row i)) (R.path (C.row p))
@@ -1393,7 +1408,7 @@ theorem reroutedPath_cross_edge_mem (C : LinkageDependencyCycle R)
     R.toPathPacking.node_disjoint hrow_ne
   have hadj : G.Adj (C.vertex i) (C.witness p) := by
     have h := C.adj_next p
-    simpa [p, C.next_pred i] using G.symm h
+    simpa [p, C.next_pred i] using G.adj_symm h
   rcases GraphPath.exists_crossPrefixSuffix
       (R.path (C.row i)) (R.path (C.row p))
       (C.vertex_mem i) (C.witness_mem p) hdisj hadj with
@@ -1640,7 +1655,7 @@ theorem targetRow_bijective (C : LinkageDependencyCycle R) :
 
 /-- The path family obtained by rerouting every cycle row and leaving all other
 linkage rows unchanged. -/
-noncomputable def reroutedPathPacking
+noncomputable abbrev reroutedPathPacking
     (C : LinkageDependencyCycle R) : PathPacking G A B where
   Index := C.RerouteIndex
   path := fun x =>

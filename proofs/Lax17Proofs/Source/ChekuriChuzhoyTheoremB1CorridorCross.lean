@@ -222,7 +222,7 @@ theorem orientedSegment₁_nodeDisjoint_unchanged
   rcases X.orientedSegment₁_clean_linkage hvseg hpack with hs | ht
   · have hsrow :
         X.s₁ ∈ (S.linkage.path X.lowerIndex).vertexSet := by
-      simpa using X.s₁_mem_lower
+      exact X.s₁_mem_lower
     have hsi : X.s₁ ∈ (S.linkage.path i).vertexSet := by
       simpa [hs] using hvi
     exact Finset.disjoint_left.mp
@@ -230,7 +230,7 @@ theorem orientedSegment₁_nodeDisjoint_unchanged
         (fun h => hilower h.symm)) hsrow hsi
   · have htrow :
         X.t₁ ∈ (S.linkage.path X.upperIndex).vertexSet := by
-      simpa using X.t₁_mem_upper
+      exact X.t₁_mem_upper
     have hti : X.t₁ ∈ (S.linkage.path i).vertexSet := by
       simpa [ht] using hvi
     exact Finset.disjoint_left.mp
@@ -248,7 +248,7 @@ theorem orientedSegment₂_nodeDisjoint_unchanged
   rcases X.orientedSegment₂_clean_linkage hvseg hpack with ht | hs
   · have htrow :
         X.t₂ ∈ (S.linkage.path X.upperIndex).vertexSet := by
-      simpa using X.t₂_mem_upper
+      exact X.t₂_mem_upper
     have hti : X.t₂ ∈ (S.linkage.path i).vertexSet := by
       simpa [ht] using hvi
     exact Finset.disjoint_left.mp
@@ -256,7 +256,7 @@ theorem orientedSegment₂_nodeDisjoint_unchanged
         (fun h => hiupper h.symm)) htrow hti
   · have hsrow :
         X.s₂ ∈ (S.linkage.path X.lowerIndex).vertexSet := by
-      simpa using X.s₂_mem_lower
+      exact X.s₂_mem_lower
     have hsi : X.s₂ ∈ (S.linkage.path i).vertexSet := by
       simpa [hs] using hvi
     exact Finset.disjoint_left.mp
@@ -833,18 +833,21 @@ noncomputable def replacementLinkage
 @[simp] theorem replacementLinkage_path_lower (X : CorridorCross S) :
     X.replacementLinkage.path X.lowerIndex =
       X.replacementPaths.lowerReplacement := by
-  simp [replacementLinkage]
+  exact IndexedAuxiliaryPrefix.PerfectPathPacking.replaceTwoPathsSwapTargets_path_left
+    _ _ _ _ _ _ _ _ _ _ _ _ _
 
 @[simp] theorem replacementLinkage_path_upper (X : CorridorCross S) :
     X.replacementLinkage.path X.upperIndex =
       X.replacementPaths.upperReplacement := by
-  simp [replacementLinkage]
+  exact IndexedAuxiliaryPrefix.PerfectPathPacking.replaceTwoPathsSwapTargets_path_right
+    _ _ _ _ _ _ _ _ _ _ _ _ _
 
 @[simp] theorem replacementLinkage_path_of_ne
     (X : CorridorCross S) {i : S.linkage.Index}
     (hilower : i ≠ X.lowerIndex) (hiupper : i ≠ X.upperIndex) :
     X.replacementLinkage.path i = S.linkage.path i := by
-  simp [replacementLinkage, hilower, hiupper]
+  exact IndexedAuxiliaryPrefix.PerfectPathPacking.replaceTwoPathsSwapTargets_path_of_ne
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ hilower hiupper
 
 /-! ## Vertex support of the switch -/
 
@@ -1167,13 +1170,13 @@ theorem mem_local_quad_of_old_adj_to_crossed_row
   classical
   rcases hadj with hlower | hupper
   · rcases DegreeEquals.two_adj_eq_or_eq hU
-      ((linkageAuxGraph S.linkage).symm hAU) hUV hA_ne_V
-      ((linkageAuxGraph S.linkage).symm hlower) with h | h
+      hAU.symm hUV hA_ne_V
+      hlower.symm with h | h
     · simpa [h]
     · simpa [h]
   · rcases DegreeEquals.two_adj_eq_or_eq hV
-      ((linkageAuxGraph S.linkage).symm hUV) hVD hU_ne_D
-      ((linkageAuxGraph S.linkage).symm hupper) with h | h
+      hUV.symm hVD hU_ne_D
+      hupper.symm with h | h
     · simpa [h]
     · simpa [h]
 
@@ -1258,7 +1261,7 @@ theorem old_aux_adj_to_crossed_row_of_old_bridge_first_inserted_in_segment₁
     have hjoinedTgt :
         Joined.target ∈ (S.linkage.path X.upperIndex).vertexSet := by
       have htgt : Joined.target = X.t₁ := by simp [Joined, Tail]
-      simpa [htgt] using X.t₁_mem_upper
+      rw [htgt]; exact X.t₁_mem_upper
     exact Or.inr ⟨hiupper, Or.inl
       ⟨PathPacking.BridgeBetween.of_orientedPath
         S.linkage.toPathPacking Joined hjoinedSrc hjoinedTgt
@@ -1345,7 +1348,7 @@ theorem old_aux_adj_to_crossed_row_of_old_bridge_first_inserted_in_segment₂
     have hjoinedTgt :
         Joined.target ∈ (S.linkage.path X.lowerIndex).vertexSet := by
       have htgt : Joined.target = X.s₂ := by simp [Joined, Tail]
-      simpa [htgt] using X.s₂_mem_lower
+      rw [htgt]; exact X.s₂_mem_lower
     exact Or.inl ⟨hilower, Or.inl
       ⟨PathPacking.BridgeBetween.of_orientedPath
         S.linkage.toPathPacking Joined hjoinedSrc hjoinedTgt
@@ -1463,8 +1466,8 @@ theorem mem_local_quad_of_old_adj_not_new_at_right_endpoint
     j ∈ ({auxA, X.lowerIndex, X.upperIndex, auxD} :
       Finset S.linkage.Index) := by
   exact X.mem_local_quad_of_old_adj_not_new_at_left_endpoint
-    hjlower hjupper ((linkageAuxGraph S.linkage).symm hadj)
-    (fun hnew => hnotnew ((linkageAuxGraph X.replacementLinkage).symm hnew))
+    hjlower hjupper hadj.symm
+    (fun hnew => hnotnew hnew.symm)
     hAU hUV hVD hU hV hA_ne_V hU_ne_D
 
 /-- A genuinely new bridge between unchanged paths has a local endpoint. -/
@@ -1521,7 +1524,7 @@ theorem mem_local_quad_of_new_bridge_not_old_unchanged_right_endpoint
       Finset S.linkage.Index) := by
   exact X.mem_local_quad_of_new_bridge_not_old_unchanged
     hij.symm hjlower hjupper hilower hiupper (X.reverseBridge β)
-    (fun hold => hnotold ((linkageAuxGraph S.linkage).symm hold))
+    (fun hold => hnotold hold.symm)
     hAU hUV hVD hU hV hA_ne_V hU_ne_D
 
 /-- Auxiliary adjacencies between two vertices outside the cross-local
@@ -1709,7 +1712,7 @@ theorem old_aux_adj_to_crossed_row_of_new_bridge_to_lower_replacement
             have htgt : Joined.target = X.t₁ := by
               simp [Joined, Tail]
             have hrow : Joined.target ∈ X.upperPath.vertexSet := by
-              simpa [htgt] using X.t₁_mem_upper
+              rw [htgt]; exact X.t₁_mem_upper
             simpa using hrow
           exact Or.inr ⟨hiupper, Or.inl
             ⟨PathPacking.BridgeBetween.of_orientedPath
@@ -1854,7 +1857,7 @@ theorem old_aux_adj_to_crossed_row_of_new_bridge_to_upper_replacement
             have htgt : Joined.target = X.s₂ := by
               simp [Joined, Tail]
             have hrow : Joined.target ∈ X.lowerPath.vertexSet := by
-              simpa [htgt] using X.s₂_mem_lower
+              rw [htgt]; exact X.s₂_mem_lower
             simpa using hrow
           exact Or.inl ⟨hilower, Or.inl
             ⟨PathPacking.BridgeBetween.of_orientedPath
@@ -1945,8 +1948,8 @@ theorem mem_local_quad_of_new_adj_not_old_at_right_endpoint
     j ∈ ({auxA, X.lowerIndex, X.upperIndex, auxD} :
       Finset S.linkage.Index) := by
   exact X.mem_local_quad_of_new_adj_not_old_at_left_endpoint
-    hjlower hjupper ((linkageAuxGraph X.replacementLinkage).symm hnew)
-    (fun hold => hnotold ((linkageAuxGraph S.linkage).symm hold))
+    hjlower hjupper hnew.symm
+    (fun hold => hnotold hold.symm)
     hAU hUV hVD hU hV hA_ne_V hU_ne_D
 
 /-- Every auxiliary edge whose status changes under the cross switch has both
@@ -2606,7 +2609,7 @@ theorem degree_drop_or_auxiliary_equivalent
     have hlt :=
       IndexedAuxiliaryPrefix.degreeTwoVertexCount_lt_of_supported_local_drop
         H H' X.localIndexSet hsupport hlocalOld ⟨x, hx, hnot⟩
-    simpa [linkageAuxDegreeTwoCount, H, H'] using hlt
+    exact hlt
   by_cases hPrevNew : DegreeEquals H' X.prevIndex 2
   · by_cases hLowerNew : DegreeEquals H' X.lowerIndex 2
     · by_cases hUpperNew : DegreeEquals H' X.upperIndex 2
@@ -2739,14 +2742,14 @@ noncomputable def successorStateSame
     (Equiv.refl S.linkage.Index)
     (fun i j => (hadj i j).symm)
     (by
-      simpa using X.replacementLinkage_path_of_ne
+      exact X.replacementLinkage_path_of_ne
         X.lowerBoundaryIndex_ne_lower X.lowerBoundaryIndex_ne_upper)
     (by
-      simpa using X.replacementLinkage_path_of_ne
+      exact X.replacementLinkage_path_of_ne
         X.upperBoundaryIndex_ne_lower X.upperBoundaryIndex_ne_upper)
     (by
       intro j hj
-      simpa using X.replacementLinkage_path_of_ne
+      exact X.replacementLinkage_path_of_ne
         (X.outsideIndex_ne_lower hj) (X.outsideIndex_ne_upper hj))
 
 /-- The successor state when the two replacement rows occur in the swapped
@@ -2768,7 +2771,8 @@ noncomputable def successorStateSwap
       have h :=
         hadj ((Equiv.swap X.lowerIndex X.upperIndex) i)
           ((Equiv.swap X.lowerIndex X.upperIndex) j)
-      simpa using h.symm)
+      simp only [Equiv.swap_apply_self] at h
+      exact h.symm)
     (by
       have hfix :
           (Equiv.swap X.lowerIndex X.upperIndex)

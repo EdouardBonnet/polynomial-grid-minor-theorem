@@ -81,7 +81,9 @@ theorem exponentEightPolylogNormalizedLocalThreshold_gt_one
       _ ≤ (2 ^ 38) * n ^ 8 * (Nat.log 2 n + 1) ^ 3 := by
         gcongr
         norm_num
-  simpa [exponentEightPolylogNormalizedLocalThreshold] using this
+  have hlt :
+      1 < (2 ^ 38) * n ^ 8 * (Nat.log 2 n + 1) ^ 3 := this
+  simpa [exponentEightPolylogNormalizedLocalThreshold] using hlt
 
 /-- The normalized local width also dominates the rounded crossbar width. -/
 theorem powTwoFloor_sq_le_exponentEightPolylogNormalizedLocalThreshold
@@ -227,7 +229,9 @@ theorem polynomialGridMinorTreewidthBound8_gt_one
       2 = 1 * 2 * 1 := by norm_num
       _ ≤ K * target ^ 8 * (Nat.log 2 target) ^ b := by
         gcongr
-  simpa [polynomialGridMinorTreewidthBound8] using this
+  have hlt :
+      1 < K * target ^ 8 * (Nat.log 2 target) ^ b := this
+  simpa [polynomialGridMinorTreewidthBound8] using hlt
 
 /-- Coefficient and exponent budgets imply the hairy-system inequality at
 the exponent-eight threshold. -/

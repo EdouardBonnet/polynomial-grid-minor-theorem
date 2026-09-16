@@ -300,7 +300,7 @@ theorem vertexSeparation
         reachableSide.not_adj_of_not_mem (G := G) (Y := Y) (S := S) (A := B)
           hvR₂ huYS huR₂not
       intro huv
-      exact hno_vu (G.symm huv)
+      exact hno_vu (G.symm.symm _ _ huv)
     · have hvSnot : v ∉ S := by
         intro hvS
         exact hvLnot (by
@@ -820,7 +820,7 @@ theorem GraphPath.exists_mem_overlap_of_source_mem_right_target_mem_left
     (u := y) (v := x)
     (Finset.mem_sdiff.mp hy).1 (Finset.mem_sdiff.mp hy).2
     (Finset.mem_sdiff.mp hx).1 (Finset.mem_sdiff.mp hx).2
-    (G.symm hxy)
+    (G.symm.symm _ _ hxy)
 
 omit [Fintype V] in
 /-- For a path staying in a separation and going from the right side `Z` to
@@ -882,7 +882,7 @@ theorem GraphPath.cleanPrefixToLeft_target_mem_overlap
       Q.penultimate_adj_target hQne
     exact hYZ.no_cross
       (u := Q.target) (v := Q.penultimate)
-      hQtargetY hQtargetZ hpenZ hpen_notY (G.symm hadj)
+      hQtargetY hQtargetZ hpenZ hpen_notY (G.symm.symm _ _ hadj)
 
 /-- Truncate a path packing from the right side of a separation to the left
 side at the first vertex of the overlap. -/
@@ -895,10 +895,10 @@ noncomputable def truncatePackingToSeparationOverlap
   path := by
     intro i
     let O := P.orient.path i
-    have hsourceS : O.source ∈ S := by
-      simpa [O] using GraphPath.orient_source_mem (P.path i) (P.connects i)
-    have htargetT : O.target ∈ T := by
-      simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+    have hsourceS : O.source ∈ S :=
+      GraphPath.orient_source_mem (P.path i) (P.connects i)
+    have htargetT : O.target ∈ T :=
+      GraphPath.orient_target_mem (P.path i) (P.connects i)
     have hstayO : O.vertexSet ⊆ C := by
       intro v hv
       exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hv)
@@ -912,10 +912,10 @@ noncomputable def truncatePackingToSeparationOverlap
   connects := by
     intro i
     let O := P.orient.path i
-    have hsourceS : O.source ∈ S := by
-      simpa [O] using GraphPath.orient_source_mem (P.path i) (P.connects i)
-    have htargetT : O.target ∈ T := by
-      simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+    have hsourceS : O.source ∈ S :=
+      GraphPath.orient_source_mem (P.path i) (P.connects i)
+    have htargetT : O.target ∈ T :=
+      GraphPath.orient_target_mem (P.path i) (P.connects i)
     have hstayO : O.vertexSet ⊆ C := by
       intro v hv
       exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hv)
@@ -958,7 +958,7 @@ theorem truncatePackingToSeparationOverlap_staysIn
   let O := P.orient.path i
   have hvO : v ∈ O.vertexSet := by
     exact O.cleanPrefixToSet_vertexSet_subset (Y ∩ Z) _ hv
-  exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hvO)
+  exact hstay i (by rw [← P.orient_path_vertexSet i]; exact hvO)
 
 /-- The truncated prefixes meet the overlap only at their terminal endpoint. -/
 theorem truncatePackingToSeparationOverlap_internallyDisjointFrom_overlap
@@ -975,9 +975,7 @@ theorem truncatePackingToSeparationOverlap_internallyDisjointFrom_overlap
   have hclean :=
     O.cleanPrefixToSet_internallyDisjointFromSet (Y ∩ Z) _
       hvPrefix hvX
-  rcases hclean with hsource | htarget
-  · exact Or.inl (by simpa [O] using hsource)
-  · exact Or.inr htarget
+  exact hclean
 
 /-- Truncate a path packing from the right side of a separation to the first
 vertex in the left side.  The separation property forces that first left-side
@@ -992,8 +990,8 @@ noncomputable def truncatePackingToSeparationLeft
   path := by
     intro i
     let O := P.orient.path i
-    have htargetT : O.target ∈ T := by
-      simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+    have htargetT : O.target ∈ T :=
+      GraphPath.orient_target_mem (P.path i) (P.connects i)
     have hhit : (O.vertexSet ∩ Y).Nonempty :=
       ⟨O.target, Finset.mem_inter.mpr
         ⟨GraphPath.target_mem_vertexSet O, hT htargetT⟩⟩
@@ -1001,10 +999,10 @@ noncomputable def truncatePackingToSeparationLeft
   connects := by
     intro i
     let O := P.orient.path i
-    have hsourceS : O.source ∈ S := by
-      simpa [O] using GraphPath.orient_source_mem (P.path i) (P.connects i)
-    have htargetT : O.target ∈ T := by
-      simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+    have hsourceS : O.source ∈ S :=
+      GraphPath.orient_source_mem (P.path i) (P.connects i)
+    have htargetT : O.target ∈ T :=
+      GraphPath.orient_target_mem (P.path i) (P.connects i)
     have hstayO : O.vertexSet ⊆ C := by
       intro v hv
       exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hv)
@@ -1045,7 +1043,7 @@ theorem truncatePackingToSeparationLeft_staysIn
   let O := P.orient.path i
   have hvO : v ∈ O.vertexSet := by
     exact O.cleanPrefixToSet_vertexSet_subset Y _ hv
-  exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hvO)
+  exact hstay i (by rw [← P.orient_path_vertexSet i]; exact hvO)
 
 omit [Fintype V] in
 /-- The left-side truncation enters `Y` only at its terminal endpoint. -/
@@ -1059,8 +1057,8 @@ theorem truncatePackingToSeparationLeft_internallyDisjointFrom_left
   intro i v hv hvY
   let O := P.orient.path i
   have hhit : (O.vertexSet ∩ Y).Nonempty := by
-    have htargetT : O.target ∈ T := by
-      simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+    have htargetT : O.target ∈ T :=
+      GraphPath.orient_target_mem (P.path i) (P.connects i)
     exact ⟨O.target, Finset.mem_inter.mpr
       ⟨GraphPath.target_mem_vertexSet O, hT htargetT⟩⟩
   exact O.cleanPrefixToSet_internallyDisjointFromSet Y hhit hv hvY
@@ -1080,13 +1078,13 @@ theorem truncatePackingToSeparationLeft_source_mem_left_eq_target
   intro i hsourceY
   let Q := truncatePackingToSeparationLeft (G := G) hYZ P hstay hS hT
   let O := P.orient.path i
-  have hsourceS : O.source ∈ S := by
-    simpa [O] using GraphPath.orient_source_mem (P.path i) (P.connects i)
-  have htargetT : O.target ∈ T := by
-    simpa [O] using GraphPath.orient_target_mem (P.path i) (P.connects i)
+  have hsourceS : O.source ∈ S :=
+    GraphPath.orient_source_mem (P.path i) (P.connects i)
+  have htargetT : O.target ∈ T :=
+    GraphPath.orient_target_mem (P.path i) (P.connects i)
   have hstayO : O.vertexSet ⊆ C := by
     intro v hv
-    exact hstay i (by simpa [O, PathPacking.orient_path_vertexSet] using hv)
+    exact hstay i (by rw [← P.orient_path_vertexSet i]; exact hv)
   have hhit : (O.vertexSet ∩ Y).Nonempty :=
     ⟨O.target, Finset.mem_inter.mpr
       ⟨GraphPath.target_mem_vertexSet O, hT htargetT⟩⟩
@@ -1269,7 +1267,7 @@ theorem exists_exact_left_truncated_paths_to_overlap_of_pathPacking
       truncatePackingToSeparationLeft_source_mem_left_eq_target
         (G := G) hYZ P₀ hP₀stay hTzZ hTyY
     intro i hiY
-    exact hPsource i.1 (by simpa [Q, P, PathPacking.restrictIndexSet] using hiY)
+    exact hPsource i.1 hiY
 
 /-- Exact-size routed prefixes obtained by stopping at the first vertex of the
 left side, starting from the scaled well-linkedness routing theorem. -/
@@ -1317,7 +1315,7 @@ theorem exists_exact_left_truncated_paths_to_overlap_of_scaledEdgeWellLinkedIn_d
       truncatePackingToSeparationLeft_source_mem_left_eq_target
         (G := G) hYZ P₀ hP₀stay hTzZ hTyY
     intro i hiY
-    exact hPsource i.1 (by simpa [Q, P, PathPacking.restrictIndexSet] using hiY)
+    exact hPsource i.1 hiY
 
 omit [Fintype V] in
 /-- Node-well-linkedness remains true when the allowed ambient region is
@@ -1502,7 +1500,9 @@ theorem nodeWellLinkedIn_sourceSet_of_linkage_to_nodeWellLinked
       RA.concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget
         Tail hRAintA₂ hTailStayA₂ hfull_source_only
     refine ⟨Full.toPathPacking, ?_, ?_⟩
-    · simp [Full, RA]
+    · exact (RA.concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget_card
+        Tail hRAintA₂ hTailStayA₂ hfull_source_only).trans
+        (L.restrictSourceSet_card A₀ hA₀)
     · have hFullStay : Full.toPathPacking.StaysIn (C ∪ A₂) := by
         simpa [Full] using
           RA.concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget_staysIn_union
@@ -1766,7 +1766,7 @@ private theorem theorem214_two_mul_ceilQuarter_add_edgeFloor_le
     have h := Nat.div_mul_le_self κ (4 * Δ)
     simpa [k, Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm] using h
   have hk4 : 4 ≤ k := by
-    simpa [k] using hlarge
+    exact hlarge
   have h12k : 12 * k ≤ κ := by
     have h12_le : 12 * k ≤ 4 * Δ * k := by
       nlinarith

@@ -485,14 +485,19 @@ theorem ofPathPacking_hostEdgeLoad_le_one
   rw [hostEdgeLoad, Finset.card_le_one]
   intro i hi j hj
   simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hi hj
+  change P.Index at i j
   by_contra hij
   have hnode := P.cleanToTerminals.node_disjoint hij
   induction e using Sym2.inductionOn with
   | _ x y =>
       have hiEdges : s(x, y) ∈ (P.cleanToTerminals.path i).walk.edges :=
-        List.mem_toFinset.mp (by simpa [GraphPath.edgeSet] using hi)
+        List.mem_toFinset.mp (by
+          change s(x, y) ∈ (P.cleanToTerminals.path i).edgeSet at hi
+          exact hi)
       have hjEdges : s(x, y) ∈ (P.cleanToTerminals.path j).walk.edges :=
-        List.mem_toFinset.mp (by simpa [GraphPath.edgeSet] using hj)
+        List.mem_toFinset.mp (by
+          change s(x, y) ∈ (P.cleanToTerminals.path j).edgeSet at hj
+          exact hj)
       have hxi : x ∈ (P.cleanToTerminals.path i).vertexSet := by
         simpa [GraphPath.vertexSet] using
           (P.cleanToTerminals.path i).walk.fst_mem_support_of_mem_edges hiEdges

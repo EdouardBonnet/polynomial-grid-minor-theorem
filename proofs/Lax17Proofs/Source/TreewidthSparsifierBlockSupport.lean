@@ -31,11 +31,11 @@ def roundListSupport (rounds : List (LazyRound X)) :
       ∃ R ∈ rounds, ∃ a : {z : X // z ∈ R.cut.left},
         (x = a.1 ∧ y = R.matching.rightEndpoint a) ∨
           (y = a.1 ∧ x = R.matching.rightEndpoint a)
-  symm := by
+  symm := ⟨by
     intro x y h
     exact ⟨Ne.symm h.1, by
       rcases h.2 with ⟨R, hR, a, ha⟩
-      exact ⟨R, hR, a, ha.elim Or.inr Or.inl⟩⟩
+      exact ⟨R, hR, a, ha.elim Or.inr Or.inl⟩⟩⟩
   loopless := by
     constructor
     intro x h
@@ -214,9 +214,9 @@ private theorem flatten_get_block
       rcases i with ⟨i, hi⟩
       cases i with
       | zero =>
-        simpa [List.flatten_cons] using
-          (List.getElem_append_left
-            (l₂ := rest.flatten) r.2)
+        simp only [List.take_zero, List.flatten_nil, List.length_nil,
+          Nat.zero_add, List.flatten_cons, List.get_eq_getElem, List.getElem_cons_zero]
+        exact List.getElem_append_left (as := block) (bs := rest.flatten) r.2
       | succ i =>
         let j : Fin rest.length := ⟨i, by simpa using hi⟩
         have hr : r.1 < (rest.get j).length := by
@@ -663,10 +663,10 @@ private theorem localGraph_connectorGraph_not_common_adj
     have hvGap :
         v ∈ P.cluster (E.gapIndex hbudget g) := by
       apply P.right_subset_cluster
-      simpa [hvSource] using (E.connectorAt hbudget g).source_mem a
+      simpa [connectorAt, hvSource] using (E.connectorAt hbudget g).source_mem a
     have hwNext : w ∈ P.cluster next := by
       apply P.left_subset_cluster
-      simpa [next, hwTarget] using
+      simpa [connectorAt, next, hwTarget] using
         (E.connectorAt hbudget g).target_mem a
     have hjGap :
         (E.recordAt j).index = E.gapIndex hbudget g := by
@@ -684,12 +684,12 @@ private theorem localGraph_connectorGraph_not_common_adj
         E.gapIndex_succ_lt hbudget g⟩
     have hvNext : v ∈ P.cluster next := by
       apply P.left_subset_cluster
-      simpa [next, hvTarget] using
+      simpa [connectorAt, next, hvTarget] using
         (E.connectorAt hbudget g).target_mem a
     have hwGap :
         w ∈ P.cluster (E.gapIndex hbudget g) := by
       apply P.right_subset_cluster
-      simpa [hwSource] using (E.connectorAt hbudget g).source_mem a
+      simpa [connectorAt, hwSource] using (E.connectorAt hbudget g).source_mem a
     have hjNext : (E.recordAt j).index = next := by
       by_contra hne
       exact Finset.disjoint_left.mp (P.cluster_disjoint hne)

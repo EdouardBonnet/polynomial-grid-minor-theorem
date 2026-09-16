@@ -681,7 +681,7 @@ theorem orientedSegment_nodeDisjoint_unchanged
       simpa [hleft] using hvi
     have hleft_row :
         bump.left ∈ (S.linkage.path bump.middleIndex).vertexSet := by
-      simpa using bump.left_mem_row
+      exact bump.left_mem_row
     exact Finset.disjoint_left.mp
       (S.linkage.toPathPacking.node_disjoint (fun h => hi h.symm))
       hleft_row hleft_i
@@ -689,7 +689,7 @@ theorem orientedSegment_nodeDisjoint_unchanged
       simpa [hright] using hvi
     have hright_row :
         bump.right ∈ (S.linkage.path bump.middleIndex).vertexSet := by
-      simpa using bump.right_mem_row
+      exact bump.right_mem_row
     exact Finset.disjoint_left.mp
       (S.linkage.toPathPacking.node_disjoint (fun h => hi h.symm))
       hright_row hright_i
@@ -1378,9 +1378,9 @@ theorem mem_localIndexSet_of_old_adj_middle
   have hi : i = bump.prevIndex ∨ i = bump.nextIndex := by
     rcases DegreeEquals.two_adj_eq_or_eq
         bump.middle_degree_two
-        ((linkageAuxGraph S.linkage).symm bump.prev_adj_middle)
+        ((linkageAuxGraph S.linkage).symm.symm _ _ bump.prev_adj_middle)
         bump.middle_adj_next bump.prev_ne_next
-        ((linkageAuxGraph S.linkage).symm hadj) with h | h
+        ((linkageAuxGraph S.linkage).symm.symm _ _ hadj) with h | h
     · exact Or.inl h
     · exact Or.inr h
   rcases hi with rfl | rfl <;> simp [localIndexSet]
@@ -1481,7 +1481,7 @@ theorem old_aux_adj_to_middle_of_old_bridge_hits_inserted
           (S.linkage.path bump.middleIndex).vertexSet := by
       have htgt : Joined.target = bump.right := by simp [Joined, Tail]
       have hrow : Joined.target ∈ bump.rowPath.vertexSet := by
-        simpa [htgt] using bump.right_mem_row
+        rw [htgt]; exact bump.right_mem_row
       simpa using hrow
     exact ⟨himid, Or.inl
       ⟨PathPacking.BridgeBetween.of_orientedPath
@@ -1605,7 +1605,7 @@ theorem old_aux_adj_to_middle_of_new_bridge_to_replacement
             have htgt : Joined.target = bump.right := by
               simp [Joined, Tail]
             have hrow : Joined.target ∈ bump.rowPath.vertexSet := by
-              simpa [htgt] using bump.right_mem_row
+              rw [htgt]; exact bump.right_mem_row
             simpa using hrow
           exact ⟨himid, Or.inl
             ⟨PathPacking.BridgeBetween.of_orientedPath
@@ -1702,9 +1702,9 @@ theorem mem_local_of_old_adj_not_new_right
       ¬ (linkageAuxGraph bump.replacementLinkage).Adj i j) :
     j ∈ bump.localIndexSet := by
   exact bump.mem_local_of_old_adj_not_new_left hjmid
-    ((linkageAuxGraph S.linkage).symm hold)
+    ((linkageAuxGraph S.linkage).symm.symm _ _ hold)
     (fun h => hnotnew
-      ((linkageAuxGraph bump.replacementLinkage).symm h))
+      ((linkageAuxGraph bump.replacementLinkage).symm.symm _ _ h))
 
 /-- Left-endpoint localization for a genuinely new auxiliary edge. -/
 theorem mem_local_of_new_adj_not_old_left
@@ -1743,8 +1743,8 @@ theorem mem_local_of_new_adj_not_old_right
     (hnotold : ¬ (linkageAuxGraph S.linkage).Adj i j) :
     j ∈ bump.localIndexSet := by
   exact bump.mem_local_of_new_adj_not_old_left hjmid
-    ((linkageAuxGraph bump.replacementLinkage).symm hnew)
-    (fun h => hnotold ((linkageAuxGraph S.linkage).symm h))
+    ((linkageAuxGraph bump.replacementLinkage).symm.symm _ _ hnew)
+    (fun h => hnotold ((linkageAuxGraph S.linkage).symm.symm _ _ h))
 
 /-- Every changed auxiliary edge has both endpoints in the predecessor,
 middle, successor triple. -/
@@ -1826,7 +1826,7 @@ theorem new_adjacent_to_prev_and_next_of_middle_degree_two
           (u := bump.middleIndex) (v := x) (Or.inr hlocal)).1 hmx
       rcases DegreeEquals.two_adj_eq_or_eq
           bump.middle_degree_two
-          ((linkageAuxGraph S.linkage).symm bump.prev_adj_middle)
+          ((linkageAuxGraph S.linkage).symm.symm _ _ bump.prev_adj_middle)
           bump.middle_adj_next bump.prev_ne_next hmold with hp | hn
       · subst x
         exact Finset.mem_insert_self _ _
@@ -1920,7 +1920,7 @@ theorem degree_drop_or_auxiliary_equivalent :
         bump.prevOuter_ne_prev bump.prevOuter_ne_middle
         bump.prevOuter_ne_next bump.prev_ne_middle
         bump.prev_ne_next bump.middle_ne_next
-    simpa [linkageAuxDegreeTwoCount, H, H'] using hresult
+    exact hresult
   · left
     have hlocalOld :
         ∀ x : S.linkage.Index, x ∈ bump.localIndexSet →
@@ -1946,8 +1946,8 @@ theorem degree_drop_or_auxiliary_equivalent :
           rw [localIndexSet]
           exact Finset.mem_insert.mpr
             (Or.inr (Finset.mem_insert_self _ _)),
-          by simpa [H'] using hMnew⟩
-    simpa [linkageAuxDegreeTwoCount, H, H'] using hlt
+          hMnew⟩
+    exact hlt
 
 /-! ## Transported successor state -/
 
@@ -1994,14 +1994,14 @@ noncomputable def successorState
     (Equiv.refl S.linkage.Index)
     (fun i j => (hadj i j).symm)
     (by
-      simpa using
+      exact
         bump.replacementLinkage_path_of_ne bump.lowerIndex_ne_middle)
     (by
-      simpa using
+      exact
         bump.replacementLinkage_path_of_ne bump.upperIndex_ne_middle)
     (by
       intro j hj
-      simpa using bump.replacementLinkage_path_of_ne
+      exact bump.replacementLinkage_path_of_ne
         (bump.outsideIndex_ne_middle hj))
 
 @[simp] theorem successorState_linkage

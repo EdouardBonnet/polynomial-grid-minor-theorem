@@ -37,6 +37,15 @@ open ChekuriChuzhoySection5RouterSkeleton
 
 variable {V : Type u} [Fintype V] [DecidableEq V]
 
+private theorem graph_edgeBundle_eq_skeleton_edgeBundleKey
+    {G : _root_.SimpleGraph V} {n : Nat} {cluster : Fin n → Finset V}
+    (S : RouterPathSkeleton G cluster) (p : Sym2 (Fin n)) :
+    S.graph.edgeBundle p = S.edgeBundleKey p := by
+  classical
+  ext e
+  simp [ChekuriChuzhoySection5TerminalSkeleton.FiniteEdgeIndexedGraph.edgeKey,
+    RouterPathSkeleton.edgeKey]
+
 /-- Full Section 5 assembly after all numerical parameters have been fixed.
 The host maximum-degree parameter is conservatively enlarged from `Delta` to
 `Delta + 3`, so every downstream theorem can use the uniform lower bound
@@ -141,7 +150,9 @@ theorem exists_strongTreeOfSetsSystem_of_parameters
   have hrawBundle : ∀ i j, T.Adj i j →
       4 * (Delta + 3) * leafWidth ≤ (S.edgeBundle i j).card := by
     intro i j hij
-    simpa [S.edgeBundle_eq_edgeBundleKey i j] using hTbundle i j hij
+    have h := hTbundle i j hij
+    rw [graph_edgeBundle_eq_skeleton_edgeBundleKey S s(i, j)] at h
+    rwa [S.edgeBundle_eq_edgeBundleKey i j]
   rcases exists_bufferedSupportPath_or_leafSelection
       T hTtree hm hrouterCount with hpath | hleaf
   · rcases hpath with ⟨order, horderInjective, horderAdj⟩
@@ -154,7 +165,9 @@ theorem exists_strongTreeOfSetsSystem_of_parameters
           have hij : T.Adj i j := by
             simpa [_root_.SimpleGraph.mem_edgeSet] using hp
           exact hlongBundle.trans <| by
-            simpa [S.edgeBundle_eq_edgeBundleKey i j] using hTbundle i j hij
+            have h := hTbundle i j hij
+            rw [graph_edgeBundle_eq_skeleton_edgeBundleKey S s(i, j)] at h
+            exact h
     rcases S.exists_supportBundleTransversal T hn hSgroups hbundle with ⟨B⟩
     rcases exists_bufferedPathAssemblyData S T order hm hordinaryPos hTtree
         horderInjective horderAdj hSload hMdegree (by omega) B

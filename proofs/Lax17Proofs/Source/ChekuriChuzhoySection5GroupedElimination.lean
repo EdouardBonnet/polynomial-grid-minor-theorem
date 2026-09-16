@@ -155,7 +155,7 @@ theorem exists_groupedTerminalCore
       (by simp [U])
       (by
         intro e
-        simpa only [doubleEdges_left, doubleEdges_right] using hedges e.1)
+        exact hedges e.1)
       hconn.doubleEdges_terminals
       (by intro t ht; exact le_rfl)
       (by intro w hw; exact normal.doubleEdges_degree_even w)

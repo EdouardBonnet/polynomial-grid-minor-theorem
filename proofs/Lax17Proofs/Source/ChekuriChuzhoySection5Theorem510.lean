@@ -167,7 +167,7 @@ theorem originFiber_card_le_two
       exact ha.trans hb.symm
     · exact hab
   have hcard := Fintype.card_le_of_injective tag htag
-  simpa only [Fintype.card_coe] using hcard
+  simpa only [Fintype.card_coe, Fintype.card_bool] using hcard
 
 theorem terminalPathSkeleton_endpointCongestion :
     C.terminalPathSkeleton.EndpointCongestionAtMost 2 := by
@@ -186,7 +186,10 @@ theorem terminalPathSkeleton_endpointCongestion :
     intro e he
     have hePath :
         hostEdge ∈ (C.terminalPathSkeleton.hostPath e).edgeSet := by
-      simpa [items] using he
+      have he' :
+          e ∈ Finset.univ.filter fun e =>
+            hostEdge ∈ (C.terminalPathSkeleton.hostPath e).edgeSet := he
+      exact (Finset.mem_filter.mp he').2
     have heNamed :=
       NamedEdgeWalk.toHostPath_edgeSet_subset G
         (C.liftedNamedWalk e) hePath
@@ -233,9 +236,9 @@ theorem terminalPathSkeleton_internalAvoidance :
   rcases C.terminalPathSkeleton_vertex_classification e hv with
     hleft | hright | ⟨s, hlabel, hvFiber⟩
   · rw [GraphPath.IsEndpoint]
-    exact Or.inl (by simpa using hleft)
+    exact Or.inl hleft
   · rw [GraphPath.IsEndpoint]
-    exact Or.inr (by simpa using hright)
+    exact Or.inr hright
   · have hsNonterminal :=
       C.core.grouped.split_nonterminal e s hlabel
     exact (Finset.disjoint_left.mp

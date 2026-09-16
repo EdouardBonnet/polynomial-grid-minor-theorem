@@ -358,6 +358,7 @@ theorem exists_rawExactBundle
 
 /-! ## Raw root-to-leaf prefix recursion -/
 
+open Classical in
 /-- Start a direct root-to-leaf prefix with an unsampled support bundle. -/
 theorem exists_rawDirectSelectedSupportPrefix
     (S : RouterPathSkeleton G cluster)
@@ -401,6 +402,7 @@ theorem exists_rawDirectSelectedSupportPrefix
     routing := DirectBoundedRoutingChain.single D.routing
       D.routing_congestion (D.routing_direct leafRouter) }⟩
 
+open Classical in
 /-- Extend a raw prefix through one bandwidth router and one further
 unsampled support bundle. -/
 theorem exists_rawDirectSelectedSupportPrefix_snoc

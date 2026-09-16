@@ -25,9 +25,9 @@ vertex type.  Vertices outside `C` are isolated. -/
 def restrictToVertexSet (G : _root_.SimpleGraph V) (C : Finset V) :
     _root_.SimpleGraph V where
   Adj u v := G.Adj u v ∧ u ∈ C ∧ v ∈ C
-  symm := by
+  symm := ⟨by
     intro u v h
-    exact ⟨G.symm h.1, h.2.2, h.2.1⟩
+    exact ⟨G.symm.symm u v h.1, h.2.2, h.2.1⟩⟩
   loopless := ⟨fun v h => G.loopless.irrefl v h.1⟩
 
 omit [DecidableEq V] in
@@ -526,7 +526,8 @@ theorem hasEdgeDisjointPathsIn_of_lineGraph_paths_restrictToVertexSet
       (G := H) (A := A) (B := B) h with
     ⟨P, hk, _hstay_univ⟩
   refine ⟨P.mapLe (restrictToVertexSet_le G C), ?_, ?_⟩
-  · simpa [EdgePathPacking.mapLe, EdgePathPacking.card] using hk
+  · change k ≤ P.card
+    exact hk
   · intro i v hv
     have hvH : v ∈ (P.path i).vertexSet := by
       simpa [EdgePathPacking.mapLe] using hv
@@ -564,7 +565,8 @@ theorem not_reachable_deleteEdges_of_lineGraph_separator
       isPath := W.toPath.property }
   let P : GraphPath G := Pdel.mapLe (_root_.SimpleGraph.deleteEdges_le (G := G) (F : Set (Sym2 V)))
   have hPne : P.source ≠ P.target := by
-    simpa [P, Pdel] using hab
+    change a ≠ b
+    exact hab
   let Q := linePathOfGraphPath (G := G) P hPne
   have hQconn :
       Q.Connects (incidentEdges (G := G) A) (incidentEdges (G := G) B) := by

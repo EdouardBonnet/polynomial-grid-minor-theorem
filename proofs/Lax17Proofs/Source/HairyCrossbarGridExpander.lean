@@ -21,6 +21,23 @@ the concrete target-size inequality for the canonical grid target.
 
 namespace SimpleGraph
 
+/-- Consecutiveness of two finite indices is decidable. -/
+instance decidableFinConsecutive {n : ℕ} (a b : Fin n) :
+    Decidable (FinConsecutive a b) :=
+  inferInstanceAs (Decidable (a.1 + 1 = b.1 ∨ b.1 + 1 = a.1))
+
+/-- Adjacency in the canonical grid is decidable. -/
+instance decidableRelGridGraphAdj {g : ℕ} : DecidableRel (gridGraph g).Adj :=
+  fun u v =>
+    inferInstanceAs (Decidable
+      ((u.1 = v.1 ∧ FinConsecutive u.2 v.2) ∨
+        (u.2 = v.2 ∧ FinConsecutive u.1 v.1)))
+
+/-- Adjacency in the lifted canonical grid is decidable. -/
+instance decidableRelGridGraphULiftAdj {g : ℕ} :
+    DecidableRel (gridGraphULift.{u} g).Adj :=
+  fun u v => inferInstanceAs (Decidable ((gridGraph g).Adj u.down v.down))
+
 
 /-- The finite set of indices consecutive to a fixed `Fin` index. -/
 noncomputable def finConsecutiveFinset {n : ℕ} (a : Fin n) : Finset (Fin n) := by

@@ -316,7 +316,7 @@ theorem endpointEdge_mem_blue
   change
     e ∈ edgesOfSubgraph
       (E.assembledSupport hbudget) E.blueSupport le_sup_right
-  rw [mem_edgesOfSubgraph]
+  refine (mem_edgesOfSubgraph _ _ _ _).mpr ?_
   have hblue :
       endpointEdge E hbudget hrecords B hB fallback M hcard i k ∈
         E.blueSupport.edgeSet :=
@@ -423,7 +423,7 @@ theorem linkAt_survives_of_safe
     change
       named ∈ edgesOfSubgraph
         (E.assembledSupport hbudget) E.blueSupport le_sup_right
-    rw [mem_edgesOfSubgraph]
+    refine (mem_edgesOfSubgraph _ _ _ _).mpr ?_
     have hblue :
         e ∈ E.blueSupport.edgeSet :=
       E.blueSegmentTransitionPath_edgeSet_subset_blue

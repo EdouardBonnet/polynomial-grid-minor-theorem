@@ -624,7 +624,7 @@ private theorem local_and_connector_degreeAtMost_one
     rcases hvEndpoint with hvSource | hvTarget
     · have hvRightGap :
           v ∈ P.right (E.gapIndex hbudget k) := by
-        simpa [hvSource] using (E.connectorAt hbudget k).source_mem a
+        simpa [connectorAt, hvSource] using (E.connectorAt hbudget k).source_mem a
       have hvGapCluster :
           v ∈ P.cluster (E.gapIndex hbudget k) :=
         P.right_subset_cluster (E.gapIndex hbudget k) hvRightGap
@@ -638,7 +638,7 @@ private theorem local_and_connector_degreeAtMost_one
         ⟨(E.gapIndex hbudget k).1 + 1,
           E.gapIndex_succ_lt hbudget k⟩
       have hvLeftNext : v ∈ P.left next := by
-        simpa [next, hvTarget] using (E.connectorAt hbudget k).target_mem a
+        simpa [connectorAt, next, hvTarget] using (E.connectorAt hbudget k).target_mem a
       have hvNextCluster : v ∈ P.cluster next :=
         P.left_subset_cluster next hvLeftNext
       have hindex : next = (E.recordAt j).index := by
@@ -654,9 +654,9 @@ private theorem local_and_connector_degreeAtMost_one
               E.gapIndex_succ_lt hbudget k⟩ := by
     rcases hvEndpoint with hvSource | hvTarget
     · exact Or.inl (by
-        simpa [hvSource] using (E.connectorAt hbudget k).source_mem a)
+        simpa [connectorAt, hvSource] using (E.connectorAt hbudget k).source_mem a)
     · exact Or.inr (by
-        simpa [hvTarget] using (E.connectorAt hbudget k).target_mem a)
+        simpa [connectorAt, hvTarget] using (E.connectorAt hbudget k).target_mem a)
   constructor
   · apply E.localRedSupport_degreeAtMost_of_record hbudget j hvwj
     exact

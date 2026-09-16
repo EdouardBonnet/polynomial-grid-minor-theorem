@@ -69,24 +69,24 @@ theorem exists_edgeOrigin_joins_fibers
       x ∈ R.fiber a ∧ y ∈ R.fiber b := by
   rcases R.edgeOrigin_crosses_fibers e.1 with horigin | horigin
   · rcases he with he | he
-    · have hleft : R.graph.left e.1 = a := by simpa using he.1
-      have hright : R.graph.right e.1 = b := by simpa using he.2
+    · have hleft : R.graph.left e.1 = a := he.1
+      have hright : R.graph.right e.1 = b := he.2
       exact ⟨H.left (R.edgeOrigin e.1), H.right (R.edgeOrigin e.1),
         Or.inl ⟨rfl, rfl⟩, by simpa [hleft] using horigin.1,
         by simpa [hright] using horigin.2⟩
-    · have hright : R.graph.right e.1 = a := by simpa using he.1
-      have hleft : R.graph.left e.1 = b := by simpa using he.2
+    · have hright : R.graph.right e.1 = a := he.1
+      have hleft : R.graph.left e.1 = b := he.2
       exact ⟨H.right (R.edgeOrigin e.1), H.left (R.edgeOrigin e.1),
         Or.inr ⟨rfl, rfl⟩, by simpa [hright] using horigin.2,
         by simpa [hleft] using horigin.1⟩
   · rcases he with he | he
-    · have hleft : R.graph.left e.1 = a := by simpa using he.1
-      have hright : R.graph.right e.1 = b := by simpa using he.2
+    · have hleft : R.graph.left e.1 = a := he.1
+      have hright : R.graph.right e.1 = b := he.2
       exact ⟨H.right (R.edgeOrigin e.1), H.left (R.edgeOrigin e.1),
         Or.inr ⟨rfl, rfl⟩, by simpa [hleft] using horigin.1,
         by simpa [hright] using horigin.2⟩
-    · have hright : R.graph.right e.1 = a := by simpa using he.1
-      have hleft : R.graph.left e.1 = b := by simpa using he.2
+    · have hright : R.graph.right e.1 = a := he.1
+      have hleft : R.graph.left e.1 = b := he.2
       exact ⟨H.left (R.edgeOrigin e.1), H.right (R.edgeOrigin e.1),
         Or.inl ⟨rfl, rfl⟩, by simpa [hright] using horigin.2,
         by simpa [hleft] using horigin.1⟩

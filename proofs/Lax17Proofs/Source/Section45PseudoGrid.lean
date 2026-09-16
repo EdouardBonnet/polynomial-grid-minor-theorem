@@ -75,7 +75,10 @@ noncomputable def cleanedAuxInSupport
     (r : (sigma.cleanedRowsInSupport Q i O).Index) :
     ((sigma.cleanedRowsInSupport Q i O).path r).vertexSet =
       ((sigma.sliceRowPacking i).path r.1).vertexSet := by
-  simp [cleanedRowsInSupport, cleanedRows, PathPacking.mapLe]
+  show (((sigma.cleanedRows Q i O).inSpanningGraph.path r).mapLe
+      le_sup_left).vertexSet = _
+  rw [GraphPath.mapLe_vertexSet]
+  exact GraphPath.transfer_vertexSet _ _ _
 
 @[simp] theorem cleanedRowsInSupport_path_source
     (sigma : PathSlicing R M) (Q : PathPacking G S T)
@@ -102,7 +105,10 @@ noncomputable def cleanedAuxInSupport
     (q : (sigma.cleanedAuxInSupport Q i O).Index) :
     ((sigma.cleanedAuxInSupport Q i O).path q).vertexSet =
       (Q.path q.1).vertexSet := by
-  simp [cleanedAuxInSupport, cleanedAux, PathPacking.mapLe]
+  show (((sigma.cleanedAux Q i O).inSpanningGraph.path q).mapLe
+      le_sup_right).vertexSet = _
+  rw [GraphPath.mapLe_vertexSet]
+  exact GraphPath.transfer_vertexSet _ _ _
 
 @[simp] theorem cleanedRowsInSupport_card
     (sigma : PathSlicing R M) (Q : PathPacking G S T)
@@ -151,9 +157,13 @@ theorem cleaned_intersecting
           ⟨q, hq.1⟩
         refine ⟨q', ?_, rfl⟩
         rw [PathPacking.mem_intersectingRightIndices]
-        exact
-          ⟨Finset.mem_univ _,
-            by simpa [q', PathPacking.PathsIntersect] using hq.2⟩
+        have hq'v : ((sigma.cleanedAuxInSupport Q i O).path q').vertexSet
+            = (Q.path q).vertexSet :=
+          cleanedAuxInSupport_path_vertexSet sigma Q i O q'
+        refine ⟨Finset.mem_univ _, ?_⟩
+        refine Eq.mp (congrArg (fun s => ¬ Disjoint
+          ((sigma.cleanedRowsInSupport Q i O).path r).vertexSet s) hq'v.symm) ?_
+        simpa [PathPacking.PathsIntersect] using hq.2
     rw [hcard]
     exact hr
   · intro q _hq
@@ -165,19 +175,24 @@ theorem cleaned_intersecting
             Q O.rows q.1).card := by
       refine Finset.card_bij (fun r _hr => r.1) ?_ ?_ ?_
       · intro r hr
-        rw [PathPacking.mem_intersectingLeftIndices] at hr ⊢
-        exact ⟨r.2, by simpa [PathPacking.PathsIntersect] using hr.2⟩
+        rw [PathPacking.mem_intersectingLeftIndices] at hr
+        exact (PathPacking.mem_intersectingLeftIndices _ _ _ _ _).mpr
+          ⟨r.2, by simpa [PathPacking.PathsIntersect] using hr.2⟩
       · intro r _hr r' _hr' hrr'
         exact Subtype.ext hrr'
       · intro r hr
-        rw [PathPacking.mem_intersectingLeftIndices] at hr
+        have hr := (PathPacking.mem_intersectingLeftIndices _ _ _ _ _).mp hr
         let r' : (sigma.cleanedRowsInSupport Q i O).Index :=
           ⟨r, hr.1⟩
         refine ⟨r', ?_, rfl⟩
         rw [PathPacking.mem_intersectingLeftIndices]
-        exact
-          ⟨Finset.mem_univ _,
-            by simpa [r', PathPacking.PathsIntersect] using hr.2⟩
+        have hr'v : ((sigma.cleanedRowsInSupport Q i O).path r').vertexSet
+            = ((sigma.sliceRowPacking i).path r).vertexSet :=
+          cleanedRowsInSupport_path_vertexSet sigma Q i O r'
+        refine ⟨Finset.mem_univ _, ?_⟩
+        refine Eq.mp (congrArg (fun s => ¬ Disjoint s
+          ((sigma.cleanedAuxInSupport Q i O).path q).vertexSet) hr'v.symm) ?_
+        simpa [PathPacking.PathsIntersect] using hr.2
     rw [hcard]
     exact hq
 
@@ -320,8 +335,8 @@ theorem exists_sliceHappyCoreData
       Function.Injective (fun r : Pclean.Index => r.1) := by
     intro a b hab
     exact Subtype.ext hab
-  have hrowsCard : rows.card = Jclean.card := by
-    simpa [rows] using Finset.card_image_of_injective Jclean hvalInjective
+  have hrowsCard : rows.card = Jclean.card :=
+    Finset.card_image_of_injective Jclean hvalInjective
   have hDrows : Dhat ≤ rows.card := by
     rw [hrowsCard]
     change Dhat ≤ (containedInCluster Pclean Finset.univ Ccore).card
@@ -467,8 +482,7 @@ theorem sliceRowPath_source_ne_target_of_mem_cleanedRows
   have hvEq :=
     GraphPath.eq_source_of_source_eq_target_of_mem_vertexSet
       ((sigma.sliceRowPacking i).path r) hst hvRow
-  exact hvSlice.2.2.2.1 (by
-    simpa [sigma.sliceRowPath_source] using hvEq)
+  exact hvSlice.2.2.2.1 (hvEq.trans (sigma.sliceRowPath_source i r))
 
 theorem sliceRowPath_source_injective
     (sigma : PathSlicing R M) (i : Fin M) :
@@ -727,8 +741,9 @@ theorem before_sliceRowPath_target_of_mem
         ((R.path r).before_of_mem_segmentOfBefore_right hclosed hvClosed) |>.2.2
     have hvne : v ≠ sigma.cut r i.succ := by
       intro hvEq
+      have hvdrop : v ∈ closed.dropLast.vertexSet := hv
       exact closed.target_not_mem_dropLast_vertexSet hclosedNe (by
-        simpa [closed, hclosed, hvEq] using hv)
+        simpa [closed, hclosed, hvEq] using hvdrop)
     have hidxne :
         (R.path r).vertexIndex v ≠
           (R.path r).vertexIndex (sigma.cut r i.succ) := by
@@ -847,7 +862,7 @@ theorem rowGapPath_internallyDisjoint_cleanedSupport
                 (R.path s.1).Before
                   ((sigma.sliceRowPacking i).path s.1).source
                   ((sigma.rowGapPath hij s.1 hneI).source) := by
-              simpa using sigma.sliceRowPath_source_before_of_mem i s.1
+              exact sigma.sliceRowPath_source_before_of_mem i s.1
                 (GraphPath.target_mem_vertexSet
                   ((sigma.sliceRowPacking i).path s.1))
             exact (R.path s.1).before_trans
@@ -855,7 +870,7 @@ theorem rowGapPath_internallyDisjoint_cleanedSupport
                 (sigma.before_sliceRowPath_target_of_mem k s.1 hcutK hvs)
                 htoSource)
               hsourceToTarget
-          · simpa using
+          · exact
               sigma.before_sliceRowPath_target_of_mem k s.1 hcutK hvs
         exact Or.inl
           ((R.path s.1).before_antisymm hvBefore hgapLeft)
@@ -981,7 +996,12 @@ theorem rowGapPath_disjoint_of_ordered
             (R.path r).Before
               ((sigma.sliceRowPacking j).path r).source
               ((sigma.sliceRowPacking k).path r).source := by
-          simpa using hlefts
+          have hjs : ((sigma.sliceRowPacking j).path r).source
+              = sigma.cut r j.castSucc := sigma.sliceRowPath_source j r
+          have hks : ((sigma.sliceRowPacking k).path r).source
+              = sigma.cut r k.castSucc := sigma.sliceRowPath_source k r
+          rw [hjs, hks]
+          exact hlefts
         rw [heq'] at hlefts'
         exact hlefts'
       exact hsliceK ((R.path r).before_antisymm
@@ -1035,7 +1055,7 @@ noncomputable def rowGapPacking
       rcases Finset.mem_image.1 hv with ⟨r, hr, rfl⟩
       refine ⟨⟨r, hr⟩, ?_⟩
       apply Subtype.ext
-      simp
+      rfl
   target_bijective := by
     constructor
     · intro r s hrs
@@ -1046,7 +1066,7 @@ noncomputable def rowGapPacking
       rcases Finset.mem_image.1 hv with ⟨r, hr, rfl⟩
       refine ⟨⟨r, hr⟩, ?_⟩
       apply Subtype.ext
-      simp
+      rfl
 
 @[simp] theorem rowGapPacking_card
     (sigma : PathSlicing R M) {i j : Fin M} (hij : i < j)
@@ -1055,6 +1075,7 @@ noncomputable def rowGapPacking
       sigma.cut r i.castSucc ≠ sigma.cut r i.succ) :
     (sigma.rowGapPacking hij I hne).card = I.card := by
   simp [rowGapPacking, PerfectPathPacking.card]
+  exact Fintype.card_coe I
 
 /-! ## Uniform data over all slices -/
 
@@ -1559,7 +1580,7 @@ theorem section45Input_of_slicedHappyCores
             apply sigma.cut_ne_of_mem_cleanedRows Q a (D.cleaned a) hell
             exact (D.core a).rows_subset hpCore)
           k (D.cleaned k) hell houtside)
-      · simpa [connector, a, b] using hvp
+      · exact hvp
       · exact (D.core k).cluster_subset_support hvC
     · intro l hlen hchain i j hi hj hij
       -- Ordered row gaps on one linkage are disjoint; different linkage rows

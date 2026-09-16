@@ -45,12 +45,12 @@ def denseReplacementGraph
   Adj u v :=
     (G.Adj u v ∧ u ∈ A ∧ v ∈ A) ∨
       (u ∉ A ∧ v ∉ A ∧ P.block u = P.block v ∧ u ≠ v)
-  symm := by
+  symm := ⟨by
     intro u v h
     rcases h with hin | hout
-    · exact Or.inl ⟨G.symm hin.1, hin.2.2, hin.2.1⟩
+    · exact Or.inl ⟨G.symm.symm _ _ hin.1, hin.2.2, hin.2.1⟩
     · exact Or.inr
-        ⟨hout.2.1, hout.1, hout.2.2.1.symm, hout.2.2.2.symm⟩
+        ⟨hout.2.1, hout.1, hout.2.2.1.symm, hout.2.2.2.symm⟩⟩
   loopless := ⟨by
     intro v h
     rcases h with hin | hout
@@ -447,7 +447,7 @@ theorem denseReplacement_boundary_edgePotential_le
       rcases hends with hends | hends
       · exact horient u v huv hends.1 hends.2
       · simpa only [Sym2.eq_swap] using
-          horient v u (G.symm huv) hends.1 hends.2
+          horient v u (G.symm.symm _ _ huv) hends.1 hends.2
 
 theorem oldInternalCrossBlockEdges_internal_denseReplacement
     (P : VertexClustering V) (B : Finset (ContractedVertex P))

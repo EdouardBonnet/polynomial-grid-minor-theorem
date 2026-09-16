@@ -211,6 +211,7 @@ theorem card_le_eight_mul_maximumEdgeDisjointSubfamily_of_edgeSet
     _ = 8 * M.card := by ring
     _ = 8 * (maximumEdgeDisjointSubfamily B).card := by rfl
 
+open Classical in
 /-- `edgeFinset` wrapper for
 `card_le_eight_mul_maximumEdgeDisjointSubfamily_of_edgeSet`. -/
 theorem card_le_eight_mul_maximumEdgeDisjointSubfamily
@@ -250,6 +251,7 @@ theorem exists_vertexDisjoint_subfamily_card_of_edgeSet
         (maximumEdgeDisjointSubfamily_spec B).2.1 hMM₀,
       hMcard⟩
 
+open Classical in
 /-- Choose exactly `16t` vertex-disjoint edges when the boundary has at least
 `128t` edges. -/
 theorem exists_vertexDisjoint_subfamily_card

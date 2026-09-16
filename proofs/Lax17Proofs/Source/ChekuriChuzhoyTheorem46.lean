@@ -870,7 +870,9 @@ theorem exists_attachedTwoChildReroutingData
             (outside₁.targetIndexSetOfSubset R.retainedFirstTarget)).card +
               4 * w =
             F₁.card + 4 * w := by rw [F₁.card_eq_left_card]
-        _ = R.retainedFirstTarget.card + 4 * w := by simp [F₁]
+        _ = R.retainedFirstTarget.card + 4 * w := by
+          simp [F₁,
+            outside₁.targetIndexSetOfSubset_card R.retainedFirstTarget_subset]
         _ = R.retainedFirstInside.card + 4 * w := by
           rw [R.retainedFirstInside.card_eq_right_card]
         _ = R.retainedFirst.card + 4 * w := by
@@ -884,7 +886,9 @@ theorem exists_attachedTwoChildReroutingData
             (outside₂.targetIndexSetOfSubset R.retainedSecondTarget)).card +
               4 * w =
             F₂.card + 4 * w := by rw [F₂.card_eq_left_card]
-        _ = R.retainedSecondTarget.card + 4 * w := by simp [F₂]
+        _ = R.retainedSecondTarget.card + 4 * w := by
+          simp [F₂,
+            outside₂.targetIndexSetOfSubset_card R.retainedSecondTarget_subset]
         _ = R.retainedSecondInside.card + 4 * w := by
           rw [R.retainedSecondInside.card_eq_right_card]
         _ = R.retainedSecond.card + 4 * w := by
@@ -905,7 +909,8 @@ theorem exists_attachedTwoChildReroutingData
       calc
         H.card = H₁.card := by simp [H]
         _ = B₁.card := by simp [H₁]
-        _ = R.bridgeSource.card := by simp [B₁]
+        _ = R.bridgeSource.card := by
+          simp [B₁, outside₁.targetIndexSetOfSubset_card R.bridgeSource_subset]
         _ = R.bridge.card := R.bridge.card_eq_left_card.symm
         _ = 4 * w := R.bridge_card
     retainedFirstRoute_staysIn := hRFstay
@@ -1636,13 +1641,17 @@ theorem exists_theorem46TwoChildAttachedData
         calc
           4 * w ≤ G₁.route.card := hG₁four
           _ = G₁.anchor.card := G₁.route.card_eq_right_card
-          _ = P₁.reverse.card := by simp [P₁]
+          _ = P₁.reverse.card := by
+            simp [P₁,
+              D.parentPacking.targetIndexSetOfSubset_card hG₁anchorUnion]
           _ = I₁.packing.reverse.card := I₁.packing_card.symm)
       (by
         calc
           4 * w ≤ G₂.route.card := hG₂four
           _ = G₂.anchor.card := G₂.route.card_eq_right_card
-          _ = P₂.reverse.card := by simp [P₂]
+          _ = P₂.reverse.card := by
+            simp [P₂,
+              D.parentPacking.targetIndexSetOfSubset_card hG₂anchorUnion]
           _ = I₂.packing.reverse.card := I₂.packing_card.symm))
   have hSupportDisj :
       Disjoint
@@ -1860,7 +1869,7 @@ noncomputable def StrongPathOfSetsSystem.replaceBothOuterNails
       Q.toPathOfSetsSystem.lastIndex =
         P.toPathOfSetsSystem.lastIndex := rfl
   apply Q.replaceRightLast R
-  · simpa [Q] using hRcluster
+  · exact hRcluster
   · change
       Disjoint
         (if Q.toPathOfSetsSystem.lastIndex =
@@ -1873,7 +1882,7 @@ noncomputable def StrongPathOfSetsSystem.replaceBothOuterNails
     · simp [h, hLR]
     · simp [h, hOldR]
   · exact hRcard
-  · simpa [Q] using hRwl
+  · exact hRwl
   · change
       NodeLinkedIn G
         (P.cluster Q.toPathOfSetsSystem.lastIndex)
@@ -2256,12 +2265,12 @@ theorem exists_theorem46RoutedDfsState_twoChildren
       hBridgeRightLinked hSecondNailsLinked hBridgeSecondLinked
   have hPright :
       P.right P.toPathOfSetsSystem.lastIndex = bridgeLeft := by
-    simpa [P] using
+    exact
       StrongPathOfSetsSystem.replaceBothOuterNails_right_last
         Cn.system firstNails bridgeLeft _ _ _ _ _ _ _ _ _ _ _ _
   have hQleft :
       Q.left Q.toPathOfSetsSystem.firstIndex = bridgeRight := by
-    simpa [Q] using
+    exact
       StrongPathOfSetsSystem.replaceBothOuterNails_left_first
         En.system bridgeRight secondNails _ _ _ _ _ _ _ _ _ _ _ _
   let bridge' : PerfectPathPacking G
@@ -2327,19 +2336,13 @@ theorem exists_theorem46RoutedDfsState_twoChildren
         (hi : i.1 + 1 < (S.selectedBelow c).card),
         (P.connector i hi).toPathPacking.StaysIn (S.subtreeRegion c) := by
     intro i hi
-    simpa [P, StrongPathOfSetsSystem.replaceBothOuterNails,
-      StrongPathOfSetsSystem.replaceRightLast,
-      StrongPathOfSetsSystem.replaceLeftFirst] using
-      Cn.connectors_stayIn i hi
+    exact Cn.connectors_stayIn i hi
   have hQConnectorStay :
       ∀ (j : Fin (S.selectedBelow d).card)
         (hj : j.1 + 1 < (S.selectedBelow d).card),
         (Q.connector j hj).toPathPacking.StaysIn (S.subtreeRegion d) := by
     intro j hj
-    simpa [Q, StrongPathOfSetsSystem.replaceBothOuterNails,
-      StrongPathOfSetsSystem.replaceRightLast,
-      StrongPathOfSetsSystem.replaceLeftFirst] using
-      En.connectors_stayIn j hj
+    exact En.connectors_stayIn j hj
   have hCrossConnector :
       ∀ (i : Fin (S.selectedBelow c).card)
         (hi : i.1 + 1 < (S.selectedBelow c).card)
@@ -2457,23 +2460,11 @@ theorem exists_theorem46RoutedDfsState_twoChildren
     apply F.firstPrefix.route_disjoint_old
     · exact hPConnectorStay i hi
     · cases b₁
-      · simpa [P, Cn, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          C.leftRoute_disjoint_connectors i hi
-      · simpa [P, Cn, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          Cn.rightRoute_disjoint_connectors i hi
+      · exact C.leftRoute_disjoint_connectors i hi
+      · exact Cn.rightRoute_disjoint_connectors i hi
     · cases b₁
-      · simpa [P, Cn, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          C.rightRoute_disjoint_connectors i hi
-      · simpa [P, Cn, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          Cn.leftRoute_disjoint_connectors i hi
+      · exact C.rightRoute_disjoint_connectors i hi
+      · exact Cn.leftRoute_disjoint_connectors i hi
   have hQConnectorSecondPrefix :
       ∀ (j : Fin (S.selectedBelow d).card)
         (hj : j.1 + 1 < (S.selectedBelow d).card),
@@ -2486,32 +2477,20 @@ theorem exists_theorem46RoutedDfsState_twoChildren
       · have hh := En.rightRoute_disjoint_connectors j hj
         change E.leftRoute.toPathPacking.MutuallyNodeDisjoint
           (En.system.connector j hj).toPathPacking at hh
-        simpa [Q, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          hh
+        exact hh
       · have hh := En.leftRoute_disjoint_connectors j hj
         change E.leftRoute.toPathPacking.MutuallyNodeDisjoint
           (En.system.connector j hj).toPathPacking at hh
-        simpa [Q, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          hh
+        exact hh
     · cases b₂
       · have hh := En.leftRoute_disjoint_connectors j hj
         change E.rightRoute.toPathPacking.MutuallyNodeDisjoint
           (En.system.connector j hj).toPathPacking at hh
-        simpa [Q, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          hh
+        exact hh
       · have hh := En.rightRoute_disjoint_connectors j hj
         change E.rightRoute.toPathPacking.MutuallyNodeDisjoint
           (En.system.connector j hj).toPathPacking at hh
-        simpa [Q, StrongPathOfSetsSystem.replaceBothOuterNails,
-          StrongPathOfSetsSystem.replaceRightLast,
-          StrongPathOfSetsSystem.replaceLeftFirst] using
-          hh
+        exact hh
   have hPBridge :
       ∀ (i : Fin (S.selectedBelow c).card)
         (hi : i.1 + 1 < (S.selectedBelow c).card),
@@ -3061,8 +3040,9 @@ theorem exists_theorem46RoutedDfsState_twoChildren
         simpa [Sys] using
           StrongPathOfSetsSystem.castLength_firstIndex_cast J hcard.symm]
     rw [hJfirst]
-    simpa [J, StrongPathOfSetsSystem.joinOfCompatible,
-      StrongPathOfSetsSystem.join] using
+    simp [J, StrongPathOfSetsSystem.joinOfCompatible,
+      StrongPathOfSetsSystem.join]
+    exact
       StrongPathOfSetsSystem.replaceBothOuterNails_left_first
         Cn.system firstNails bridgeLeft _ _ _ _ _ _ _ _ _ _ _ _
   have hSysRightLast :
@@ -3076,8 +3056,9 @@ theorem exists_theorem46RoutedDfsState_twoChildren
         simpa [Sys] using
           StrongPathOfSetsSystem.castLength_lastIndex_cast J hcard.symm]
     rw [hJlast]
-    simpa [J, StrongPathOfSetsSystem.joinOfCompatible,
-      StrongPathOfSetsSystem.join] using
+    simp [J, StrongPathOfSetsSystem.joinOfCompatible,
+      StrongPathOfSetsSystem.join]
+    exact
       StrongPathOfSetsSystem.replaceBothOuterNails_right_last
         En.system bridgeRight secondNails _ _ _ _ _ _ _ _ _ _ _ _
   have hSysRightFirst_singleton
@@ -3130,17 +3111,7 @@ theorem exists_theorem46RoutedDfsState_twoChildren
       StrongPathOfSetsSystem.replaceBothOuterNails,
       StrongPathOfSetsSystem.replaceRightLast,
       StrongPathOfSetsSystem.replaceLeftFirst, hsingle]
-    intro hbad
-    exact False.elim (hsingle (by
-      calc
-        Cn.system.toPathOfSetsSystem.firstIndex =
-            (Cn.system.replaceLeftFirst firstNails
-              hFirstNailsCluster hFirstNailsOld hFirstNailsCard
-              hFirstNailsWL hFirstNailsLinked
-              ).toPathOfSetsSystem.lastIndex := hbad
-        _ = Cn.system.toPathOfSetsSystem.lastIndex := by
-          apply Fin.ext
-          rfl))
+    exact if_neg hsingle
   have hSysLeftLast_singleton
       (hsingle :
         En.system.toPathOfSetsSystem.firstIndex =
@@ -3342,7 +3313,7 @@ theorem exists_theorem46RoutedDfsState_twoChildren
           (S.selectedBelow c).card + (S.selectedBelow d).card
         rw [← hcard]
         exact hi
-      simpa [Sys] using hJConnectorStay k hk
+      exact hJConnectorStay k hk
     leftRoute_disjoint_connectors := by
       intro i hi
       let k := Fin.cast hcard i
@@ -3353,7 +3324,7 @@ theorem exists_theorem46RoutedDfsState_twoChildren
           (S.selectedBelow c).card + (S.selectedBelow d).card
         rw [← hcard]
         exact hi
-      simpa [Sys] using hFirstJ k hk
+      exact hFirstJ k hk
     rightRoute_disjoint_connectors := by
       intro i hi
       let k := Fin.cast hcard i
@@ -3364,7 +3335,7 @@ theorem exists_theorem46RoutedDfsState_twoChildren
           (S.selectedBelow c).card + (S.selectedBelow d).card
         rw [← hcard]
         exact hi
-      simpa [Sys] using hSecondJ k hk }⟩
+      exact hSecondJ k hk }⟩
 
 end TwoChildAssembly
 

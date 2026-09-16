@@ -362,7 +362,7 @@ noncomputable def contractSetIncidentEquiv
   invFun e :=
     ⟨⟨e.1, survivesSetContraction_of_incident_outside H T e.1 hs
       ((H.mem_incidentEdges s e.1).mp e.2)⟩, by
-      rw [(H.contractSet T).mem_incidentEdges]
+      refine ((H.contractSet T).mem_incidentEdges _ _).mpr ?_
       rcases (H.mem_incidentEdges s e.1).mp e.2 with h | h
       · exact Or.inl (congrArg (SetContractVertex.projection (T := T)) h)
       · exact Or.inr (congrArg (SetContractVertex.projection (T := T)) h)⟩
@@ -453,9 +453,10 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
       rw [(H.maderSplit p).mem_boundary]
       have hcross := (((H.contractSet T).maderSplit
         (p.mapContractSet T hs)).mem_boundary Y (Sum.inl old)).mp hvalue
-      simpa only [Crosses, maderSplit_old_left, maderSplit_old_right,
+      simp only [Crosses, maderSplit_old_left, maderSplit_old_right,
         contractSet_left, contractSet_right,
-        SetContractVertex.mem_preimageFinset] using hcross
+        SetContractVertex.mem_preimageFinset]
+      exact hcross
     · have horiginal : p.firstOther ≠ p.secondOther := by
         intro h
         exact new.2 (congrArg (SetContractVertex.projection (T := T)) h)
@@ -464,10 +465,11 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
       rw [(H.maderSplit p).mem_boundary]
       have hcross := (((H.contractSet T).maderSplit
         (p.mapContractSet T hs)).mem_boundary Y (Sum.inr new)).mp hvalue
-      simpa only [Crosses, maderSplit_new_left, maderSplit_new_right,
+      simp only [Crosses, maderSplit_new_left, maderSplit_new_right,
         MaderSplitPair.mapContractSet_firstOther,
         MaderSplitPair.mapContractSet_secondOther,
-        SetContractVertex.mem_preimageFinset] using hcross
+        SetContractVertex.mem_preimageFinset]
+      exact hcross
   invFun e := by
     obtain ⟨value, hvalue⟩ := e
     have hcross := ((H.maderSplit p).mem_boundary
@@ -475,7 +477,7 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
     rcases value with old | new
     · have hsurvives : H.SurvivesSetContraction T old.1 := by
         have hcross' : H.Crosses (SetContractVertex.preimageFinset Y) old.1 := by
-          simpa only [Crosses, maderSplit_old_left, maderSplit_old_right] using hcross
+          exact hcross
         intro heq
         rcases hcross' with h | h
         · exact h.2 (SetContractVertex.mem_preimageFinset.mpr
@@ -490,9 +492,10 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
       refine ⟨Sum.inl ⟨contracted, hne⟩, ?_⟩
       rw [((H.contractSet T).maderSplit
         (p.mapContractSet T hs)).mem_boundary]
-      simpa only [Crosses, maderSplit_old_left, maderSplit_old_right,
+      simp only [Crosses, maderSplit_old_left, maderSplit_old_right,
         contractSet_left, contractSet_right,
-        SetContractVertex.mem_preimageFinset] using hcross
+        SetContractVertex.mem_preimageFinset] at hcross ⊢
+      exact hcross
     · have hproj : SetContractVertex.projection (T := T) p.firstOther ≠
           SetContractVertex.projection (T := T) p.secondOther := by
         have hcross' :
@@ -500,7 +503,7 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
               p.secondOther ∉ SetContractVertex.preimageFinset Y) ∨
             (p.secondOther ∈ SetContractVertex.preimageFinset Y ∧
               p.firstOther ∉ SetContractVertex.preimageFinset Y) := by
-          simpa only [Crosses, maderSplit_new_left, maderSplit_new_right] using hcross
+          exact hcross
         intro heq
         rcases hcross' with h | h
         · exact h.2 (SetContractVertex.mem_preimageFinset.mpr
@@ -513,10 +516,11 @@ noncomputable def maderSplit_mapContractSetBoundaryEquiv
       refine ⟨Sum.inr mappedNew, ?_⟩
       rw [((H.contractSet T).maderSplit
         (p.mapContractSet T hs)).mem_boundary]
-      simpa only [Crosses, maderSplit_new_left, maderSplit_new_right,
+      simp only [Crosses, maderSplit_new_left, maderSplit_new_right,
         MaderSplitPair.mapContractSet_firstOther,
         MaderSplitPair.mapContractSet_secondOther,
-        SetContractVertex.mem_preimageFinset] using hcross
+        SetContractVertex.mem_preimageFinset] at hcross ⊢
+      exact hcross
   left_inv := by
     intro e
     obtain ⟨value, hvalue⟩ := e

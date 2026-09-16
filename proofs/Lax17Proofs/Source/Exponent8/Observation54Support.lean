@@ -166,6 +166,7 @@ theorem induce_before_val
   have hpath : liftInducedPath (P.induce U hU) = P := by
     cases P
     simp [liftInducedPath, GraphPath.induce]
+    congr 1
     exact _root_.SimpleGraph.Walk.map_induce _ _
   simpa [hpath] using hxy'
 
@@ -529,9 +530,14 @@ theorem sliceRowsInRawGraph_stayIn_support
     (sliceRowsInRawGraph sigma Q i Qset).toPathPacking.StaysIn
       (sliceSupportVertexSetFor sigma Q i Qset) := by
   intro r
-  simpa [sliceRowsInRawGraph, PerfectPathPacking.mapLe,
-    PathPacking.mapLe] using
-    sliceRows_stayIn_support sigma Q i Qset r
+  have hEq : ((sliceRowsInRawGraph sigma Q i Qset).path r).vertexSet
+      = (sigma.sliceRowPath i r).vertexSet := by
+    show (((sliceRowPerfectPacking sigma i).inSpanningGraph.path r).mapLe
+        le_sup_left).vertexSet = _
+    rw [GraphPath.mapLe_vertexSet]
+    exact PerfectPathPacking.inSpanningGraph_path_vertexSet _ _
+  rw [hEq]
+  exact sliceRows_stayIn_support sigma Q i Qset r
 
 /-- The perfect sliced-row linkage in the exact support subtype. -/
 noncomputable def sliceRowsInSupport
@@ -581,13 +587,18 @@ theorem sliceSupport_spansVertices
         (sliceRowPerfectPacking sigma i).toPathPacking.mem_vertexSet.1 hzRow with
       ⟨r, hzr⟩
     refine ⟨r, ?_⟩
+    have hEq : ((sliceRowsInRawGraph sigma Q i Qset).path r).vertexSet
+        = (sigma.sliceRowPath i r).vertexSet := by
+      show (((sliceRowPerfectPacking sigma i).inSpanningGraph.path r).mapLe
+          le_sup_left).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact PerfectPathPacking.inSpanningGraph_path_vertexSet _ _
     exact
       (GraphPath.mem_induce_vertexSet
         ((sliceRowsInRawGraph sigma Q i Qset).path r)
         (sliceSupportVertexSetFor sigma Q i Qset)
-        (sliceRowsInRawGraph_stayIn_support sigma Q i Qset r) z).2 (by
-          simpa [sliceRowsInRawGraph, PerfectPathPacking.mapLe,
-            PathPacking.mapLe] using hzr)
+        (sliceRowsInRawGraph_stayIn_support sigma Q i Qset r) z).2
+        (by rw [hEq]; exact hzr)
   · rcases (sliceAux Q Qset).mem_vertexSet.1 hzAux with ⟨q, hzq⟩
     rcases R.toPathPacking.mem_vertexSet.1 (hspan z.1) with ⟨r, hzr⟩
     have hzSlice :
@@ -595,13 +606,18 @@ theorem sliceSupport_spansVertices
       mem_sliceRowPath_of_mem_pathsInSlice sigma Q
         (hQset q.2) (by simpa [sliceAux] using hzq) hzr
     refine ⟨r, ?_⟩
+    have hEq : ((sliceRowsInRawGraph sigma Q i Qset).path r).vertexSet
+        = (sigma.sliceRowPath i r).vertexSet := by
+      show (((sliceRowPerfectPacking sigma i).inSpanningGraph.path r).mapLe
+          le_sup_left).vertexSet = _
+      rw [GraphPath.mapLe_vertexSet]
+      exact PerfectPathPacking.inSpanningGraph_path_vertexSet _ _
     exact
       (GraphPath.mem_induce_vertexSet
         ((sliceRowsInRawGraph sigma Q i Qset).path r)
         (sliceSupportVertexSetFor sigma Q i Qset)
-        (sliceRowsInRawGraph_stayIn_support sigma Q i Qset r) z).2 (by
-          simpa [sliceRowsInRawGraph, PerfectPathPacking.mapLe,
-            PathPacking.mapLe] using hzSlice)
+        (sliceRowsInRawGraph_stayIn_support sigma Q i Qset r) z).2
+        (by rw [hEq]; exact hzSlice)
 
 end PathSlicing
 end Exponent8

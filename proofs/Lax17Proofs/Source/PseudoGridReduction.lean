@@ -145,6 +145,7 @@ noncomputable def pathGraphEdgeEquiv (n : ℕ) :
 /-- The finite path graph is a tree. -/
 theorem pathGraph_isTree (n : ℕ) :
     (_root_.SimpleGraph.pathGraph (n + 1)).IsTree := by
+  classical
   rw [_root_.SimpleGraph.isTree_iff_connected_and_card]
   constructor
   · exact _root_.SimpleGraph.pathGraph_connected n
@@ -204,7 +205,8 @@ theorem GraphPath.edge_mem_of_edge_subset_of_endpoints_mem
           exact Subtype.ext hv)
       apply _root_.SimpleGraph.Walk.IsPath.of_map
         (f := Z.walk.toSubgraph.hom)
-      simpa only [Z.walk.map_mapToSubgraph_hom] using Z.isPath
+      simp only [Z.walk.map_mapToSubgraph_hom]
+      exact Z.isPath
     let xp : P.walk.toSubgraph.verts := ⟨x, by
       simpa [GraphPath.vertexSet] using hxP⟩
     let yp : P.walk.toSubgraph.verts := ⟨y, by
@@ -988,10 +990,17 @@ noncomputable def contractEdgeGraph.deleteEdgeMinorModel
         rw [hset]
         exact _root_.SimpleGraph.induce_pair_connected_of_adj hab'
     | keep z =>
-        simpa [EdgeContractVertex.branchSet] using
+        have hconn :=
           GraphPath.connected_induce_vertexSet
             (GraphPath.refl
               (G.deleteEdges ({s(x, y)} : Set (Sym2 V))) z.1)
+        have hvs :
+            (GraphPath.refl
+                (G.deleteEdges ({s(x, y)} : Set (Sym2 V))) z.1).vertexSet =
+              ({z.1} : Finset V) := by
+          simp [GraphPath.vertexSet, GraphPath.refl]
+        rw [hvs] at hconn
+        simpa [EdgeContractVertex.branchSet] using hconn
   branch_disjoint := by
     intro z w hzw
     exact EdgeContractVertex.branchSet_disjoint hzw

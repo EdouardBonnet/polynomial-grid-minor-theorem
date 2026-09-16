@@ -36,8 +36,8 @@ noncomputable def restrictEdgePathPacking
 @[simp] theorem restrictEdgePathPacking_card
     {S T : Finset V} (P : EdgePathPacking G S T) (I : Finset P.Index) :
     (restrictEdgePathPacking P I).card = I.card := by
-  classical
-  simp [restrictEdgePathPacking, EdgePathPacking.card]
+  change Fintype.card {i : P.Index // i ∈ I} = I.card
+  exact Fintype.card_coe I
 
 theorem restrictEdgePathPacking_staysIn
     {S T U : Finset V} {P : EdgePathPacking G S T} {I : Finset P.Index}

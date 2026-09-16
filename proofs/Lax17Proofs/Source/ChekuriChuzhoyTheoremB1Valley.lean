@@ -229,7 +229,7 @@ row vertex in its interior. -/
 theorem atom_internallyDisjoint_linkage
     (T : CorridorColumnTrace L activeCount C P) (r : Fin T.len) :
     (T.atom r).InternallyDisjointFromSet L.toPathPacking.vertexSet := by
-  simpa [atom] using
+  exact
     endpointContactsCleanConsecutive_of_source_ne_target
       L P T.source_ne_target r
 
@@ -258,9 +258,11 @@ theorem row_eq_or_consecutive
     exact aux_adj_or_eq_of_clean_segment
       (L := L) (T.atom r)
       (by
-        simpa [q0, atom] using T.contact_mem_row ⟨r.1, by omega⟩)
+        simpa [q0, atom, AuxiliaryCorridor.rowPath] using
+          T.contact_mem_row ⟨r.1, by omega⟩)
       (by
-        simpa [q1, atom] using T.contact_mem_row ⟨r.1 + 1, by omega⟩)
+        simpa [q1, atom, AuxiliaryCorridor.rowPath] using
+          T.contact_mem_row ⟨r.1 + 1, by omega⟩)
       (T.atom_internallyDisjoint_linkage r)
   rcases haux with heq | hadj
   · exact Or.inl (C.index_injective heq)
@@ -1074,14 +1076,14 @@ theorem exists_stripBridge_of_monotoneRows
     rcases Finset.mem_inter.1 hv with ⟨hvP, hvRow⟩
     rcases T.contact_complete hvP hvRow with ⟨r, hr⟩
     exact ⟨r, (T.contact_row_unique r lowerRow
-      (by simpa [hr] using hvRow)).symm⟩
+      (by simpa [hr, AuxiliaryCorridor.rowPath] using hvRow)).symm⟩
   have hexUpper : ∃ r : Fin (T.len + 1), T.row r = upperRow := by
     rcases C.path_hits_every_row P T.source_mem_lower T.target_mem_upper
         T.avoidsOutside upperRow with ⟨v, hv⟩
     rcases Finset.mem_inter.1 hv with ⟨hvP, hvRow⟩
     rcases T.contact_complete hvP hvRow with ⟨r, hr⟩
     exact ⟨r, (T.contact_row_unique r upperRow
-      (by simpa [hr] using hvRow)).symm⟩
+      (by simpa [hr, AuxiliaryCorridor.rowPath] using hvRow)).symm⟩
   let p : Fin (T.len + 1) := Classical.choose hexLower
   let s : Fin (T.len + 1) := Classical.choose hexUpper
   have hpRow : T.row p = lowerRow := by
@@ -1219,7 +1221,9 @@ theorem exists_atom_bracketing_of_not_mem_rows
     have hn0 : n = 0 := Nat.eq_zero_of_not_pos hnot
     let z : Fin (T.len + 1) := ⟨0, by omega⟩
     have hzv : P.Before (T.contact z) v := by
-      simpa [CorridorColumnTrace.contact, z] using P.source_before_of_mem hvP
+      have hz0 : T.contact z = P.source := endpointContact_zero L P
+      rw [hz0]
+      exact P.source_before_of_mem hvP
     have hvz : P.Before v (T.contact z) := by
       simpa [z, hn0] using hvn
     have hvEq : v = T.contact z := P.before_antisymm hvz hzv
@@ -1360,7 +1364,8 @@ theorem exists_contact_on_row
   rcases Finset.mem_inter.1 hv with ⟨hvP, hvRow⟩
   rcases T.contact_complete hvP hvRow with ⟨r, hr⟩
   refine ⟨r, ?_⟩
-  exact (T.contact_row_unique r q (by simpa [hr] using hvRow)).symm
+  exact (T.contact_row_unique r q
+    (by simpa [hr, AuxiliaryCorridor.rowPath] using hvRow)).symm
 
 /-- A canonical contact of the column with a specified corridor row. -/
 noncomputable def contactAtRowIndex
@@ -2345,12 +2350,12 @@ theorem impossible_bridge_through_valley
         F.lower_order_of_upper_order hnoCross hij hqPos hqLt
           D.leftBridge M (by
             rw [htopEq]
-            simpa only [Ti] using hLeftM)
+            exact hLeftM)
       have hRightLower :=
         F.lower_order_of_upper_order hnoCross hij.symm hqPos hqLt
           M D.rightBridge (by
             rw [htopEq]
-            simpa only [Ti] using hMRight)
+            exact hMRight)
       have hLeftLower' :
           Lower.Before
             (Ti.contact
@@ -2381,12 +2386,12 @@ theorem impossible_bridge_through_valley
         F.lower_order_of_upper_order hnoCross hij hqPos hqLt
           D.rightBridge M (by
             rw [htopEq]
-            simpa only [Ti] using hRightM)
+            exact hRightM)
       have hLeftLower :=
         F.lower_order_of_upper_order hnoCross hij.symm hqPos hqLt
           M D.leftBridge (by
             rw [htopEq]
-            simpa only [Ti] using hMLeft)
+            exact hMLeft)
       have hRightLower' :
           Lower.Before
             (Ti.contact

@@ -50,7 +50,7 @@ structure System {V : Type u} [DecidableEq V]
   connector :
     ∀ (i j : Fin m) (hij : metaTree.Adj i j),
       VertexLinkage G (interface i j hij)
-        (interface j i (metaTree.symm hij)) w
+        (interface j i (metaTree.symm.symm i j hij)) w
   connector_avoids_clusters :
     ∀ (i j : Fin m) (hij : metaTree.Adj i j)
       (r : Fin m) (a : Fin w),

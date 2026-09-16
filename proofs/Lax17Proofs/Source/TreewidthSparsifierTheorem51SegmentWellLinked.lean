@@ -197,8 +197,9 @@ theorem ownerSide_initialTerminal_card
     hbudget hrecords B hB fallback S]
   congr 1
   ext x
-  simp [initialTerminalSegmentSide, initialTerminalSegment,
+  simp only [initialTerminalSegmentSide, Finset.mem_filter_univ,
     E.mem_terminalSide, E.mem_segmentOwnerSide]
+  exact Iff.rfl
 
 /-- Cut-well-linkedness for the terminal images in the surviving contracted
 segment graph.  The right side is the number of deterministic nonblue edges

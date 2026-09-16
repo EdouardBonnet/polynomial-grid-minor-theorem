@@ -280,10 +280,9 @@ theorem hostNamedWalkOfWalk_edge_provenance (G : _root_.SimpleGraph V)
   induction P with
   | nil => simp [hostNamedWalkOfWalk] at he
   | @cons x y z hxy P ih =>
-      simp only [hostNamedWalkOfWalk_cons,
-        FiniteEdgeIndexedGraph.NamedEdgeWalk.edgeList_cons,
-        List.mem_cons] at he
-      rcases he with he | he
+      have he' : e ∈ hostEdgeNameOfAdj G hxy ::
+          (hostNamedWalkOfWalk G P).edgeList := he
+      rcases List.mem_cons.mp he' with he | he
       · subst e
         simp [hostEdgeIndexedOrigin, hostEdgeOrigin_nameOfAdj]
       · have htail := ih he

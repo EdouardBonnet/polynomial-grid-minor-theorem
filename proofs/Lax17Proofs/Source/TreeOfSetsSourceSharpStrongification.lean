@@ -85,8 +85,8 @@ theorem restrictedInterface_mono_of_indexSets
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt hij_lt) hij.ne.symm
     simpa [TreeOfSetsSystem.restrictedInterface, hij_lt, hji] using
-      (T.connector j i (T.metaTree.symm hij)).targetSet_mono
-        (hIJ j i (T.metaTree.symm hij) hji)
+      (T.connector j i (T.metaTree.adj_symm hij)).targetSet_mono
+        (hIJ j i (T.metaTree.adj_symm hij) hji)
 
 private theorem finTwo_eq_zero_of_ne_one (x : Fin 2) (hx : x ≠ 1) : x = 0 := by
   apply Fin.ext
@@ -317,8 +317,8 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
     · have hji : j.1 < i :=
         lt_of_le_of_ne (le_of_not_gt hij_lt) j.2.ne.symm
       simp only [dif_neg hij_lt, I0, Finset.card_univ]
-      change (T.connector j.1 i (T.metaTree.symm j.2)).card = w
-      exact T.connector_card j.1 i (T.metaTree.symm j.2)
+      change (T.connector j.1 i (T.metaTree.adj_symm j.2)).card = w
+      exact T.connector_card j.1 i (T.metaTree.adj_symm j.2)
   let first : ∀ i : Fin m,
       MetaVertexGroupedRestriction T I0 i passWidth :=
     fun i => Classical.choice <|
@@ -337,16 +337,16 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
         ((first i).endpoint ⟨j, hij⟩)
     else
       (T.connector i j hij).targetIndexSetOfSubset
-        ((first j).endpoint ⟨i, T.metaTree.symm hij⟩)
+        ((first j).endpoint ⟨i, T.metaTree.adj_symm hij⟩)
   have hI1card : ∀ (i j : Fin m) (hij : T.metaTree.Adj i j) (hij_lt : i < j),
       (I1 i j hij hij_lt).card = passWidth := by
     intro i j hij hij_lt
     by_cases hi : color i = 0
     · simpa [I1, hi, (first i).endpoint_card ⟨j, hij⟩] using
         (T.connector i j hij).sourceIndexSetOfSubset_card (hfirst_subset i j hij)
-    · simpa [I1, hi, (first j).endpoint_card ⟨i, T.metaTree.symm hij⟩] using
+    · simpa [I1, hi, (first j).endpoint_card ⟨i, T.metaTree.adj_symm hij⟩] using
         (T.connector i j hij).targetIndexSetOfSubset_card
-          (hfirst_subset j i (T.metaTree.symm hij))
+          (hfirst_subset j i (T.metaTree.adj_symm hij))
   have hI1_endpoint : ∀ (i j : Fin m) (hij : T.metaTree.Adj i j)
       (hi : color i = 0),
       T.toTreeOfSetsSystem.restrictedInterface I1 i j hij =
@@ -362,7 +362,7 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
         color_one_of_adj_color_zero color hij hi
       have hj0 : color j ≠ 0 := by omega
       simpa [TreeOfSetsSystem.restrictedInterface, I1, hij_lt, hji, hj0] using
-        (T.connector j i (T.metaTree.symm hij)).targetSet_targetIndexSetOfSubset
+        (T.connector j i (T.metaTree.adj_symm hij)).targetSet_targetIndexSetOfSubset
           (hfirst_subset i j hij)
   have hcurrent1 : ∀ i : Fin m, ∀ j : IncidentNeighbor T i,
       (T.toTreeOfSetsSystem.restrictedInterface I1 i j.1 j.2).card = passWidth := by
@@ -372,7 +372,7 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
     · simpa [hij_lt] using hI1card i j.1 j.2 hij_lt
     · have hji : j.1 < i :=
         lt_of_le_of_ne (le_of_not_gt hij_lt) j.2.ne.symm
-      simpa [hij_lt, hji] using hI1card j.1 i (T.metaTree.symm j.2) hji
+      simpa [hij_lt, hji] using hI1card j.1 i (T.metaTree.adj_symm j.2) hji
   let second : ∀ i : Fin m,
       MetaVertexGroupedRestriction T I1 i W :=
     fun i => Classical.choice <|
@@ -390,7 +390,7 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
         ((second i).endpoint ⟨j, hij⟩)
     else
       (T.connector i j hij).targetIndexSetOfSubset
-        ((second j).endpoint ⟨i, T.metaTree.symm hij⟩)
+        ((second j).endpoint ⟨i, T.metaTree.adj_symm hij⟩)
   have hsecond_subset_interface : ∀ (i j : Fin m) (hij : T.metaTree.Adj i j),
       (second i).endpoint ⟨j, hij⟩ ⊆ T.interface i j hij := by
     intro i j hij
@@ -403,9 +403,9 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
     · simpa [I2, hi, (second i).endpoint_card ⟨j, hij⟩] using
         (T.connector i j hij).sourceIndexSetOfSubset_card
           (hsecond_subset_interface i j hij)
-    · simpa [I2, hi, (second j).endpoint_card ⟨i, T.metaTree.symm hij⟩] using
+    · simpa [I2, hi, (second j).endpoint_card ⟨i, T.metaTree.adj_symm hij⟩] using
         (T.connector i j hij).targetIndexSetOfSubset_card
-          (hsecond_subset_interface j i (T.metaTree.symm hij))
+          (hsecond_subset_interface j i (T.metaTree.adj_symm hij))
   have hI2_subset_I1 : ∀ (i j : Fin m) (hij : T.metaTree.Adj i j)
       (hij_lt : i < j), I2 i j hij hij_lt ⊆ I1 i j hij hij_lt := by
     intro i j hij hij_lt
@@ -417,10 +417,10 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
       simpa [I2, hi] using
         (T.connector i j hij).sourceIndexSetOfSubset_subset_indexSet hsource
     · have hj_not_lt : ¬ j < i := not_lt_of_ge hij_lt.le
-      have htarget : (second j).endpoint ⟨i, T.metaTree.symm hij⟩ ⊆
+      have htarget : (second j).endpoint ⟨i, T.metaTree.adj_symm hij⟩ ⊆
           (T.connector i j hij).targetSet (I1 i j hij hij_lt) := by
         simpa only [TreeOfSetsSystem.restrictedInterface, dif_neg hj_not_lt] using
-          hsecond_subset j i (T.metaTree.symm hij)
+          hsecond_subset j i (T.metaTree.adj_symm hij)
       simpa [I2, hi] using
         (T.connector i j hij).targetIndexSetOfSubset_subset_indexSet htarget
   have hI2_endpoint : ∀ (i j : Fin m) (hij : T.metaTree.Adj i j)
@@ -438,7 +438,7 @@ theorem exists_strongTreeOfSetsSystem_of_bandwidth_sourceSharp_with_same_cluster
         color_zero_of_adj_color_one color hij hi
       have hj1 : color j ≠ 1 := by omega
       simpa [TreeOfSetsSystem.restrictedInterface, I2, hij_lt, hji, hj1] using
-        (T.connector j i (T.metaTree.symm hij)).targetSet_targetIndexSetOfSubset
+        (T.connector j i (T.metaTree.adj_symm hij)).targetSet_targetIndexSetOfSubset
           (hsecond_subset_interface i j hij)
   let D : TreeOfSetsSystem.StrongRestrictionData T.toTreeOfSetsSystem W := {
     width_pos := hWpos

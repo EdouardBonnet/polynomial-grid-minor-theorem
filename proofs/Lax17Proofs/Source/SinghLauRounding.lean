@@ -250,14 +250,14 @@ noncomputable def initialRealWeight
     (G : _root_.SimpleGraph V) (B : ℕ)
     (point : FeasibleBoundedDegreePoint G B) :
     Sym2 V → ℝ :=
-  fun e => if e ∈ G.edgeFinset then (point.weight e : ℝ) else 0
+  fun e => if e ∈ allEdges G then (point.weight e : ℝ) else 0
 
 /-- Cast the rational point in the public interface to the real residual
 polytope on all host edges. -/
 theorem feasibleBoundedDegreePoint_residual
     (G : _root_.SimpleGraph V) (B : ℕ)
     (point : FeasibleBoundedDegreePoint G B) :
-    ResidualFeasible G.edgeFinset Finset.univ B
+    ResidualFeasible (allEdges G) Finset.univ B
       (initialRealWeight G B point) := by
   refine {
     zero_outside := ?_
@@ -271,8 +271,8 @@ theorem feasibleBoundedDegreePoint_residual
     simp only [initialRealWeight, if_pos he]
     exact_mod_cast point.nonnegative e he
   · calc
-      ∑ e ∈ G.edgeFinset, initialRealWeight G B point e =
-          ∑ e ∈ G.edgeFinset, (point.weight e : ℝ) := by
+      ∑ e ∈ allEdges G, initialRealWeight G B point e =
+          ∑ e ∈ allEdges G, (point.weight e : ℝ) := by
             apply Finset.sum_congr rfl
             intro e he
             simp [initialRealWeight, he]
@@ -280,32 +280,28 @@ theorem feasibleBoundedDegreePoint_residual
         exact_mod_cast point.total
   · intro S hS
     calc
-      ∑ e ∈ residualInternalEdges G.edgeFinset S,
+      ∑ e ∈ residualInternalEdges (allEdges G) S,
           initialRealWeight G B point e =
-          ∑ e ∈ residualInternalEdges G.edgeFinset S,
+          ∑ e ∈ residualInternalEdges (allEdges G) S,
             (point.weight e : ℝ) := by
             apply Finset.sum_congr rfl
             intro e he
             simp [initialRealWeight, (mem_residualInternalEdges.1 he).1]
       _ = ∑ e ∈ internalEdges G S, (point.weight e : ℝ) := by
         congr 1
-        ext e
-        simp [residualInternalEdges, internalEdges]
       _ ≤ (S.card - 1 : ℕ) := by
         exact_mod_cast point.forest S hS
   · intro v _hv
     calc
-      ∑ e ∈ residualIncidentEdges G.edgeFinset v,
+      ∑ e ∈ residualIncidentEdges (allEdges G) v,
           initialRealWeight G B point e =
-          ∑ e ∈ residualIncidentEdges G.edgeFinset v,
+          ∑ e ∈ residualIncidentEdges (allEdges G) v,
             (point.weight e : ℝ) := by
             apply Finset.sum_congr rfl
             intro e he
             simp [initialRealWeight, (mem_residualIncidentEdges.1 he).1]
       _ = ∑ e ∈ incidentEdges G v, (point.weight e : ℝ) := by
         congr 1
-        ext e
-        simp [residualIncidentEdges, incidentEdges]
       _ ≤ B := by
         exact_mod_cast point.degree v
 
@@ -587,8 +583,13 @@ theorem ResidualFeasible.tightRank_univ
     TightRank A y Finset.univ := by
   have hInternal : residualInternalEdges A (Finset.univ : Finset V) = A := by
     ext e
-    induction e using Sym2.inductionOn with
-    | _ u v => simp [residualInternalEdges, PairInside]
+    rw [mem_residualInternalEdges]
+    constructor
+    · exact fun h => h.1
+    · intro he
+      exact ⟨he, by
+        induction e using Sym2.inductionOn with
+        | _ u v => simp [PairInside]⟩
   simp only [TightRank, hInternal, Finset.card_univ]
   exact hy.total
 
@@ -1153,8 +1154,8 @@ theorem eventually_residualFeasible_perturb
     intro e he
     have hcont :
         ContinuousAt (fun t : ℝ => perturb y D t e) 0 := by
-      simpa [perturb] using
-        continuousAt_const.add (continuousAt_id.mul continuousAt_const)
+      change ContinuousAt (fun t : ℝ => y e + t * D e) 0
+      fun_prop
     exact
       (continuousAt_const.eventually_lt hcont (by
         simpa [perturb] using hpos e he)).mono
@@ -1294,8 +1295,8 @@ theorem activeNormals_span_eq_top
       (fun e he => extendActive_apply_not_mem A d he) hrank hdegree
   have hneg_tendsto :
       Filter.Tendsto (fun t : ℝ => -t) (nhds 0) (nhds 0) := by
-    simpa only [ContinuousAt, id_eq, neg_zero] using
-      (continuousAt_id.neg : ContinuousAt (fun t : ℝ => -t) 0)
+    have h : ContinuousAt (fun t : ℝ => -t) 0 := by fun_prop
+    simpa only [ContinuousAt, neg_zero] using h
   have hevneg :
       ∀ᶠ t in nhds (0 : ℝ),
         ResidualFeasible A W B (perturb y D (-t)) :=
@@ -1369,7 +1370,11 @@ theorem exists_finset_linearIndependent_span_eq
     exact hbt hxb
   · let e : bf ≃ b := Equiv.setCongr hbfset
     have he := hli.comp e e.injective
-    simpa [e, Equiv.setCongr] using he
+    have hfun : (Subtype.val ∘ e : bf → E) = Subtype.val := by
+      funext x
+      rfl
+    rw [hfun] at he
+    exact he
   · simpa [hbfset] using hspan
 
 theorem exists_finset_linearIndependent_extension
@@ -1401,7 +1406,12 @@ theorem exists_finset_linearIndependent_extension
   · simpa [hbfset] using htspan
   · let e : bf ≃ b := Equiv.setCongr hbfset
     have he := hbLI.comp e e.injective
-    simpa [e, Equiv.setCongr] using he
+    have hfun :
+        ((fun x : b => id (x : E)) ∘ e : bf → E) = Subtype.val := by
+      funext x
+      rfl
+    rw [hfun] at he
+    exact he
 
 /-- Tight rank rows supplied by a maximal laminar family. -/
 def laminarRankCandidates
@@ -1978,7 +1988,14 @@ theorem ResidualFeasible.not_isDiag_of_mem
       omega
     have heInternal :
         s(u, u) ∈ residualInternalEdges A S := by
-      simp [S, residualInternalEdges, PairInside, heA]
+      apply mem_residualInternalEdges.2
+      refine ⟨heA, ?_⟩
+      have htoFinset : (s(u, u) : Sym2 V).toFinset = {u} := by
+        rw [Sym2.toFinset_mk_eq]
+        simp
+      change PairInside ({u} : Finset V) s(u, u)
+      rw [← htoFinset]
+      exact pairInside_toFinset_self s(u, u)
     have hsingle :
         y s(u, u) ≤
           ∑ e ∈ residualInternalEdges A S, y e := by
@@ -2911,12 +2928,12 @@ theorem boundedDegreeSpanningTree_proved :
         (residualPolytope A Finset.univ B).Nonempty ∧
         InactiveCap A Finset.univ B ∧
         (∀ e, e ∈ A ↔ e ∈ G.edgeSet) := by
-    refine ⟨_, ⟨initialRealWeight G B point,
+    refine ⟨allEdges G, ⟨initialRealWeight G B point,
       feasibleBoundedDegreePoint_residual G B point⟩, ?_, ?_⟩
     · intro v hv
       simp at hv
     · intro e
-      simp
+      exact mem_allEdges
   rcases hinitial with ⟨A, hne, hcap, hAedge⟩
   rcases round_aux hcard B A Finset.univ hne hcap with
     ⟨F, hFG, htree, hdegree⟩

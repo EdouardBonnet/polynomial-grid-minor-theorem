@@ -392,7 +392,7 @@ noncomputable def addSource
             simpa [Q] using
               Lax17Proofs.SimpleGraph.GraphPath.source_mem_vertexSet Q),
           P.source, hsource, by
-            simpa [Q] using source_adj_dropFirst_source P hne⟩)
+            exact source_adj_dropFirst_source P hne⟩)
   let R := mapOld (q := q) Q
   have hLR : L.target = R.source := by
     rfl
@@ -406,6 +406,7 @@ noncomputable def addSource
     (a : Fin q) :
     (addSource P hroot hsource htarget hdirect a).source = source i a := by
   simp [addSource]
+  rfl
 
 @[simp] theorem addSource_target
     (P : Lax17Proofs.SimpleGraph.GraphPath G)
@@ -415,6 +416,7 @@ noncomputable def addSource
     (a : Fin q) :
     (addSource P hroot hsource htarget hdirect a).target = old P.target := by
   simp [addSource, Lax17Proofs.SimpleGraph.GraphPath.inInducedOnFinset]
+  rfl
 
 /-- Every old vertex retained by `addSource` came from the original flow
 path. -/
@@ -441,7 +443,7 @@ theorem old_mem_original_of_mem_addSource
           simpa [Q] using
             Lax17Proofs.SimpleGraph.GraphPath.source_mem_vertexSet Q),
         P.source, hsource, by
-          simpa [Q] using source_adj_dropFirst_source P hne⟩
+          exact source_adj_dropFirst_source P hne⟩
   let L := ChekuriChuzhoyPendantVertex.GraphPath.ofAdj hAdj
   let R := mapOld (q := q) Q
   have hLR : L.target = R.source := by
@@ -461,8 +463,8 @@ theorem old_mem_original_of_mem_addSource
       exact dropFirst_vertexSet_subset P (by
         simpa [Q, hxEq] using
           Lax17Proofs.SimpleGraph.GraphPath.source_mem_vertexSet Q)
-  · rw [mapOld_vertexSet (q := q)] at hxR
-    rcases Finset.mem_image.mp hxR with ⟨y, hy, hyx⟩
+  · rcases Finset.mem_image.mp
+      ((Finset.ext_iff.mp (mapOld_vertexSet (q := q) Q) _).mp hxR) with ⟨y, hy, hyx⟩
     have hxy : y = x := old_injective hyx
     have hy' : y ∈ (dropFirst P).vertexSet := by
       change
@@ -498,7 +500,7 @@ theorem source_mem_addSource_iff
             simpa [Q] using
               Lax17Proofs.SimpleGraph.GraphPath.source_mem_vertexSet Q),
           P.source, hsource, by
-            simpa [Q] using source_adj_dropFirst_source P hne⟩
+            exact source_adj_dropFirst_source P hne⟩
     let L := ChekuriChuzhoyPendantVertex.GraphPath.ofAdj hAdj
     let R := mapOld (q := q) Q
     have hLR : L.target = R.source := by
@@ -516,8 +518,9 @@ theorem source_mem_addSource_iff
       · injection hEq with hji hba
         exact ⟨hji, hba⟩
       · cases hfalse
-    · rw [mapOld_vertexSet (q := q)] at hxR
-      rcases Finset.mem_image.mp hxR with ⟨x, _hx, hfalse⟩
+    · rcases Finset.mem_image.mp
+        ((Finset.ext_iff.mp (mapOld_vertexSet (q := q) Q) _).mp hxR) with
+        ⟨x, _hx, hfalse⟩
       cases hfalse
   · rintro ⟨rfl, rfl⟩
     exact Lax17Proofs.SimpleGraph.GraphPath.source_mem_vertexSet _

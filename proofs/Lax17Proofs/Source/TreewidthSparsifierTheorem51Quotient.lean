@@ -477,6 +477,15 @@ abbrev RecordBoundary
         {x : Fin h // x ∈ (E.recordAt j).cut.left} //
       x ∈ (E.recordAt j).round.edgeBoundary S}
 
+/-- `RecordedLayer.round` is a plain `def`, so the standard `Finset` coercion
+instance no longer unifies `(E.recordAt j).cut.left` with the round's own cut
+at instance transparency; supply the fibre instance explicitly. -/
+noncomputable instance recordBoundaryFiberFintype {E : ExpanderBlocks P count}
+    {S : Finset (Fin h)} {j : Fin E.finalState.records.length} :
+    Fintype {x : {x : Fin h // x ∈ (E.recordAt j).cut.left} //
+      x ∈ (E.recordAt j).round.edgeBoundary S} :=
+  FinsetCoe.fintype ((E.recordAt j).round.edgeBoundary S)
+
 /-- Select one physical quotient edge from each abstract matching-boundary
 instance. -/
 noncomputable def recordBoundaryQuotientEdge

@@ -42,6 +42,7 @@ noncomputable def ownerBoundaryEdges
   classical
   simp [ownerBoundaryEdges]
 
+open Classical in
 theorem ownerBoundaryEdges_subset_edgeFinset
     (H : _root_.SimpleGraph V) (owner : V → Fin h)
     (S : Finset (Fin h)) :
@@ -78,6 +79,7 @@ noncomputable def ownerBoundaryEquiv
   left_inv q := by
     apply Subtype.ext
     simp [ownerQuotientIndex, ownerCrossingEdgeAt]
+    exact Equiv.apply_symm_apply _ _
   right_inv e := by
     apply Subtype.ext
     simp [ownerQuotientIndex, ownerCrossingEdgeAt]
@@ -204,7 +206,7 @@ theorem ownerBoundaryEdges_blue
       edgesOfSubgraph
         (E.assembledSupport hbudget) E.blueSupport
         (by exact le_sup_right)
-  rw [mem_edgesOfSubgraph]
+  refine (mem_edgesOfSubgraph _ _ _ _).mpr ?_
   change e ∈ E.blueSupport.edgeSet
   rw [← show s(e.out.1, e.out.2) = e by
     rw [Sym2.mk, e.out_eq]]

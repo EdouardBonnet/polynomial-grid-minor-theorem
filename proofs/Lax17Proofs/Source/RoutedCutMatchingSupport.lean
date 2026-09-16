@@ -282,7 +282,9 @@ theorem routedRound_edgeBoundary_card_le
               exact hx.2 ((hS e.1.1).2 (by simpa [hsource] using hsA))),
             by simpa [htarget] using
               (hS ((routedMatching hroute B).rightEndpoint e.1)).1 hx.1⟩
-      simpa [hcover, GraphPath.mapLe, GraphPath.Connects] using hconn
+      simpa [hcover, GraphPath.mapLe, GraphPath.Connects,
+        PathPacking.inSpanningGraph, PathPacking.transfer,
+        GraphPath.transfer] using hconn
     edge_disjoint := by
       intro x y hxy
       have he_ne : (boundaryEquiv x).1 ≠ (boundaryEquiv y).1 := by

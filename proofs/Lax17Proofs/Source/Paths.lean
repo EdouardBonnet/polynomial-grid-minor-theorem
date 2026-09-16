@@ -35,7 +35,9 @@ variable {u v : V}
   | cons _ p ih =>
       cases n with
       | zero => simp
-      | succ n => simp [_root_.SimpleGraph.Walk.transfer, ih]
+      | succ n =>
+          change (p.transfer H _).getVert n = p.getVert n
+          apply ih
 
 @[simp] theorem penultimate_transfer (p : G.Walk u v)
     (hp : ∀ e, e ∈ p.edges → e ∈ H.edgeSet) :
@@ -293,7 +295,8 @@ theorem not_mem_reverse_dropLast_of_not_mem_dropLast_of_ne_target
   intro hv
   have hvPath : v ∈ P.vertexSet := by
     have hvSupport : v ∈ P.reverse.walk.dropLast.support := by
-      simpa [dropLast, vertexSet] using hv
+      rw [dropLast, vertexSet] at hv
+      exact List.mem_toFinset.mp hv
     have hsub :
         P.reverse.walk.dropLast.support ⊆ P.reverse.walk.support :=
       ((_root_.SimpleGraph.Walk.isSubwalk_rfl P.reverse.walk).dropLast).support_subset
@@ -310,7 +313,8 @@ theorem dropLast_vertexSet_subset (P : GraphPath G) :
     P.dropLast.vertexSet ⊆ P.vertexSet := by
   intro v hv
   have hvSupport : v ∈ P.walk.dropLast.support := by
-    simpa [dropLast, vertexSet] using hv
+    rw [dropLast, vertexSet] at hv
+    exact List.mem_toFinset.mp hv
   have hsub :
       P.walk.dropLast.support ⊆ P.walk.support :=
     ((_root_.SimpleGraph.Walk.isSubwalk_rfl P.walk).dropLast).support_subset
@@ -460,7 +464,7 @@ theorem eq_source_of_source_eq_target_of_mem_vertexSet
       dsimp at hst hv ⊢
       subst target
       have hwalk : walk = _root_.SimpleGraph.Walk.nil :=
-        (_root_.SimpleGraph.Walk.isPath_iff_eq_nil walk).mp isPath
+        (_root_.SimpleGraph.Walk.isPath_iff_eq_nil).mp isPath
       simpa [GraphPath.vertexSet, hwalk] using hv
 
 /-- Any vertex on a nontrivial graph path is incident with some edge of the
@@ -1091,7 +1095,7 @@ theorem eq_firstHitVertex_of_mem_takeUntil_of_mem_set
   exact P.before_antisymm hv_first hfirst_v
 
 /-- The prefix of `P` ending at its first hit of `U`. -/
-noncomputable def cleanPrefixToSet (P : GraphPath G) (U : Finset V)
+noncomputable abbrev cleanPrefixToSet (P : GraphPath G) (U : Finset V)
     (hne : (P.vertexSet ∩ U).Nonempty) : GraphPath G :=
   P.takeUntil (P.firstHitVertex_mem_vertexSet U hne)
 
@@ -1164,7 +1168,7 @@ theorem eq_lastHitVertex_of_mem_dropUntil_of_mem_set
   exact P.before_antisymm hv_last hlast_v
 
 /-- The suffix of `P` starting at its last hit of `U`. -/
-noncomputable def cleanSuffixFromSet (P : GraphPath G) (U : Finset V)
+noncomputable abbrev cleanSuffixFromSet (P : GraphPath G) (U : Finset V)
     (hne : (P.vertexSet ∩ U).Nonempty) : GraphPath G :=
   P.dropUntil (P.lastHitVertex_mem_vertexSet U hne)
 
@@ -2012,7 +2016,8 @@ theorem isEndpoint_of_mem_vertexSet_of_degreeEquals_one
     have hsub' :
         P.walk.toSubgraph.Adj (P.walk.getVert (n - 1)) v := by
       simpa [Nat.sub_add_cancel (Nat.pos_of_ne_zero hn_ne_zero), hn] using hsub
-    exact G.symm (P.walk.toSubgraph.adj_sub hsub')
+    exact G.symm.symm (P.walk.getVert (n - 1)) v
+      (P.walk.toSubgraph.adj_sub hsub')
   have hnext_adj :
       G.Adj v (P.walk.getVert (n + 1)) := by
     have hsub :
@@ -2034,7 +2039,7 @@ theorem isEndpoint_of_mem_vertexSet_of_degreeEquals_one
   exact hprev_ne_next (DegreeEquals.one_adj_eq hdeg hprev_adj hnext_adj)
 
 /-- Two paths are node-disjoint when their vertex sets are disjoint. -/
-def NodeDisjoint (P Q : GraphPath G) : Prop :=
+abbrev NodeDisjoint (P Q : GraphPath G) : Prop :=
   Disjoint P.vertexSet Q.vertexSet
 
 theorem nodeDisjoint_symm {P Q : GraphPath G}
@@ -2256,13 +2261,12 @@ theorem cleanBetweenTerminalSets_connects
     ⟨R.source, Finset.mem_inter.2
       ⟨GraphPath.source_mem_vertexSet R,
         by simpa [R, O] using GraphPath.orient_source_mem P h⟩⟩
+  change (R.cleanSuffixFromSet S hS).Connects S T
   exact Or.inl
-    ⟨by
-      simpa [cleanBetweenTerminalSets, O, hT, R, hS] using
-        R.cleanSuffixFromSet_source_mem S hS,
+    ⟨R.cleanSuffixFromSet_source_mem S hS,
      by
-      simpa [cleanBetweenTerminalSets, O, hT, R, hS] using
-        O.cleanPrefixToSet_target_mem T hT⟩
+       rw [R.cleanSuffixFromSet_target]
+       exact O.cleanPrefixToSet_target_mem T hT⟩
 
 theorem cleanBetweenTerminalSets_source_mem
     (P : GraphPath G) {S T : Finset V} (h : P.Connects S T) :
@@ -2278,8 +2282,8 @@ theorem cleanBetweenTerminalSets_source_mem
     ⟨R.source, Finset.mem_inter.2
       ⟨GraphPath.source_mem_vertexSet R,
         by simpa [R, O] using GraphPath.orient_source_mem P h⟩⟩
-  simpa [cleanBetweenTerminalSets, O, hT, R, hS] using
-    R.cleanSuffixFromSet_source_mem S hS
+  change (R.cleanSuffixFromSet S hS).source ∈ S
+  exact R.cleanSuffixFromSet_source_mem S hS
 
 theorem cleanBetweenTerminalSets_target_mem
     (P : GraphPath G) {S T : Finset V} (h : P.Connects S T) :
@@ -2295,8 +2299,9 @@ theorem cleanBetweenTerminalSets_target_mem
     ⟨R.source, Finset.mem_inter.2
       ⟨GraphPath.source_mem_vertexSet R,
         by simpa [R, O] using GraphPath.orient_source_mem P h⟩⟩
-  simpa [cleanBetweenTerminalSets, O, hT, R, hS] using
-    O.cleanPrefixToSet_target_mem T hT
+  change (R.cleanSuffixFromSet S hS).target ∈ T
+  rw [R.cleanSuffixFromSet_target]
+  exact O.cleanPrefixToSet_target_mem T hT
 
 /-- The terminal-clean segment has no internal vertex in either terminal set. -/
 theorem cleanBetweenTerminalSets_internallyDisjointFromSet_union
@@ -2313,10 +2318,10 @@ theorem cleanBetweenTerminalSets_internallyDisjointFromSet_union
     ⟨R.source, Finset.mem_inter.2
       ⟨GraphPath.source_mem_vertexSet R,
         by simpa [R, O] using GraphPath.orient_source_mem P h⟩⟩
+  change (R.cleanSuffixFromSet S hS).InternallyDisjointFromSet (S ∪ T)
   intro v hv hST
   have hvR : v ∈ R.vertexSet :=
-    R.cleanSuffixFromSet_vertexSet_subset S hS (by
-      simpa [cleanBetweenTerminalSets, O, hT, R, hS] using hv)
+    R.cleanSuffixFromSet_vertexSet_subset S hS hv
   have hSuffixClean :
       (R.cleanSuffixFromSet S hS).InternallyDisjointFromSet S :=
     R.cleanSuffixFromSet_internallyDisjointFromSet S hS
@@ -2325,7 +2330,7 @@ theorem cleanBetweenTerminalSets_internallyDisjointFromSet_union
     simpa [R] using O.cleanPrefixToSet_internallyDisjointFromSet T hT
   rcases Finset.mem_union.1 hST with hvS | hvT
   · rcases hSuffixClean
-        (by simpa [cleanBetweenTerminalSets, O, hT, R, hS] using hv) hvS with
+        hv hvS with
       hsource | htarget
     · exact Or.inl hsource
     · exact Or.inr htarget
@@ -2342,15 +2347,17 @@ theorem cleanBetweenTerminalSets_internallyDisjointFromSet_union
             simpa [R, O] using GraphPath.orient_source_mem P h)
       have hv_source : v = R.lastHitVertex S hS := hsource.trans hsource_eq
       exact Or.inl (by
-        simpa [cleanBetweenTerminalSets, O, hT, R, hS] using hv_source)
+        rw [R.cleanSuffixFromSet_source]
+        exact hv_source)
     · exact Or.inr (by
-        simpa [cleanBetweenTerminalSets, O, hT, R, hS] using htarget)
+        rw [R.cleanSuffixFromSet_target]
+        exact htarget)
 
 /-- Concatenate two graph paths whose endpoints match.
 
 The proof that the appended walk is still a path is kept explicit; later
 arguments usually derive it from disjointness hypotheses. -/
-def appendWithEq (P Q : GraphPath G) (h : P.target = Q.source)
+abbrev appendWithEq (P Q : GraphPath G) (h : P.target = Q.source)
     (hpath : (P.walk.append (Q.walk.copy h.symm rfl)).IsPath) :
     GraphPath G where
   source := P.source
@@ -2566,7 +2573,7 @@ theorem appendWithEq_isPath_of_inter_subset_target (P Q : GraphPath G)
 
 /-- Concatenate two paths when their only common vertices lie at the glued
 endpoint. -/
-noncomputable def appendWithEqOfInterSubsetTarget
+noncomputable abbrev appendWithEqOfInterSubsetTarget
     (P Q : GraphPath G) (h : P.target = Q.source)
     (hinter :
       ∀ ⦃v : V⦄, v ∈ P.vertexSet → v ∈ Q.vertexSet → v = P.target) :
@@ -2974,7 +2981,7 @@ noncomputable def finReindex (P : PathPacking G S T) : PathPacking G S T :=
   simp [finReindex]
 
 /-- Restrict a path packing to a finite set of path indices. -/
-noncomputable def restrictIndexSet (P : PathPacking G S T)
+noncomputable abbrev restrictIndexSet (P : PathPacking G S T)
     (I : Finset P.Index) : PathPacking G S T where
   Index := {i : P.Index // i ∈ I}
   path := fun i => P.path i.1
@@ -2986,8 +2993,8 @@ noncomputable def restrictIndexSet (P : PathPacking G S T)
 @[simp] theorem restrictIndexSet_card (P : PathPacking G S T)
     (I : Finset P.Index) :
     (P.restrictIndexSet I).card = I.card := by
-  classical
-  simp [restrictIndexSet, card]
+  change Fintype.card {i : P.Index // i ∈ I} = I.card
+  exact Fintype.card_coe I
 
 @[simp] theorem restrictIndexSet_path_vertexSet
     (P : PathPacking G S T) (I : Finset P.Index)
@@ -3320,7 +3327,7 @@ theorem path_vertexSet_subset_of_edgeSet_subset_of_source_mem
       simpa [Q'] using hx
     simpa [GraphPath.vertexSet] using hxQ'
   exact P.spanningGraph_walk_support_subset_path r Q'.walk
-    (by simpa [Q'] using hsource) x hx'
+    (by change Q.source ∈ (P.path r).vertexSet; exact hsource) x hx'
 
 /-- A path using only the edges of a node-disjoint packing and starting on one
 packed path uses only the edges of that indexed path. -/
@@ -3361,7 +3368,7 @@ theorem path_edgeSet_subset_of_edgeSet_subset_of_source_mem
 
 /-- A path packing can be viewed as a packing in the graph spanned by exactly
 its own path edges. -/
-noncomputable def inSpanningGraph (P : PathPacking G S T) :
+noncomputable abbrev inSpanningGraph (P : PathPacking G S T) :
     PathPacking P.spanningGraph S T :=
   P.transfer P.spanningGraph (by
     classical
@@ -3438,6 +3445,8 @@ theorem edgeSet_disjoint_of_mutuallyEdgeDisjoint {S' T' : Finset V}
 terminal set. -/
 def orient (P : PathPacking G S T) : PathPacking G S T where
   Index := P.Index
+  indexFintype := P.indexFintype
+  indexDecidableEq := P.indexDecidableEq
   path := fun i => (P.path i).orient (P.connects i)
   connects := by
     intro i
@@ -3465,9 +3474,9 @@ def orient (P : PathPacking G S T) : PathPacking G S T where
   rw [PathPacking.mem_edgeSet, PathPacking.mem_edgeSet]
   constructor
   · rintro ⟨i, hi⟩
-    exact ⟨i, by simpa using hi⟩
+    exact ⟨i, by rw [← P.orient_path_edgeSet i]; exact hi⟩
   · rintro ⟨i, hi⟩
-    exact ⟨i, by simpa using hi⟩
+    exact ⟨i, by rw [P.orient_path_edgeSet i]; exact hi⟩
 
 /-- The left terminals actually used by an oriented path packing. -/
 noncomputable def sourceSet (P : PathPacking G S T) : Finset V :=
@@ -3605,7 +3614,8 @@ theorem orient_staysIn {P : PathPacking G S T} {U : Finset V}
     (hP : P.StaysIn U) :
     P.orient.StaysIn U := by
   intro i
-  simpa [orient_path_vertexSet] using hP i
+  rw [P.orient_path_vertexSet i]
+  exact hP i
 
 /-- Orienting a packing preserves internal disjointness from a vertex set. -/
 theorem orient_internallyDisjointFromSet
@@ -3614,7 +3624,7 @@ theorem orient_internallyDisjointFromSet
     P.orient.InternallyDisjointFromSet U := by
   intro i v hv hU
   exact (GraphPath.orient_isEndpoint (P.path i) (P.connects i)).2
-    (hP i (by simpa [PathPacking.orient_path_vertexSet] using hv) hU)
+    (hP i (by rw [← P.orient_path_vertexSet i]; exact hv) hU)
 
 /-- Orienting a packing preserves localized pairwise bridges. -/
 theorem orient_hasPairwiseBridgesIn {P : PathPacking G S T} {U : Finset V}
@@ -3625,11 +3635,14 @@ theorem orient_hasPairwiseBridgesIn {P : PathPacking G S T} {U : Finset V}
   let β' : P.orient.BridgeBetween i j := {
     path := β.path
     connects := by
-      simpa [PathPacking.orient_path_vertexSet] using β.connects
+      rw [P.orient_path_vertexSet i, P.orient_path_vertexSet j]
+      exact β.connects
     internallyDisjoint := by
       intro v hv hrows
       exact β.internallyDisjoint hv (by
-        simpa [PathPacking.orient, PathPacking.vertexSet] using hrows)
+        rw [PathPacking.mem_vertexSet] at hrows ⊢
+        rcases hrows with ⟨a, ha⟩
+        exact ⟨a, by rw [← P.orient_path_vertexSet a]; exact ha⟩)
   }
   exact ⟨β', by simpa [β'] using hβU⟩
 
@@ -3654,7 +3667,8 @@ noncomputable def cleanToRight (P : PathPacking G S T) :
     intro i
     exact Or.inl
       ⟨by
-        simpa using GraphPath.orient_source_mem (P.path i) (P.connects i),
+        change (P.orient.path i).source ∈ S
+        exact GraphPath.orient_source_mem (P.path i) (P.connects i),
        by
         exact (P.orient.path i).cleanPrefixToSet_target_mem T
           (P.orient_path_meets_right i)⟩
@@ -3696,8 +3710,8 @@ theorem cleanToRight_internallyDisjointFromSet
       (P.cleanToRight.path i).source ∈ S ∧
         (P.cleanToRight.path i).target ∈ T := by
     exact ⟨by
-      simpa [cleanToRight] using
-        GraphPath.orient_source_mem (P.path i) (P.connects i),
+      change (P.orient.path i).source ∈ S
+      exact GraphPath.orient_source_mem (P.path i) (P.connects i),
       by
         dsimp [cleanToRight]
         exact (P.orient.path i).cleanPrefixToSet_target_mem T
@@ -3713,9 +3727,17 @@ theorem cleanToRight_internallyDisjointFromSet
   classical
   ext v
   rw [sourceSet, sourceSet]
-  simp only [Finset.mem_image, Finset.mem_univ, true_and,
-    cleanToRight_orient_path_source]
-  rfl
+  constructor
+  · intro hv
+    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+    exact Finset.mem_image.mpr
+      ⟨i, Finset.mem_univ i,
+        (P.cleanToRight_orient_path_source i).symm.trans hiv⟩
+  · intro hv
+    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+    exact Finset.mem_image.mpr
+      ⟨i, Finset.mem_univ i,
+        (P.cleanToRight_orient_path_source i).trans hiv⟩
 
 /-- A packing is terminal-clean when no oriented path has an internal vertex
 in either terminal set. -/
@@ -3752,7 +3774,7 @@ theorem cleanToTerminals_terminalClean (P : PathPacking G S T) :
     (P.connects i)
 
 /-- Map every path in a packing to a supergraph on the same vertex type. -/
-def mapLe (P : PathPacking G S T) {H : _root_.SimpleGraph V} (hGH : G ≤ H) :
+abbrev mapLe (P : PathPacking G S T) {H : _root_.SimpleGraph V} (hGH : G ≤ H) :
     PathPacking H S T where
   Index := P.Index
   path := fun i => (P.path i).mapLe hGH
@@ -3767,10 +3789,12 @@ def mapLe (P : PathPacking G S T) {H : _root_.SimpleGraph V} (hGH : G ≤ H) :
 only requires each path to have one endpoint in each terminal set, so enlarging
 the allowed terminal sets preserves the same indexed paths and all
 node-disjointness information. -/
-def widenTerminals {S' T' : Finset V} (P : PathPacking G S T)
+abbrev widenTerminals {S' T' : Finset V} (P : PathPacking G S T)
     (hS : S ⊆ S') (hT : T ⊆ T') :
     PathPacking G S' T' where
   Index := P.Index
+  indexFintype := P.indexFintype
+  indexDecidableEq := P.indexDecidableEq
   path := P.path
   connects := by
     intro i
@@ -3790,15 +3814,7 @@ def widenTerminals {S' T' : Finset V} (P : PathPacking G S T)
 
 @[simp] theorem widenTerminals_vertexSet {S' T' : Finset V}
     (P : PathPacking G S T) (hS : S ⊆ S') (hT : T ⊆ T') :
-    (P.widenTerminals hS hT).vertexSet = P.vertexSet := by
-  classical
-  ext v
-  rw [PathPacking.mem_vertexSet, PathPacking.mem_vertexSet]
-  constructor
-  · rintro ⟨i, hv⟩
-    exact ⟨i, hv⟩
-  · rintro ⟨i, hv⟩
-    exact ⟨i, hv⟩
+    (P.widenTerminals hS hT).vertexSet = P.vertexSet := rfl
 
 /-- Widening terminal sets preserves localized pairwise bridges. -/
 theorem widenTerminals_hasPairwiseBridgesIn {S' T' U : Finset V}
@@ -3827,14 +3843,36 @@ theorem widenTerminals_hasPairwiseBridgesIn {S' T' U : Finset V}
     (P.mapLe hGH).vertexSet = P.vertexSet := by
   classical
   ext v
-  simp [mapLe, vertexSet, GraphPath.mapLe_vertexSet]
+  rw [PathPacking.mem_vertexSet, PathPacking.mem_vertexSet]
+  constructor
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change v ∈ ((P.path i).mapLe hGH).vertexSet at hi
+    rw [GraphPath.mapLe_vertexSet] at hi
+    exact hi
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change v ∈ ((P.path i).mapLe hGH).vertexSet
+    rw [GraphPath.mapLe_vertexSet]
+    exact hi
 
 @[simp] theorem mapLe_edgeSet (P : PathPacking G S T)
     {H : _root_.SimpleGraph V} (hGH : G ≤ H) :
     (P.mapLe hGH).edgeSet = P.edgeSet := by
   classical
   ext e
-  simp [mapLe, edgeSet, GraphPath.mapLe_edgeSet]
+  rw [PathPacking.mem_edgeSet, PathPacking.mem_edgeSet]
+  constructor
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change e ∈ ((P.path i).mapLe hGH).edgeSet at hi
+    rw [GraphPath.mapLe_edgeSet] at hi
+    exact hi
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change e ∈ ((P.path i).mapLe hGH).edgeSet
+    rw [GraphPath.mapLe_edgeSet]
+    exact hi
 
 end PathPacking
 
@@ -4111,7 +4149,7 @@ theorem eq_target_of_mem_right_of_mem_path_vertexSet
         hvj hvpath)
 
 /-- Map every path in a perfect packing to a supergraph on the same vertex type. -/
-def mapLe (P : PerfectPathPacking G S T) {H : _root_.SimpleGraph V}
+abbrev mapLe (P : PerfectPathPacking G S T) {H : _root_.SimpleGraph V}
     (hGH : G ≤ H) :
     PerfectPathPacking H S T where
   toPathPacking := P.toPathPacking.mapLe hGH
@@ -4135,6 +4173,20 @@ def mapLe (P : PerfectPathPacking G S T) {H : _root_.SimpleGraph V}
     {H : _root_.SimpleGraph V} (hGH : G ≤ H) :
     (P.mapLe hGH).toPathPacking.edgeSet = P.toPathPacking.edgeSet := by
   simp [mapLe]
+
+@[simp] theorem mapLe_path_vertexSet
+    (P : PerfectPathPacking G S T) {H : _root_.SimpleGraph V}
+    (hGH : G ≤ H) (i : (P.mapLe hGH).Index) :
+    ((P.mapLe hGH).path i).vertexSet = (P.path i).vertexSet := by
+  change ((P.path i).mapLe hGH).vertexSet = (P.path i).vertexSet
+  exact GraphPath.mapLe_vertexSet (P.path i) hGH
+
+@[simp] theorem mapLe_path_edgeSet
+    (P : PerfectPathPacking G S T) {H : _root_.SimpleGraph V}
+    (hGH : G ≤ H) (i : (P.mapLe hGH).Index) :
+    ((P.mapLe hGH).path i).edgeSet = (P.path i).edgeSet := by
+  change ((P.path i).mapLe hGH).edgeSet = (P.path i).edgeSet
+  exact GraphPath.mapLe_edgeSet (P.path i) hGH
 
 /-- The disjoint union of two perfect path packings with disjoint terminal
 sets and mutually disjoint paths.  The index type is the sum of the two input
@@ -4450,11 +4502,13 @@ noncomputable def induce (P : PerfectPathPacking G S T) (U : Finset V)
 definitionally equal finite sets.  The path index type is preserved exactly,
 which is useful when later proofs need to refer back to the original indexed
 paths. -/
-def copyTerminals {S' T' : Finset V} (P : PerfectPathPacking G S T)
+abbrev copyTerminals {S' T' : Finset V} (P : PerfectPathPacking G S T)
     (hS : S = S') (hT : T = T') :
     PerfectPathPacking G S' T' where
   toPathPacking := {
     Index := P.Index
+    indexFintype := P.indexFintype
+    indexDecidableEq := P.indexDecidableEq
     path := P.path
     connects := by
       intro i
@@ -4510,28 +4564,12 @@ def copyTerminals {S' T' : Finset V} (P : PerfectPathPacking G S T)
 @[simp] theorem copyTerminals_vertexSet {S' T' : Finset V}
     (P : PerfectPathPacking G S T) (hS : S = S') (hT : T = T') :
     (P.copyTerminals hS hT).toPathPacking.vertexSet =
-      P.toPathPacking.vertexSet := by
-  classical
-  ext v
-  rw [PathPacking.mem_vertexSet, PathPacking.mem_vertexSet]
-  constructor
-  · rintro ⟨i, hv⟩
-    exact ⟨i, hv⟩
-  · rintro ⟨i, hv⟩
-    exact ⟨i, hv⟩
+      P.toPathPacking.vertexSet := rfl
 
 @[simp] theorem copyTerminals_edgeSet {S' T' : Finset V}
     (P : PerfectPathPacking G S T) (hS : S = S') (hT : T = T') :
     (P.copyTerminals hS hT).toPathPacking.edgeSet =
-      P.toPathPacking.edgeSet := by
-  classical
-  ext e
-  rw [PathPacking.mem_edgeSet, PathPacking.mem_edgeSet]
-  constructor
-  · rintro ⟨i, he⟩
-    exact ⟨i, he⟩
-  · rintro ⟨i, he⟩
-    exact ⟨i, he⟩
+      P.toPathPacking.edgeSet := rfl
 
 /-- Copying terminal-set equalities preserves containment of all path vertices
 in a fixed set. -/
@@ -4541,6 +4579,38 @@ theorem copyTerminals_staysIn {S' T' U : Finset V}
     (P.copyTerminals hS hT).toPathPacking.StaysIn U := by
   intro i v hv
   exact hP i (by simpa [copyTerminals] using hv)
+
+/-- Copying terminal-set equalities preserves internal disjointness from a
+fixed vertex set. -/
+theorem copyTerminals_internallyDisjointFromSet {S' T' U : Finset V}
+    (P : PerfectPathPacking G S T) (hS : S = S') (hT : T = T')
+    (hP : P.toPathPacking.InternallyDisjointFromSet U) :
+    (P.copyTerminals hS hT).toPathPacking.InternallyDisjointFromSet U := by
+  intro i
+  exact hP i
+
+/-- Copying terminal sets on both packings preserves mutual node
+disjointness. -/
+theorem copyTerminals_mutuallyNodeDisjoint
+    {S' T' A B A' B' : Finset V}
+    (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G A B)
+    (hS : S = S') (hT : T = T') (hA : A = A') (hB : B = B')
+    (h : P.toPathPacking.MutuallyNodeDisjoint Q.toPathPacking) :
+    (P.copyTerminals hS hT).toPathPacking.MutuallyNodeDisjoint
+      (Q.copyTerminals hA hB).toPathPacking := by
+  intro i j
+  exact h i j
+
+/-- Copying terminal sets on the right packing preserves mutual node
+disjointness from an arbitrary packing. -/
+theorem mutuallyNodeDisjoint_copyTerminals_right
+    {X Y A B A' B' : Finset V}
+    (R : PathPacking G X Y) (Q : PerfectPathPacking G A B)
+    (hA : A = A') (hB : B = B')
+    (h : R.MutuallyNodeDisjoint Q.toPathPacking) :
+    R.MutuallyNodeDisjoint (Q.copyTerminals hA hB).toPathPacking := by
+  intro i j
+  exact h i j
 
 /-- The sources of a chosen set of paths in a perfect packing. -/
 noncomputable def sourceSet (P : PerfectPathPacking G S T)
@@ -4630,7 +4700,7 @@ theorem targetSet_disjoint (P : PerfectPathPacking G S T)
 
 /-- Restrict a perfect path packing to a finite set of its path indices.  The
 new terminal sets are the corresponding source and target images. -/
-noncomputable def restrictIndexSet (P : PerfectPathPacking G S T)
+noncomputable abbrev restrictIndexSet (P : PerfectPathPacking G S T)
     (I : Finset P.Index) :
     PerfectPathPacking G (P.sourceSet I) (P.targetSet I) where
   toPathPacking := {
@@ -4676,8 +4746,8 @@ noncomputable def restrictIndexSet (P : PerfectPathPacking G S T)
 @[simp] theorem restrictIndexSet_card (P : PerfectPathPacking G S T)
     (I : Finset P.Index) :
     (P.restrictIndexSet I).card = I.card := by
-  classical
-  simp [restrictIndexSet, card]
+  change Fintype.card {i : P.Index // i ∈ I} = I.card
+  exact Fintype.card_coe I
 
 @[simp] theorem restrictIndexSet_path_vertexSet
     (P : PerfectPathPacking G S T) (I : Finset P.Index)
@@ -4893,7 +4963,7 @@ theorem targetIndexSetOfSubset_subset_indexSet
 
 /-- Restrict a perfect packing to the paths whose targets lie in a prescribed
 subset of the right terminal set. -/
-noncomputable def restrictTargetSet
+noncomputable abbrev restrictTargetSet
     (P : PerfectPathPacking G S T) (T' : Finset V) (hT : T' ⊆ T) :
     PerfectPathPacking G
       (P.sourceSet (P.targetIndexSetOfSubset T')) T' :=
@@ -4954,6 +5024,8 @@ noncomputable def reverse (P : PerfectPathPacking G S T) :
     PerfectPathPacking G T S where
   toPathPacking := {
     Index := P.Index
+    indexFintype := P.indexFintype
+    indexDecidableEq := P.indexDecidableEq
     path := fun i => (P.path i).reverse
     connects := by
       intro i
@@ -5021,7 +5093,7 @@ theorem exists_indexSet_card_eq (P : PerfectPathPacking G S T)
 
 /-- A perfect path packing can be viewed inside the graph spanned by exactly
 its own path edges. -/
-noncomputable def inSpanningGraph (P : PerfectPathPacking G S T) :
+noncomputable abbrev inSpanningGraph (P : PerfectPathPacking G S T) :
     PerfectPathPacking P.toPathPacking.spanningGraph S T where
   toPathPacking := P.toPathPacking.inSpanningGraph
   source_mem := P.source_mem
@@ -5039,6 +5111,16 @@ noncomputable def inSpanningGraph (P : PerfectPathPacking G S T) :
 @[simp] theorem inSpanningGraph_path_vertexSet (P : PerfectPathPacking G S T)
     (i : P.Index) :
     (P.inSpanningGraph.path i).vertexSet = (P.path i).vertexSet := by
+  simp [inSpanningGraph, PathPacking.inSpanningGraph, PathPacking.transfer]
+
+@[simp] theorem inSpanningGraph_path_vertexSet_selfIndex
+    (P : PerfectPathPacking G S T) (i : P.inSpanningGraph.Index) :
+    (P.inSpanningGraph.path i).vertexSet = (P.path i).vertexSet := by
+  simp [inSpanningGraph, PathPacking.inSpanningGraph, PathPacking.transfer]
+
+@[simp] theorem inSpanningGraph_path_edgeSet_selfIndex
+    (P : PerfectPathPacking G S T) (i : P.inSpanningGraph.Index) :
+    (P.inSpanningGraph.path i).edgeSet = (P.path i).edgeSet := by
   simp [inSpanningGraph, PathPacking.inSpanningGraph, PathPacking.transfer]
 
 /-- If the first perfect packing is internally disjoint from a region, the
@@ -5545,7 +5627,7 @@ theorem concat_nodeDisjoint_of_first_staysIn_second_internallyDisjointFromSet_ta
 The two proof arguments record the genuinely graph-theoretic obligations:
 each concatenated walk is still a simple path, and different concatenated
 paths remain node-disjoint. -/
-noncomputable def concat {U : Finset V}
+noncomputable abbrev concat {U : Finset V}
     (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
     (hpath :
       ∀ i : P.Index,
@@ -5562,6 +5644,8 @@ noncomputable def concat {U : Finset V}
     PerfectPathPacking G S U where
   toPathPacking := {
     Index := P.Index
+    indexFintype := P.indexFintype
+    indexDecidableEq := P.indexDecidableEq
     path := fun i =>
       (P.path i).appendWithEq (Q.path (P.indexOfSourceTarget Q i))
         (source_indexOfSourceTarget P Q i).symm (hpath i)
@@ -5599,7 +5683,7 @@ noncomputable def concat {U : Finset V}
 
 /-- Concatenate two perfect packings using a region-separation certificate
 instead of separately supplying path-simplicity and node-disjointness proofs. -/
-noncomputable def concatOfFirstInternallyDisjointSecondStaysIn
+noncomputable abbrev concatOfFirstInternallyDisjointSecondStaysIn
     {U A : Finset V}
     (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
     (hP : P.toPathPacking.InternallyDisjointFromSet A)
@@ -5616,7 +5700,7 @@ noncomputable def concatOfFirstInternallyDisjointSecondStaysIn
 /-- Concatenate two perfect packings when the first is internally disjoint from
 the region containing the second, allowing a first source to lie in that region
 only when the corresponding first path is trivial up to its target. -/
-noncomputable def concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget
+noncomputable abbrev concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget
     {U A : Finset V}
     (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
     (hP : P.toPathPacking.InternallyDisjointFromSet A)
@@ -5636,7 +5720,7 @@ noncomputable def concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget
 /-- Concatenate two perfect packings using the symmetric region-separation
 certificate: the first packing stays in the region, the second is internally
 disjoint from it, and the second target terminals are outside it. -/
-noncomputable def concatOfFirstStaysInSecondInternallyDisjoint
+noncomputable abbrev concatOfFirstStaysInSecondInternallyDisjoint
     {U A : Finset V}
     (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
     (hP : P.toPathPacking.StaysIn A)
@@ -5653,7 +5737,7 @@ noncomputable def concatOfFirstStaysInSecondInternallyDisjoint
 /-- Concatenate two perfect packings when the second is internally disjoint
 from the region containing the first, allowing a second target to lie in that
 region only when that second path is trivial from source to target. -/
-noncomputable def concatOfFirstStaysInSecondInternallyDisjointTargetOnlyAtSource
+noncomputable abbrev concatOfFirstStaysInSecondInternallyDisjointTargetOnlyAtSource
     {U A : Finset V}
     (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
     (hP : P.toPathPacking.StaysIn A)
@@ -5678,6 +5762,28 @@ noncomputable def concatOfFirstStaysInSecondInternallyDisjointTargetOnlyAtSource
     (hSdisj : Disjoint S A) :
     (P.concatOfFirstInternallyDisjointSecondStaysIn Q hP hQ hSdisj).card =
       P.card := by
+  rfl
+
+@[simp] theorem concatOfFirstInternallyDisjointSecondStaysIn_path_source
+    {U A : Finset V}
+    (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
+    (hP : P.toPathPacking.InternallyDisjointFromSet A)
+    (hQ : Q.toPathPacking.StaysIn A) (hSdisj : Disjoint S A)
+    (i : (P.concatOfFirstInternallyDisjointSecondStaysIn
+      Q hP hQ hSdisj).Index) :
+    ((P.concatOfFirstInternallyDisjointSecondStaysIn Q hP hQ hSdisj).path i).source =
+      (P.path i).source := by
+  rfl
+
+@[simp] theorem concatOfFirstInternallyDisjointSecondStaysIn_path_target
+    {U A : Finset V}
+    (P : PerfectPathPacking G S T) (Q : PerfectPathPacking G T U)
+    (hP : P.toPathPacking.InternallyDisjointFromSet A)
+    (hQ : Q.toPathPacking.StaysIn A) (hSdisj : Disjoint S A)
+    (i : (P.concatOfFirstInternallyDisjointSecondStaysIn
+      Q hP hQ hSdisj).Index) :
+    ((P.concatOfFirstInternallyDisjointSecondStaysIn Q hP hQ hSdisj).path i).target =
+      (Q.path (P.indexOfSourceTarget Q i)).target := by
   rfl
 
 @[simp] theorem concatOfFirstInternallyDisjointSecondStaysInSourceOnlyAtTarget_card
@@ -6050,8 +6156,8 @@ theorem concatOfFirstInternallyDisjointSecondStaysIn_internallyDisjointFromSet
   rcases Finset.mem_union.mp hsplit with hvP | hvQ
   · rcases hPC i hvP hvC with hsource | htarget
     · exact Or.inl (by
-        simpa [concatOfFirstInternallyDisjointSecondStaysIn,
-          GraphPath.IsEndpoint] using hsource)
+        change v = (P.path i).source
+        exact hsource)
     · exact False.elim
         (Finset.disjoint_left.mp hTdisj (P.target_mem i)
           (by simpa [htarget] using hvC))
@@ -6061,8 +6167,8 @@ theorem concatOfFirstInternallyDisjointSecondStaysIn_internallyDisjointFromSet
           (Q.source_mem (P.indexOfSourceTarget Q i))
           (by simpa [hsource] using hvC))
     · exact Or.inr (by
-        simpa [concatOfFirstInternallyDisjointSecondStaysIn,
-          GraphPath.IsEndpoint] using htarget)
+        change v = (Q.path (P.indexOfSourceTarget Q i)).target
+        exact htarget)
 
 /-- The symmetric region-separated concatenation is internally disjoint from a
 third set when both input packings are internally disjoint from that set and the
@@ -6084,8 +6190,8 @@ theorem concatOfFirstStaysInSecondInternallyDisjoint_internallyDisjointFromSet
   rcases Finset.mem_union.mp hsplit with hvP | hvQ
   · rcases hPC i hvP hvC with hsource | htarget
     · exact Or.inl (by
-        simpa [concatOfFirstStaysInSecondInternallyDisjoint,
-          GraphPath.IsEndpoint] using hsource)
+        change v = (P.path i).source
+        exact hsource)
     · exact False.elim
         (Finset.disjoint_left.mp hTdisj (P.target_mem i)
           (by simpa [htarget] using hvC))
@@ -6095,8 +6201,8 @@ theorem concatOfFirstStaysInSecondInternallyDisjoint_internallyDisjointFromSet
           (Q.source_mem (P.indexOfSourceTarget Q i))
           (by simpa [hsource] using hvC))
     · exact Or.inr (by
-        simpa [concatOfFirstStaysInSecondInternallyDisjoint,
-          GraphPath.IsEndpoint] using htarget)
+        change v = (Q.path (P.indexOfSourceTarget Q i)).target
+        exact htarget)
 
 end PerfectPathPacking
 
@@ -6134,7 +6240,8 @@ noncomputable def toPerfectOfCardEq (P : PathPacking G S T)
         simpa [hsrc] using GraphPath.source_mem_vertexSet ((P.orient).path j)
       exact Finset.disjoint_left.mp hdisj hi hj
     · rw [Fintype.card_coe]
-      simpa [card] using hcardS
+      change Fintype.card P.Index = S.card
+      exact hcardS
   target_bijective := by
     classical
     apply (Fintype.bijective_iff_injective_and_card _).2
@@ -6151,14 +6258,17 @@ noncomputable def toPerfectOfCardEq (P : PathPacking G S T)
         simpa [htgt] using GraphPath.target_mem_vertexSet ((P.orient).path j)
       exact Finset.disjoint_left.mp hdisj hi hj
     · rw [Fintype.card_coe]
-      simpa [card] using hcardT
+      change Fintype.card P.Index = T.card
+      exact hcardT
 
 /-- Promote a path packing to a perfect packing on the terminal sets actually
 used by its oriented paths. -/
-noncomputable def toPerfectUsedTerminals (P : PathPacking G S T) :
+noncomputable abbrev toPerfectUsedTerminals (P : PathPacking G S T) :
     PerfectPathPacking G P.sourceSet P.targetSet where
   toPathPacking := {
     Index := P.Index
+    indexFintype := P.indexFintype
+    indexDecidableEq := P.indexDecidableEq
     path := fun i => P.orient.path i
     connects := by
       intro i
@@ -6218,7 +6328,9 @@ preserves vertex containment. -/
 theorem toPerfectUsedTerminals_staysIn
     (P : PathPacking G S T) {U : Finset V} (hP : P.StaysIn U) :
     P.toPerfectUsedTerminals.toPathPacking.StaysIn U := by
-  simpa [toPerfectUsedTerminals] using PathPacking.orient_staysIn hP
+  intro i
+  change (P.orient.path i).vertexSet ⊆ U
+  exact PathPacking.orient_staysIn hP i
 
 /-- Promoting a packing to a perfect packing on its used terminal sets
 preserves internal disjointness from a vertex set. -/
@@ -6226,8 +6338,9 @@ theorem toPerfectUsedTerminals_internallyDisjointFromSet
     (P : PathPacking G S T) {U : Finset V}
     (hP : P.InternallyDisjointFromSet U) :
     P.toPerfectUsedTerminals.toPathPacking.InternallyDisjointFromSet U := by
-  simpa [toPerfectUsedTerminals] using
-    PathPacking.orient_internallyDisjointFromSet hP
+  intro i
+  change (P.orient.path i).InternallyDisjointFromSet U
+  exact PathPacking.orient_internallyDisjointFromSet hP i
 
 /-- Promoting a packing to a perfect packing on its used terminal sets
 preserves localized pairwise bridges. -/
@@ -6240,11 +6353,14 @@ theorem toPerfectUsedTerminals_hasPairwiseBridgesIn
   let β' : P.toPerfectUsedTerminals.toPathPacking.BridgeBetween i j := {
     path := β.path
     connects := by
-      simpa [toPerfectUsedTerminals] using β.connects
+      change β.path.Connects (P.orient.path i).vertexSet
+        (P.orient.path j).vertexSet
+      exact β.connects
     internallyDisjoint := by
       intro v hv hrows
       exact β.internallyDisjoint hv (by
-        simpa [toPerfectUsedTerminals, PathPacking.vertexSet] using hrows)
+        rw [PathPacking.mem_vertexSet] at hrows ⊢
+        exact hrows)
   }
   exact ⟨β', by simpa [β'] using hβU⟩
 
@@ -6338,7 +6454,8 @@ theorem mono_graph {G' : _root_.SimpleGraph V}
   · intro A B hA hB hdisj
     rcases h.2 hA hB hdisj with ⟨P, hcard, hstay⟩
     refine ⟨P.mapLe hGG', ?_, ?_⟩
-    · simpa using hcard
+    · change P.card = min A.card B.card
+      exact hcard
     · intro i
       change ((P.path i).mapLe hGG').vertexSet ⊆ C
       simpa using hstay i
@@ -6377,7 +6494,8 @@ theorem mono_graph {G' : _root_.SimpleGraph V}
   · intro A B hA hB hdisj
     rcases h.2 hA hB hdisj with ⟨P, hcard, hstay⟩
     refine ⟨P.mapLe hGG', ?_, ?_⟩
-    · simpa using hcard
+    · change P.card = min A.card B.card
+      exact hcard
     · intro i
       change ((P.path i).mapLe hGG').vertexSet ⊆ C
       simpa using hstay i
@@ -6439,8 +6557,8 @@ theorem exists_perfectPathPacking_of_card_eq (h : NodeLinkedIn G C A B)
     simpa [hcard] using hPcard
   have hPcardB : P.card = B.card := hPcardA.trans hcard
   refine ⟨P.toPerfectOfCardEq hPcardA hPcardB, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hPcardA
+  · change P.orient.card = A.card
+    exact P.orient_card.trans hPcardA
   · exact PathPacking.orient_staysIn hstay
 
 end NodeLinkedIn

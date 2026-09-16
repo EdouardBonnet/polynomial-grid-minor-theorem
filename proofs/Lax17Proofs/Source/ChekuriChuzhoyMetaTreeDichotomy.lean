@@ -249,8 +249,7 @@ theorem exists_bufferedPath_or_manyLeaves_of_tree
           have hcopy_path : (P.walk.copy rfl htarget).IsPath := by
             exact (_root_.SimpleGraph.Walk.isPath_copy P.walk rfl htarget).2 P.isPath
           have hnil : P.walk.copy rfl htarget = _root_.SimpleGraph.Walk.nil :=
-            (_root_.SimpleGraph.Walk.isPath_iff_eq_nil
-              (P.walk.copy rfl htarget)).mp hcopy_path
+            _root_.SimpleGraph.Walk.isPath_iff_eq_nil.mp hcopy_path
           have hxroot : x.1 = root := by
             have hxmem : x.1 ∈ (P.walk.copy rfl htarget).support := by
               simpa using P.mem_support

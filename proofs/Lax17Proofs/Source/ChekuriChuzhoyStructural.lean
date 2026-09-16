@@ -53,9 +53,9 @@ def linkageAuxGraph {V : Type u} [DecidableEq V]
     i ≠ j ∧
       (Nonempty (L.toPathPacking.BridgeBetween i j) ∨
         Nonempty (L.toPathPacking.BridgeBetween j i))
-  symm := by
+  symm := ⟨by
     intro i j h
-    exact ⟨h.1.symm, h.2.symm⟩
+    exact ⟨h.1.symm, h.2.symm⟩⟩
   loopless := by
     constructor
     intro i h

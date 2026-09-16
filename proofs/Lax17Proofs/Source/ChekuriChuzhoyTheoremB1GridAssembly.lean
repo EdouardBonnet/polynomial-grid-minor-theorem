@@ -386,14 +386,14 @@ theorem allocatedBranchSet_adjacent
           (C.connector_target_mem hxy), ?_⟩
     exact (C.connectorPath hxy).penultimate_adj_target
       (C.connector_source_ne_target hxy)
-  · have hyx : (gridGraph g).Adj y x := (gridGraph g).symm hxy
+  · have hyx : (gridGraph g).Adj y x := (gridGraph g).adj_symm hxy
     refine
       ⟨(C.connectorPath hyx).target,
         C.branchSet_subset_allocatedBranchSet x
           (C.connector_target_mem hyx),
         (C.connectorPath hyx).penultimate,
         C.connector_penultimate_mem_allocatedBranchSet hyx hrank, ?_⟩
-    exact G.symm <|
+    exact G.adj_symm <|
       (C.connectorPath hyx).penultimate_adj_target
         (C.connector_source_ne_target hyx)
 

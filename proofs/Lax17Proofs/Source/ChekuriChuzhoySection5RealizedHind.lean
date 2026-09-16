@@ -285,7 +285,7 @@ theorem exists_liftContract_containedIn
           .cons f.1 (Or.inl ⟨rfl, rfl⟩) (.nil _)
         have hEX :
             E.ContainedIn (ContractVertex.preimageFinset X) := by
-          rw [NamedEdgeWalk.containedIn_cons_iff]
+          refine (NamedEdgeWalk.containedIn_cons_iff _ _ _ _).mpr ?_
           constructor
           · simpa [hleft] using haX
           · simpa using hQ.1
@@ -312,7 +312,7 @@ theorem exists_liftContract_containedIn
           .cons f.1 (Or.inr ⟨rfl, rfl⟩) (.nil _)
         have hEX :
             E.ContainedIn (ContractVertex.preimageFinset X) := by
-          rw [NamedEdgeWalk.containedIn_cons_iff]
+          refine (NamedEdgeWalk.containedIn_cons_iff _ _ _ _).mpr ?_
           constructor
           · simpa [hright] using haX
           · simpa using hQ.1

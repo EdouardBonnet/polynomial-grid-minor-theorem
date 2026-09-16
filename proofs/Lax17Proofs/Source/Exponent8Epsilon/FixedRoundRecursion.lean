@@ -73,8 +73,7 @@ private noncomputable def fixedRoundRecursiveSlicingAux
   | zero =>
       have hdeq : depth = rounds := by omega
       subst depth
-      exact FixedRoundRecursiveSlicingResult.final
-        (by simpa using L)
+      exact FixedRoundRecursiveSlicingResult.final L
   | succ remaining ih =>
       have hdlt : depth < rounds := by omega
       let j : Fin rounds := ⟨depth, hdlt⟩

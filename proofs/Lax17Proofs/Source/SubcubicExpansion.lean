@@ -109,11 +109,11 @@ theorem CrossAdj.not_loop (x : Vertex H) : ¬ CrossAdj H x x := by
 and all cross-edges corresponding to original edges of `H`. -/
 noncomputable def graph : _root_.SimpleGraph (Vertex H) where
   Adj x y := PathAdj H x y ∨ CrossAdj H x y
-  symm := by
+  symm := ⟨by
     intro x y h
     rcases h with hpath | hcross
     · exact Or.inl hpath.symm
-    · exact Or.inr hcross.symm
+    · exact Or.inr hcross.symm⟩
   loopless := ⟨by
     intro x h
     rcases h with hpath | hcross
