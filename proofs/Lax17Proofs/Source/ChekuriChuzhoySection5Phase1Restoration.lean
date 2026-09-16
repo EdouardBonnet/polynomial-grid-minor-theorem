@@ -144,7 +144,7 @@ theorem network_source_adj_old_outside (i : Fin m) (a : Fin r) :
       (Vertex.source (V := V) i a)
       (Vertex.old (m := m) (q := r)
         (outsideVertex P hsourceSet i a)) := by
-  simpa only [networkPath_source, old_outsideVertex] using
+  simpa only [networkPath_source, old_outsideVertex, droppedNetworkPath] using
     Vertex.GraphPath.source_adj_dropFirst_source
       (networkPath P hsourceSet i a)
       (networkPath_source_ne_target P hsourceSet i a)
@@ -714,7 +714,9 @@ noncomputable def selectedPacking (i : Fin m) :
 
 @[simp] theorem selectedPacking_card (i : Fin m) :
     (selectedPacking P hsourceSet B i).card = q := by
-  simp [selectedPacking, PathPacking.card, B.sourceSet_card]
+  simp only [selectedPacking, PathPacking.card]
+  exact (Fintype.card_congr (Equiv.refl _)).trans
+    ((Fintype.card_fin _).trans (B.sourceSet_card i))
 
 theorem selectedPacking_sourceSet (i : Fin m) :
     (selectedPacking P hsourceSet B i).sourceSet = B.sourceSet i := by

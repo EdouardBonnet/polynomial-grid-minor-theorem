@@ -278,8 +278,10 @@ theorem observation54ExtendedCut_mem_main
       (L.sigma.sliceRowPath i r).source := by
   classical
   by_cases hr : r ∈ (L.cleanup i).rows
-  · have hcut :=
-      congrArg (fun z => z.1.1) (tau.cut_zero ⟨r, hr⟩)
+  · have hcut :
+        (tau.cut ⟨r, hr⟩ 0).1.1 = (L.sigma.sliceRowPath i r).source := by
+      rw [tau.cut_zero ⟨r, hr⟩]
+      exact L.observation54Rows_source_val i ⟨r, hr⟩
     simpa [observation54ExtendedCut, hr] using hcut
   · simp [observation54ExtendedCut, hr]
 
@@ -299,8 +301,10 @@ theorem observation54ExtendedCut_mem_main
       simpa using congrArg Fin.val h
     omega
   by_cases hr : r ∈ (L.cleanup i).rows
-  · have hcut :=
-      congrArg (fun z => z.1.1) (tau.cut_last ⟨r, hr⟩)
+  · have hcut :
+        (tau.cut ⟨r, hr⟩ (Fin.last f)).1.1 = (L.sigma.sliceRowPath i r).target := by
+      rw [tau.cut_last ⟨r, hr⟩]
+      exact L.observation54Rows_target_val i ⟨r, hr⟩
     simpa [observation54ExtendedCut, hr] using hcut
   · simp [observation54ExtendedCut, hr, hlast_ne_zero]
 
