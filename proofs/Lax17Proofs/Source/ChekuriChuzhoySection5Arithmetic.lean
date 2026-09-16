@@ -141,7 +141,7 @@ theorem exists_strongTreeOfSetsSystem_of_source_budgets
   · exact hXwell
   · simpa [hXcard, n] using hdegreeCap
   · omega
-  · simpa [hXcard, n] using
+  · simpa [hXcard, n, claim59SourceDegreeCap] using
       (Nat.div_le_self x (192 * n m ^ 3 * Nat.log 2 x))
   · exact hmu
   · simpa [hXcard, D, n] using hmuRoute
@@ -471,7 +471,7 @@ theorem exists_strongTreeOfSetsSystem_of_m24_threshold
           (Nat.log 2 x) ^ 5 < x) :
     Nonempty (StrongTreeOfSetsSystem G m W) := by
   have hDelta : 0 < Delta :=
-    maxDegree_pos_of_nodeWellLinked (by simpa [hXcard] using hx)
+    maxDegree_pos_of_nodeWellLinked (by simp only [hXcard]; exact hx)
       hXwell hdegree
   let logx := Nat.log 2 x
   let denominator := 192 * (n m) ^ 3 * logx
