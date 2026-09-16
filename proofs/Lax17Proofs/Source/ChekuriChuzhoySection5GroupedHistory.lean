@@ -166,14 +166,15 @@ noncomputable def initial
   route_shape_split := by
     intro e s hlabel
     intro w hw
-    have hw' : w ∈ ({normal.left e.1, normal.right e.1} : Finset W) := by
+    have hw' : w ∈ ({normal.doubleEdges.left e, normal.doubleEdges.right e} :
+        Finset W) := by
       simpa [MaderEdgeHistory.identity] using hw
     simp only [Finset.mem_insert, Finset.mem_singleton] at hw' ⊢
     exact hw'.elim (fun h => Or.inl h) (fun h => Or.inr (Or.inl h))
   terminal_split_support_two := by
     intro e s hlabel hleft hright
-    have hleft' : normal.left e.1 ∈ terminals := by simpa using hleft
-    have hright' : normal.right e.1 ∈ terminals := by simpa using hright
+    have hleft' : normal.left e.1 ∈ terminals := hleft
+    have hright' : normal.right e.1 ∈ terminals := hright
     simp [initialMaderGroupKey, hleft', hright'] at hlabel
 
 /-- Transport a group label through one split. -/
@@ -299,7 +300,7 @@ noncomputable def split
         change z ∈
           ((R.history.routeAlong p.first
               ((current.joins_comm p.first s p.firstOther).mp p.first_ends)).append
-            (R.history.routeAlong p.second p.second_ends)).vertexSet at hz
+            (R.history.routeAlong p.second p.joins_second)).vertexSet at hz
         rw [NamedEdgeWalk.vertexSet_append] at hz
         simp only [MaderEdgeHistory.routeAlong_vertexSet] at hz
         rcases Finset.mem_union.mp hz with hz | hz

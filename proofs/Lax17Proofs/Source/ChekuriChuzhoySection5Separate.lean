@@ -45,12 +45,12 @@ def separateGraph
     G.Adj u v ∧
       ((u ∈ A ∧ v ∈ A) ∨
         (u ∉ A ∧ v ∉ A ∧ P.block u = P.block v))
-  symm := by
+  symm := ⟨by
     intro u v h
-    refine ⟨G.symm h.1, ?_⟩
+    refine ⟨G.symm.symm u v h.1, ?_⟩
     rcases h.2 with hA | hout
     · exact Or.inl ⟨hA.2, hA.1⟩
-    · exact Or.inr ⟨hout.2.1, hout.1, hout.2.2.symm⟩
+    · exact Or.inr ⟨hout.2.1, hout.1, hout.2.2.symm⟩⟩
   loopless := ⟨by
     intro v h
     exact G.loopless.irrefl v h.1⟩
