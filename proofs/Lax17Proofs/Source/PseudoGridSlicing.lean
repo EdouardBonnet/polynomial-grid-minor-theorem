@@ -4083,7 +4083,7 @@ theorem exists_replacement_pair_of_full_delete_linkage
       have hsub :=
         PerfectPathPacking.disjointUnion_edgeSet_subset_union
           LperfectG Prem hSdisj hTdisj hnode
-      exact hsub (by simpa [Pnew, Punion] using hf)
+      exact hsub hf
     rcases Finset.mem_union.mp hfUnion with hfL | hfPrem
     · have hfL' : f ∈ L.edgeSet := by
         simpa [LperfectG, LperfectDeleted, PathPacking.toPerfectOfCardEq] using hfL
@@ -4104,7 +4104,7 @@ theorem exists_replacement_pair_of_full_delete_linkage
       have hsub :=
         PerfectPathPacking.disjointUnion_edgeSet_subset_union
           LperfectG Prem hSdisj hTdisj hnode
-      exact hsub (by simpa [Pnew, Punion] using hnew)
+      exact hsub hnew
     rcases Finset.mem_union.mp hnewUnion with heL | hePrem
     · have heL' : e ∈ L.edgeSet := by
         simpa [LperfectG, LperfectDeleted, PathPacking.toPerfectOfCardEq] using heL

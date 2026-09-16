@@ -181,7 +181,6 @@ theorem connector_internallyDisjointFromSet
   classical
   by_cases h : i < j
   · simp only [restrictedConnector, h, dite_true]
-    apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
     exact (T.connector i j hij).restrictIndexSet_internallyDisjointFromSet
         (D.indexSet i j hij h)
         (T.connector_internally_disjoint_cluster i j hij r)
@@ -194,7 +193,6 @@ theorem connector_internallyDisjointFromSet
             (T.connector_internally_disjoint_cluster j i
               (T.metaTree.adj_symm hij) r)
     simp only [restrictedConnector, h, dite_false]
-    apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
     exact PerfectPathPacking.reverse_internallyDisjointFromSet _ hrestricted
 
 /-- In the increasing orientation, restriction only removes vertices from the
@@ -204,9 +202,9 @@ theorem connector_vertexSet_subset_of_lt
     (hij : T.metaTree.Adj i j) (hij_lt : i < j) :
     (T.restrictedConnector D.indexSet i j hij).toPathPacking.vertexSet ⊆
       (T.connector i j hij).toPathPacking.vertexSet := by
-  simpa [restrictedConnector, hij_lt] using
-    (T.connector i j hij).restrictIndexSet_vertexSet_subset
-      (D.indexSet i j hij hij_lt)
+  simp only [restrictedConnector, hij_lt, dite_true]
+  exact (T.connector i j hij).restrictIndexSet_vertexSet_subset
+    (D.indexSet i j hij hij_lt)
 
 private theorem reverse_vertexSet_eq
     {S U : Finset V} (P : PerfectPathPacking G S U) :
@@ -230,6 +228,7 @@ theorem connector_vertexSet_subset_of_not_lt
     (T.restrictedConnector D.indexSet i j hij).toPathPacking.vertexSet =
         P.reverse.toPathPacking.vertexSet := by
       simp [P, restrictedConnector, hij_lt]
+      rfl
     _ = P.toPathPacking.vertexSet := reverse_vertexSet_eq P
     _ ⊆ (T.connector j i (T.metaTree.adj_symm hij)).toPathPacking.vertexSet :=
       PerfectPathPacking.restrictIndexSet_vertexSet_subset

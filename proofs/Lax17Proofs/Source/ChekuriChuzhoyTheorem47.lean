@@ -1388,7 +1388,6 @@ theorem Theorem47OneChildTransitionData.composeSubtreeRouting
     packing_internallyDisjoint_leafCluster := by
       intro x hx
       dsimp only [P']
-      apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
       exact hPinternalLeaf x (by simpa [hbelow] using hx)
     packing_trivial_of_root_selected := by
       intro hv
@@ -1810,7 +1809,6 @@ theorem Theorem47TwoChildTransitionData.composeSubtreeRouting
     packing_internallyDisjoint_leafCluster := by
       intro x hx
       dsimp only [P']
-      apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
       exact hPinternalLeaf x hx
     packing_trivial_of_root_selected := by
       intro hv

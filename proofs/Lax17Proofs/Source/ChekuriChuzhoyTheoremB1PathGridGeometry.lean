@@ -182,7 +182,9 @@ theorem connectorPath_vertexSet_subset_row_of_horizontal
     (hcols : FinConsecutive x.2 y.2) :
     (D.connectorPath (Or.inl ⟨hrow, hcols⟩)).vertexSet ⊆
       (D.row x.1).vertexSet := by
-  rw [D.connectorPath_eq_horizontal _ hrow]
+  have hxy : (gridGraph g).Adj x y := Or.inl ⟨hrow, hcols⟩
+  show (D.connectorPath hxy).vertexSet ⊆ (D.row x.1).vertexSet
+  rw [D.connectorPath_eq_horizontal hxy hrow]
   exact (D.rowBlocks x.1).connector_vertexSet_subset _
 
 theorem connectorPath_vertexSet_subset_column_of_vertical
@@ -194,7 +196,9 @@ theorem connectorPath_vertexSet_subset_column_of_vertical
   have hrow : x.1 ≠ y.1 := by
     intro hr
     exact (FinConsecutive.irrefl x.1) (by simpa [hr] using hrows)
-  rw [D.connectorPath_eq_vertical _ hrow]
+  have hxy : (gridGraph g).Adj x y := Or.inr ⟨hcol, hrows⟩
+  show (D.connectorPath hxy).vertexSet ⊆ (D.column x.2).vertexSet
+  rw [D.connectorPath_eq_vertical hxy hrow]
   exact (D.columnBlocks x.2).connector_vertexSet_subset _
 
 theorem connectorPath_internal_disjoint_branch

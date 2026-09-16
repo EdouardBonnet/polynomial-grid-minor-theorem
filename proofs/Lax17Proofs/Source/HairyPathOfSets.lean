@@ -203,8 +203,9 @@ noncomputable def restrictWidth (H : HairyPathOfSetsSystem G ell w)
     have hvConnRestrict :
         v ∈ (((H.base.connector j hj).restrictIndexSet
           (H.base.connectorIndexSet hle j hj)).toPathPacking.vertexSet) := by
-      simpa [StrongPathOfSetsSystem.restrictWidth, PathOfSetsSystem.restrictWidth]
-        using hvConn
+      simp only [StrongPathOfSetsSystem.restrictWidth,
+        PathOfSetsSystem.restrictWidth] at hvConn
+      exact hvConn
     have hvConnOld :
         v ∈ (H.base.connector j hj).toPathPacking.vertexSet :=
       (H.base.connector j hj).restrictIndexSet_vertexSet_subset

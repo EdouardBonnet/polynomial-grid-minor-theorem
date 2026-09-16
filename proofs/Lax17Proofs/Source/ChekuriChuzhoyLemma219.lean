@@ -316,8 +316,8 @@ theorem Lemma219MinimalSupport.exists_rerouting_large_supported
             have :
                 s(e.out.1, e.out.2) ∈
                   (rerouted.path j.1).edgeSet := by
-              simpa [retained, EndpointCleanPathPacking.restrictSources,
-                hfEq, heout] using hfEdge
+              rw [heout, ← hfEq]
+              exact hfEdge
             exact
               (GraphPath.endpoints_mem_vertexSet_of_edgeSet
                 (rerouted.path j.1) this).1
@@ -548,7 +548,8 @@ theorem exists_lemma219_rerouting
       simp [R']
     _ = (M.largePacking.path r).vertexSet := hr
     _ = (large.path r).vertexSet := by
-      simp [Lemma219MinimalSupport.largePacking]
+      simp only [Lemma219MinimalSupport.largePacking]
+      exact EndpointCleanPathPacking.transfer_path_vertexSet large M.H _ r
 
 end ChekuriChuzhoy
 end SimpleGraph
