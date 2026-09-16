@@ -261,7 +261,8 @@ noncomputable def baseConnector (D : AppendixA4SplitData (w := w) P)
           simp [oldIndex, middleIndex,
             oddClusterIndex_next_eq_middle_succ
               (le_rfl : 2 * ell ≤ 2 * ell) hi]
-        convert D.left_subset_old_left ⟨i.1 + 1, hi⟩ using 1)
+        convert D.left_subset_old_left ⟨i.1 + 1, hi⟩ using 1
+        exact congrArg P.left hnext.symm)
       ((D.right_card i).trans (D.left_card ⟨i.1 + 1, hi⟩).symm))
 
 theorem baseConnector_spec (D : AppendixA4SplitData (w := w) P)
@@ -284,7 +285,7 @@ theorem baseConnector_spec (D : AppendixA4SplitData (w := w) P)
             (P.cluster (oldIndex ⟨i.1 + 1, hi⟩)) := by
   classical
   unfold baseConnector
-  simpa [oldIndex, middleIndex] using
+  exact
     Classical.choose_spec
       (P.exists_twoGap_concatPacking_between_subsets
         (oldIndex i)
@@ -306,7 +307,8 @@ theorem baseConnector_spec (D : AppendixA4SplitData (w := w) P)
             simp [oldIndex, middleIndex,
               oddClusterIndex_next_eq_middle_succ
                 (le_rfl : 2 * ell ≤ 2 * ell) hi]
-          convert D.left_subset_old_left ⟨i.1 + 1, hi⟩ using 1)
+          convert D.left_subset_old_left ⟨i.1 + 1, hi⟩ using 1
+          exact congrArg P.left hnext.symm)
         ((D.right_card i).trans (D.left_card ⟨i.1 + 1, hi⟩).symm))
 
 @[simp] theorem baseConnector_card (D : AppendixA4SplitData (w := w) P)
@@ -992,14 +994,26 @@ def mapLe {V : Type u} [DecidableEq V]
     intro i
     change ((D.hairConnector.path i).mapLe hHG).InternallyDisjointFromSet
       D.baseCluster
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      D.hairConnector_internally_disjoint_base i
+    have hsrc :
+        ((D.hairConnector.path i).mapLe hHG).source =
+          (D.hairConnector.path i).source := rfl
+    have htgt :
+        ((D.hairConnector.path i).mapLe hHG).target =
+          (D.hairConnector.path i).target := rfl
+    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint, hsrc,
+      htgt] using D.hairConnector_internally_disjoint_base i
   hairConnector_internally_disjoint_hair := by
     intro i
     change ((D.hairConnector.path i).mapLe hHG).InternallyDisjointFromSet
       D.hairCluster
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      D.hairConnector_internally_disjoint_hair i
+    have hsrc :
+        ((D.hairConnector.path i).mapLe hHG).source =
+          (D.hairConnector.path i).source := rfl
+    have htgt :
+        ((D.hairConnector.path i).mapLe hHG).target =
+          (D.hairConnector.path i).target := rfl
+    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint, hsrc,
+      htgt] using D.hairConnector_internally_disjoint_hair i
 
 end AppendixA3ClusterSplitData
 

@@ -141,7 +141,10 @@ theorem exponentSevenNormalizedLocalThreshold_gt_one
       _ ≤ (2 ^ 38) * n ^ 6 * g *
           (Nat.log 2 n + 1) ^ 3 := by
         gcongr <;> omega
-  simpa [exponentSevenNormalizedLocalThreshold] using this
+  have hlt :
+      1 < (2 ^ 38) * n ^ 6 * g *
+          (Nat.log 2 n + 1) ^ 3 := this
+  simpa [exponentSevenNormalizedLocalThreshold] using hlt
 
 /-- The normalized local threshold also dominates the rounded crossbar
 width. -/

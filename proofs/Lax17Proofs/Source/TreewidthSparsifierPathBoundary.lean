@@ -469,8 +469,8 @@ theorem boundary_card_le_degree_mul_branch_add_two
           (simpleEdgeIndexedGraph H).incidentEdges).card :=
       Finset.card_le_card (boundary_subset_external_incident P)
     _ ≤ ∑ v ∈ externalVertices P,
-          (simpleEdgeIndexedGraph H).degree v := by
-      simpa using Finset.card_biUnion_le
+          (simpleEdgeIndexedGraph H).degree v :=
+      Finset.card_biUnion_le
         (s := externalVertices P)
         (t := (simpleEdgeIndexedGraph H).incidentEdges)
     _ ≤ ∑ _v ∈ externalVertices P, d := by
@@ -499,11 +499,10 @@ theorem incidentEdgeIndices_card_le
   classical
   calc
     (incidentEdgeIndices H U).card ≤
-        ∑ v ∈ U, (simpleEdgeIndexedGraph H).degree v := by
-      simpa [incidentEdgeIndices] using
-        Finset.card_biUnion_le
-          (s := U)
-          (t := (simpleEdgeIndexedGraph H).incidentEdges)
+        ∑ v ∈ U, (simpleEdgeIndexedGraph H).degree v :=
+      Finset.card_biUnion_le
+        (s := U)
+        (t := (simpleEdgeIndexedGraph H).incidentEdges)
     _ ≤ ∑ _v ∈ U, d := by
       exact Finset.sum_le_sum fun v _ =>
         simpleEdgeIndexedGraph.degree_le_of_maxDegreeAtMost H hdegree v
