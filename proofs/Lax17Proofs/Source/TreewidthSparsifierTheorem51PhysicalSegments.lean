@@ -467,7 +467,8 @@ theorem exactRailSegmentPathAt_nodeDisjoint
       Finset.disjoint_left]
     intro v hvi hvj
     exact List.disjoint_left.mp hlist
-      (by simpa using hvi) (by simpa using hvj)
+      (by simpa [exactRailSegmentList] using hvi)
+      (by simpa [exactRailSegmentList] using hvj)
   · exact
       (E.exactRailPath_nodeDisjoint hbudget hrecords hrail).mono
         (E.exactRailSegmentPathAt_vertexSet_subset_rail
