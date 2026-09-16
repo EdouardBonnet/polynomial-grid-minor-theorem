@@ -144,18 +144,18 @@ theorem image_legalContracted_boundary_eq_clusterBoundary
       ⟨_, hends | hends⟩
     · left
       constructor
-      · rw [legalContracted_left]
-        exact (mem_selectedUnion_iff B _).1 hends.1
-      · rw [legalContracted_right]
-        intro hright
-        exact hends.2 ((mem_selectedUnion_iff B _).2 hright)
+      · exact (mem_selectedUnion_iff B
+          (chosenLeft (legalContractedOrigin G P i))).1 hends.1
+      · intro hright
+        exact hends.2 ((mem_selectedUnion_iff B
+          (chosenRight (legalContractedOrigin G P i))).2 hright)
     · right
       constructor
-      · rw [legalContracted_right]
-        exact (mem_selectedUnion_iff B _).1 hends.1
-      · rw [legalContracted_left]
-        intro hleft
-        exact hends.2 ((mem_selectedUnion_iff B _).2 hleft)
+      · exact (mem_selectedUnion_iff B
+          (chosenRight (legalContractedOrigin G P i))).1 hends.1
+      · intro hleft
+        exact hends.2 ((mem_selectedUnion_iff B
+          (chosenLeft (legalContractedOrigin G P i))).2 hleft)
 
 /-- Cardinality form of
 `image_legalContracted_boundary_eq_clusterBoundary`. -/
@@ -345,11 +345,15 @@ theorem image_legalContracted_internalEdges_eq_oldInternalCrossBlockEdges
     rcases (mk_mem_edgeBoundary_iff G _ _ _ _).1 hinternal' with
       ⟨_, hends | hends⟩
     · constructor
-      · simpa using (mem_selectedUnion_iff B _).1 hends.1
-      · simpa using (mem_selectedUnion_iff B _).1 hends.2
+      · exact (mem_selectedUnion_iff B
+          (chosenLeft (legalContractedOrigin G P i))).1 hends.1
+      · exact (mem_selectedUnion_iff B
+          (chosenRight (legalContractedOrigin G P i))).1 hends.2
     · constructor
-      · simpa using (mem_selectedUnion_iff B _).1 hends.2
-      · simpa using (mem_selectedUnion_iff B _).1 hends.1
+      · exact (mem_selectedUnion_iff B
+          (chosenLeft (legalContractedOrigin G P i))).1 hends.2
+      · exact (mem_selectedUnion_iff B
+          (chosenRight (legalContractedOrigin G P i))).1 hends.1
 
 theorem card_legalContracted_internalEdges_eq_oldInternalCrossBlockEdges
     (G : _root_.SimpleGraph V) (P : VertexClustering V)

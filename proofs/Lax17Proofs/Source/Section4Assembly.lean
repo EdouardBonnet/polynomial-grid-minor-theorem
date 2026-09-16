@@ -73,8 +73,7 @@ def section4Parameters
       theorem415_large := ?_ }
   · have hg4 : 3 * g ^ 2 ≤ 64 * g ^ 4 := by nlinarith [sq_nonneg (g ^ 2)]
     exact hg4.trans hNlower
-  · dsimp
-    rw [show 64 * g ^ 4 / 4 = 16 * g ^ 4 by omega]
+  · rw [show 64 * g ^ 4 / 4 = 16 * g ^ 4 by omega]
     have hg4pos : 0 < g ^ 4 := by positivity
     calc
       4 * N * g ^ 2
@@ -83,8 +82,7 @@ def section4Parameters
               (Nat.mul_le_mul_left 4 hNupper)
       _ ≤ (16 * g ^ 4) ^ 2 := by
         nlinarith [sq_nonneg (g ^ 4)]
-  · dsimp
-    rw [show 64 * g ^ 4 / 4 = 16 * g ^ 4 by omega]
+  · rw [show 64 * g ^ 4 / 4 = 16 * g ^ 4 by omega]
     have hM : 8 * g ^ 4 ≤ 8 * g ^ 4 * Nat.log 2 g := by
       calc
         8 * g ^ 4 = 8 * g ^ 4 * 1 := by simp
