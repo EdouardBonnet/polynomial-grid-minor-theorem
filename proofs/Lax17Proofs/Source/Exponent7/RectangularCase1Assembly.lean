@@ -414,7 +414,7 @@ theorem rectangularSection45Input
         (T.parent k)
         (L.happyCleanup (T.parent k)).toOrdinary
         hw houtside)
-    · simpa [connector, a, b] using hxp
+    · exact hxp
     · exact T.cluster_subset_support k hxC
   · intro i j hi hj hij
     intro p q
