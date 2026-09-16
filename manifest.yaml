@@ -115,3 +115,6 @@ bibEntries:
       year = {2015},
       doi = {10.1145/2629366}
     }
+issue:
+  repositoryId: 1320232165
+  number: 17
