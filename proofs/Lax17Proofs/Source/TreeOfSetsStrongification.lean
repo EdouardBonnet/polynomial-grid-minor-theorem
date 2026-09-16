@@ -39,7 +39,7 @@ structure EdgeStrongificationChoice
   sourceCarrier : Finset V
   targetCarrier : Finset V
   sourceCarrier_subset : sourceCarrier ⊆ T.interface i j hij
-  targetCarrier_subset : targetCarrier ⊆ T.interface j i (T.metaTree.symm hij)
+  targetCarrier_subset : targetCarrier ⊆ T.interface j i (T.metaTree.adj_symm hij)
   sourceCarrier_card : sourceCarrier.card = b
   targetCarrier_card : targetCarrier.card = c
   sourceCarrier_nodeWellLinked :
@@ -84,12 +84,12 @@ theorem exists_edgeStrongificationChoice
     simpa [I₁, P, hScard] using P.sourceIndexSetOfSubset_card hSinterface
   let U : Finset V := P.targetSet I₁
   have hUcard : U.card = b := by simp [U, hI₁card]
-  have hUinterface : U ⊆ T.interface j i (T.metaTree.symm hij) := by
+  have hUinterface : U ⊆ T.interface j i (T.metaTree.adj_symm hij) := by
     exact P.targetSet_subset_right I₁
   have hUwell :
       Section46.ScaledEdgeWellLinkedIn G (T.cluster j) U alphaNum alphaDen :=
     Section46.ScaledEdgeWellLinkedIn.mono_terminals
-      (T.interface_scaledEdgeWellLinked j i (T.metaTree.symm hij)) hUinterface
+      (T.interface_scaledEdgeWellLinked j i (T.metaTree.adj_symm hij)) hUinterface
   rcases ChekuriChuzhoy.theorem214_nodeWellLinkedSubset_floor
       (G := G) (C := T.cluster j) (T := U)
       (alphaNum := alphaNum) (alphaDen := alphaDen) (Δ := Delta) (κ := b)
@@ -168,7 +168,7 @@ noncomputable def endpointCarrier
   by_cases h : i < j
   · exact (D i j hij h).sourceCarrier
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
-    exact (D j i (T.metaTree.symm hij) hji).targetCarrier
+    exact (D j i (T.metaTree.adj_symm hij) hji).targetCarrier
 
 /-- Every endpoint carrier lies in the original interface. -/
 theorem endpointCarrier_subset_interface
@@ -180,7 +180,7 @@ theorem endpointCarrier_subset_interface
   · simpa [endpointCarrier, h] using (D i j hij h).sourceCarrier_subset
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [endpointCarrier, h, hji] using
-      (D j i (T.metaTree.symm hij) hji).targetCarrier_subset
+      (D j i (T.metaTree.adj_symm hij) hji).targetCarrier_subset
 
 /-- Every endpoint carrier is node-well-linked in its cluster. -/
 theorem endpointCarrier_nodeWellLinked
@@ -193,7 +193,7 @@ theorem endpointCarrier_nodeWellLinked
       (D i j hij h).sourceCarrier_nodeWellLinked
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [endpointCarrier, h, hji] using
-      (D j i (T.metaTree.symm hij) hji).targetCarrier_nodeWellLinked
+      (D j i (T.metaTree.adj_symm hij) hji).targetCarrier_nodeWellLinked
 
 /-- Every endpoint carrier has at least the smaller second-stage size `c`. -/
 theorem c_le_endpointCarrier_card
@@ -205,7 +205,7 @@ theorem c_le_endpointCarrier_card
   · simpa [endpointCarrier, h, (D i j hij h).sourceCarrier_card] using hcb
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simp [endpointCarrier, h,
-      (D j i (T.metaTree.symm hij) hji).targetCarrier_card]
+      (D j i (T.metaTree.adj_symm hij) hji).targetCarrier_card]
 
 /-- The final coherent restricted interface lies in its node-well-linked
 carrier. -/
@@ -220,7 +220,7 @@ theorem restrictedInterface_subset_endpointCarrier
       using (D i j hij h).finalSource_subset_carrier
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [TreeOfSetsSystem.restrictedInterface, endpointCarrier, indexSets, h, hji]
-      using (D j i (T.metaTree.symm hij) hji).finalTarget_subset_carrier
+      using (D j i (T.metaTree.adj_symm hij) hji).finalTarget_subset_carrier
 
 /-- Every final coherent restricted interface has the requested width. -/
 theorem restrictedInterface_card
@@ -233,7 +233,7 @@ theorem restrictedInterface_card
       (D i j hij h).indexSet_card
   · have hji : j < i := lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [TreeOfSetsSystem.restrictedInterface, indexSets, h, hji] using
-      (D j i (T.metaTree.symm hij) hji).indexSet_card
+      (D j i (T.metaTree.adj_symm hij) hji).indexSet_card
 
 /-- The carrier union for two incident meta-edges inherits the cluster's
 scaled bandwidth. -/

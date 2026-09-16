@@ -280,10 +280,11 @@ theorem edgeBoundary_eq_sigma_lazyRound_edgeBoundary
     F.edgeBoundary S =
       (Finset.univ : Finset (Fin n)).sigma
         (fun i => (F.lazyRound i).edgeBoundary S) := by
+  unfold lazyRound
   ext e
   simp [RoundFamily.edgeBoundary, RoundFamily.edgeCrosses,
     RoundFamily.edgeSource, RoundFamily.edgeTarget,
-    LazyRound.edgeBoundary, LazyRound.edgeCrosses, lazyRound]
+    LazyRound.edgeBoundary, LazyRound.edgeCrosses]
 
 /-- Cardinal version of `edgeBoundary_eq_sigma_lazyRound_edgeBoundary`. -/
 theorem edgeBoundary_card_eq_sum_lazyRound_edgeBoundary

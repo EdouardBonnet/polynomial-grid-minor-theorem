@@ -244,10 +244,11 @@ theorem cleanBetweenTerminalSets_endpointClean
       target_mem := ?_
       left_eq_source := ?_
       right_eq_target := ?_ }
-  · simpa [GraphPath.cleanBetweenTerminalSets, O, hT, R, hS] using
-      R.cleanSuffixFromSet_source_mem S hS
-  · simpa [GraphPath.cleanBetweenTerminalSets, O, hT, R, hS] using
-      O.cleanPrefixToSet_target_mem T hT
+  · change (R.cleanSuffixFromSet S hS).source ∈ S
+    exact R.cleanSuffixFromSet_source_mem S hS
+  · change (R.cleanSuffixFromSet S hS).target ∈ T
+    rw [R.cleanSuffixFromSet_target]
+    exact O.cleanPrefixToSet_target_mem T hT
   · intro v hv hvS
     have hvSuffix :
         v ∈ (R.cleanSuffixFromSet S hS).vertexSet := by
@@ -256,7 +257,9 @@ theorem cleanBetweenTerminalSets_endpointClean
         v = R.lastHitVertex S hS :=
       R.eq_lastHitVertex_of_mem_dropUntil_of_mem_set S hS
         (by simpa [GraphPath.cleanSuffixFromSet] using hvSuffix) hvS
-    simpa [GraphPath.cleanBetweenTerminalSets, O, hT, R, hS] using hvlast
+    change v = (R.cleanSuffixFromSet S hS).source
+    rw [R.cleanSuffixFromSet_source]
+    exact hvlast
   · intro v hv hvT
     have hvSuffix :
         v ∈ (R.cleanSuffixFromSet S hS).vertexSet := by
@@ -267,7 +270,10 @@ theorem cleanBetweenTerminalSets_endpointClean
         v = O.firstHitVertex T hT :=
       O.eq_firstHitVertex_of_mem_takeUntil_of_mem_set T hT
         (by simpa [R, GraphPath.cleanPrefixToSet] using hvR) hvT
-    simpa [GraphPath.cleanBetweenTerminalSets, O, hT, R, hS] using hvfirst
+    change v = (R.cleanSuffixFromSet S hS).target
+    rw [R.cleanSuffixFromSet_target]
+    change v = O.firstHitVertex T hT
+    exact hvfirst
 
 /-- The prefix and suffix of a simple path at the same cut vertex meet only at
 that cut vertex. -/
@@ -406,7 +412,8 @@ def empty (G : _root_.SimpleGraph V) (S T : Finset V) :
 
 @[simp] theorem empty_card :
     (empty G S T).card = 0 := by
-  simp [empty, card]
+  change Fintype.card Empty = 0
+  exact Fintype.card_eq_zero
 
 /-- Adjoin one endpoint-clean path that is vertex-disjoint from the old
 system. -/
@@ -848,14 +855,16 @@ theorem replacePath_vertexSet_subset {T' : Finset V}
   intro v hv
   rcases ((P.replacePath i₀ Q hQ hold hsub).mem_vertexSet).1 hv with
     ⟨i, hvi⟩
+  change P.Index at i
   by_cases hi : i = i₀
   · have hviQ : v ∈ Q.vertexSet := by
-      change v ∈ (if i = i₀ then Q else P.path i).vertexSet at hvi
+      dsimp only [replacePath] at hvi
       simpa [hi] using hvi
     exact (P.mem_vertexSet).2 ⟨i₀, hsub hviQ⟩
   · have hviOld : v ∈ (P.path i).vertexSet := by
-      change v ∈ (if i = i₀ then Q else P.path i).vertexSet at hvi
-      simpa [hi] using hvi
+      dsimp only [replacePath] at hvi
+      rw [if_neg hi] at hvi
+      exact hvi
     exact (P.mem_vertexSet).2 ⟨i, hviOld⟩
 
 theorem replacePath_vertexSet_ssubset {T' : Finset V}
@@ -883,14 +892,16 @@ theorem replacePath_vertexSet_ssubset {T' : Finset V}
       exact hyP
     rcases ((P.replacePath i₀ Q hQ hold hsub).mem_vertexSet).1 hyNew with
       ⟨j, hyj⟩
+    change P.Index at j
     by_cases hj : j = i₀
     · have hyQ' : y ∈ Q.vertexSet := by
-        change y ∈ (if j = i₀ then Q else P.path j).vertexSet at hyj
+        dsimp only [replacePath] at hyj
         simpa [hj] using hyj
       exact hyQ hyQ'
     · have hyOldj : y ∈ (P.path j).vertexSet := by
-        change y ∈ (if j = i₀ then Q else P.path j).vertexSet at hyj
-        simpa [hj] using hyj
+        dsimp only [replacePath] at hyj
+        rw [if_neg hj] at hyj
+        exact hyj
       exact Finset.disjoint_left.mp
         (P.node_disjoint (by
           intro h
@@ -905,23 +916,43 @@ noncomputable def sourceSet (P : EndpointCleanPathPacking G S T) : Finset V :=
 noncomputable def targetSet (P : EndpointCleanPathPacking G S T) : Finset V :=
   Finset.univ.image fun i : P.Index => (P.path i).target
 
+theorem mem_sourceSet (P : EndpointCleanPathPacking G S T) {v : V} :
+    v ∈ P.sourceSet ↔ ∃ i : P.Index, v = (P.path i).source := by
+  classical
+  constructor
+  · intro hv
+    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+    exact ⟨i, hiv.symm⟩
+  · rintro ⟨i, rfl⟩
+    exact Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩
+
+theorem mem_targetSet (P : EndpointCleanPathPacking G S T) {v : V} :
+    v ∈ P.targetSet ↔ ∃ i : P.Index, v = (P.path i).target := by
+  classical
+  constructor
+  · intro hv
+    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+    exact ⟨i, hiv.symm⟩
+  · rintro ⟨i, rfl⟩
+    exact Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩
+
 @[simp] theorem withSameIndex_sourceSet_eq {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (f : P.Index → GraphPath G)
     (hclean : ∀ i, (f i).EndpointClean S T')
     (hnode : Pairwise fun i j => GraphPath.NodeDisjoint (f i) (f j))
     (hsource : ∀ i, (f i).source = (P.path i).source) :
     (P.withSameIndex f hclean hnode).sourceSet = P.sourceSet := by
-  classical
   ext v
+  rw [(P.withSameIndex f hclean hnode).mem_sourceSet, P.mem_sourceSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
-    exact Finset.mem_image.2
-      ⟨i, by simp, by simpa [sourceSet, withSameIndex, hsource i] using hiv⟩
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
-    exact Finset.mem_image.2
-      ⟨i, by simp, by simpa [sourceSet, withSameIndex, hsource i] using hiv⟩
+  · rintro ⟨i, hiv⟩
+    exact ⟨i, by
+      change v = (f i).source at hiv
+      exact hiv.trans (hsource i)⟩
+  · rintro ⟨i, hiv⟩
+    exact ⟨i, by
+      change v = (f i).source
+      exact hiv.trans (hsource i).symm⟩
 
 theorem mem_targetSet_withSameIndex_iff {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (f : P.Index → GraphPath G)
@@ -930,13 +961,8 @@ theorem mem_targetSet_withSameIndex_iff {T' : Finset V}
     {v : V} :
     v ∈ (P.withSameIndex f hclean hnode).targetSet ↔
       ∃ i : P.Index, v = (f i).target := by
-  classical
-  constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
-    exact ⟨i, hiv.symm⟩
-  · rintro ⟨i, rfl⟩
-    exact Finset.mem_image.2 ⟨i, by simp, rfl⟩
+  rw [(P.withSameIndex f hclean hnode).mem_targetSet]
+  rfl
 
 @[simp] theorem withSameIndex_targetSet_eq {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (f : P.Index → GraphPath G)
@@ -944,17 +970,17 @@ theorem mem_targetSet_withSameIndex_iff {T' : Finset V}
     (hnode : Pairwise fun i j => GraphPath.NodeDisjoint (f i) (f j))
     (htarget : ∀ i, (f i).target = (P.path i).target) :
     (P.withSameIndex f hclean hnode).targetSet = P.targetSet := by
-  classical
   ext v
+  rw [(P.withSameIndex f hclean hnode).mem_targetSet, P.mem_targetSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
-    exact Finset.mem_image.2
-      ⟨i, by simp, by simpa [targetSet, withSameIndex, htarget i] using hiv⟩
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
-    exact Finset.mem_image.2
-      ⟨i, by simp, by simpa [targetSet, withSameIndex, htarget i] using hiv⟩
+  · rintro ⟨i, hiv⟩
+    exact ⟨i, by
+      change v = (f i).target at hiv
+      exact hiv.trans (htarget i)⟩
+  · rintro ⟨i, hiv⟩
+    exact ⟨i, by
+      change v = (f i).target
+      exact hiv.trans (htarget i).symm⟩
 
 theorem target_mem_targetSet_withSameIndex {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (f : P.Index → GraphPath G)
@@ -962,8 +988,8 @@ theorem target_mem_targetSet_withSameIndex {T' : Finset V}
     (hnode : Pairwise fun i j => GraphPath.NodeDisjoint (f i) (f j))
     (i : P.Index) :
     (f i).target ∈ (P.withSameIndex f hclean hnode).targetSet := by
-  classical
-  exact Finset.mem_image.2 ⟨i, by simp, rfl⟩
+  rw [(P.withSameIndex f hclean hnode).mem_targetSet]
+  exact ⟨i, rfl⟩
 
 theorem spliceTwo_sourceSet_eq {U : Finset V}
     (P : EndpointCleanPathPacking G S U)
@@ -1054,23 +1080,28 @@ theorem mem_targetSet_spliceTwo_iff {U : Finset V}
       v = tail₀.target ∨ v = tail₁.target ∨
         ∃ j : P.Index, j ≠ i₀ ∧ j ≠ i₁ ∧ v = (P.path j).target := by
   classical
-  unfold spliceTwo
-  rw [mem_targetSet_withSameIndex_iff]
+  rw [(P.spliceTwo i₀ i₁ hidx tail₀ tail₁ hTU htail₀U htail₁U
+    htail₀T htail₁T htail₀Left htail₁Left htail₀Right htail₁Right
+    hjoin₀Target hjoin₁Target hjoin₀ hjoin₁ hotherTargetT
+    hotherTargetNotTail₀ hotherTargetNotTail₁ hi₁TargetNotTail₀
+    hi₀TargetNotTail₁ htails).mem_targetSet]
   constructor
   · rintro ⟨j, hj⟩
+    change P.Index at j
+    dsimp only [spliceTwo, withSameIndex] at hj
     by_cases hj₀ : j = i₀
     · subst j
-      exact Or.inl (by simpa [withSameIndex] using hj)
+      exact Or.inl (by simpa using hj)
     · by_cases hj₁ : j = i₁
       · subst j
-        exact Or.inr (Or.inl (by simpa [withSameIndex, hidx.symm] using hj))
+        exact Or.inr (Or.inl (by simpa [hidx.symm] using hj))
       · exact Or.inr (Or.inr ⟨j, hj₀, hj₁, by
-          simpa [withSameIndex, hj₀, hj₁] using hj⟩)
+          simpa [hj₀, hj₁] using hj⟩)
   · intro hv
     rcases hv with rfl | rfl | ⟨j, hj₀, hj₁, rfl⟩
-    · exact ⟨i₀, by simp⟩
-    · exact ⟨i₁, by simp [hidx.symm]⟩
-    · exact ⟨j, by simp [hj₀, hj₁]⟩
+    · exact ⟨i₀, by simp [spliceTwo, withSameIndex]⟩
+    · exact ⟨i₁, by simp [spliceTwo, withSameIndex, hidx.symm]⟩
+    · exact ⟨j, by simp [spliceTwo, withSameIndex, hj₀, hj₁]⟩
 
 @[simp] theorem replacePath_sourceSet_eq_of_source_eq {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (i₀ : P.Index)
@@ -1079,31 +1110,31 @@ theorem mem_targetSet_spliceTwo_iff {U : Finset V}
     (hsub : Q.vertexSet ⊆ (P.path i₀).vertexSet)
     (hsource : Q.source = (P.path i₀).source) :
     (P.replacePath i₀ Q hQ hold hsub).sourceSet = P.sourceSet := by
-  classical
   ext v
+  rw [(P.replacePath i₀ Q hQ hold hsub).mem_sourceSet, P.mem_sourceSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+  · rintro ⟨i, hiv⟩
+    change P.Index at i
+    dsimp only [replacePath] at hiv
     by_cases hi : i = i₀
     · subst i
-      have holdv : (P.path i₀).source = v := hsource.symm.trans (by
-        simpa [replacePath] using hiv)
-      exact Finset.mem_image.2
-        ⟨i₀, by simp, holdv⟩
-    · have hivOld : (P.path i).source = v := by
-        change (if i = i₀ then Q else P.path i).source = v at hiv
-        simpa [hi] using hiv
-      exact Finset.mem_image.2 ⟨i, by simp, hivOld⟩
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+      exact ⟨i₀, by
+        rw [if_pos rfl] at hiv
+        exact hiv.trans hsource⟩
+    · exact ⟨i, by
+        rw [if_neg hi] at hiv
+        exact hiv⟩
+  · rintro ⟨i, hiv⟩
     by_cases hi : i = i₀
     · subst i
-      have hqv : Q.source = v := hsource.trans hiv
-      exact Finset.mem_image.2
-        ⟨i₀, by simp, by simpa [replacePath] using hqv⟩
-    · have hivNew : (if i = i₀ then Q else P.path i).source = v := by
-        simpa [hi] using hiv
-      exact Finset.mem_image.2 ⟨i, by simp, hivNew⟩
+      exact ⟨i₀, by
+        dsimp only [replacePath]
+        rw [if_pos rfl]
+        exact hiv.trans hsource.symm⟩
+    · exact ⟨i, by
+        dsimp only [replacePath]
+        rw [if_neg hi]
+        exact hiv⟩
 
 theorem mem_targetSet_replacePath_iff {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (i₀ : P.Index)
@@ -1112,23 +1143,23 @@ theorem mem_targetSet_replacePath_iff {T' : Finset V}
     (hsub : Q.vertexSet ⊆ (P.path i₀).vertexSet) {v : V} :
     v ∈ (P.replacePath i₀ Q hQ hold hsub).targetSet ↔
       v = Q.target ∨ ∃ i : P.Index, i ≠ i₀ ∧ v = (P.path i).target := by
-  classical
+  rw [(P.replacePath i₀ Q hQ hold hsub).mem_targetSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+  · rintro ⟨i, hiv⟩
+    change P.Index at i
+    dsimp only [replacePath] at hiv
     by_cases hi : i = i₀
     · subst i
-      exact Or.inl (by simpa [replacePath] using hiv.symm)
-    · have hivOld : (P.path i).target = v := by
-        change (if i = i₀ then Q else P.path i).target = v at hiv
-        simpa [hi] using hiv
-      exact Or.inr ⟨i, hi, hivOld.symm⟩
+      exact Or.inl (by
+        rw [if_pos rfl] at hiv
+        exact hiv)
+    · exact Or.inr ⟨i, hi, by
+        rw [if_neg hi] at hiv
+        exact hiv⟩
   · intro hv
     rcases hv with rfl | ⟨i, hi, rfl⟩
-    · exact Finset.mem_image.2
-        ⟨i₀, by simp, by simp [replacePath]⟩
-    · exact Finset.mem_image.2
-        ⟨i, by simp, by simp [replacePath, hi]⟩
+    · exact ⟨i₀, by simp [replacePath]⟩
+    · exact ⟨i, by simp [replacePath, hi]⟩
 
 theorem target_mem_right_of_mem_replacePath_targetSet_ne {T' : Finset V}
     (P : EndpointCleanPathPacking G S T) (i₀ : P.Index)
@@ -1175,43 +1206,41 @@ def Exceeds (P Q : EndpointCleanPathPacking G S T) : Prop :=
     (R : GraphPath G) (hR : R.EndpointClean S T)
     (hdisj : Disjoint R.vertexSet P.vertexSet) :
     (P.cons R hR hdisj).sourceSet = insert R.source P.sourceSet := by
-  classical
   ext v
+  rw [(P.cons R hR hdisj).mem_sourceSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+  · rintro ⟨i, hiv⟩
     cases i with
     | none =>
-        exact Finset.mem_insert.2 (Or.inl hiv.symm)
+        exact Finset.mem_insert.2 (Or.inl hiv)
     | some i =>
         exact Finset.mem_insert.2 (Or.inr
-          (Finset.mem_image.2 ⟨i, by simp, hiv⟩))
+          (P.mem_sourceSet.2 ⟨i, hiv⟩))
   · intro hv
     rcases Finset.mem_insert.1 hv with rfl | hvP
-    · exact Finset.mem_image.2 ⟨none, by simp, rfl⟩
-    · rcases Finset.mem_image.mp hvP with ⟨i, _hi, hiv⟩
-      exact Finset.mem_image.2 ⟨some i, by simp, hiv⟩
+    · exact ⟨none, rfl⟩
+    · rcases P.mem_sourceSet.1 hvP with ⟨i, hiv⟩
+      exact ⟨some i, hiv⟩
 
 @[simp] theorem cons_targetSet (P : EndpointCleanPathPacking G S T)
     (R : GraphPath G) (hR : R.EndpointClean S T)
     (hdisj : Disjoint R.vertexSet P.vertexSet) :
     (P.cons R hR hdisj).targetSet = insert R.target P.targetSet := by
-  classical
   ext v
+  rw [(P.cons R hR hdisj).mem_targetSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+  · rintro ⟨i, hiv⟩
     cases i with
     | none =>
-        exact Finset.mem_insert.2 (Or.inl hiv.symm)
+        exact Finset.mem_insert.2 (Or.inl hiv)
     | some i =>
         exact Finset.mem_insert.2 (Or.inr
-          (Finset.mem_image.2 ⟨i, by simp, hiv⟩))
+          (P.mem_targetSet.2 ⟨i, hiv⟩))
   · intro hv
     rcases Finset.mem_insert.1 hv with rfl | hvP
-    · exact Finset.mem_image.2 ⟨none, by simp, rfl⟩
-    · rcases Finset.mem_image.mp hvP with ⟨i, _hi, hiv⟩
-      exact Finset.mem_image.2 ⟨some i, by simp, hiv⟩
+    · exact ⟨none, rfl⟩
+    · rcases P.mem_targetSet.1 hvP with ⟨i, hiv⟩
+      exact ⟨some i, hiv⟩
 
 theorem cons_source_not_mem_sourceSet (P : EndpointCleanPathPacking G S T)
     (R : GraphPath G) (_hR : R.EndpointClean S T)
@@ -1650,9 +1679,18 @@ def transfer (P : EndpointCleanPathPacking G S T)
       P.toPathPacking.edgeSet := by
   classical
   ext e
-  simp [EndpointCleanPathPacking.transfer,
-    EndpointCleanPathPacking.toPathPacking,
-    PathPacking.edgeSet]
+  rw [PathPacking.mem_edgeSet, PathPacking.mem_edgeSet]
+  constructor
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change e ∈ ((P.path i).transfer H (h i)).edgeSet at hi
+    rw [GraphPath.transfer_edgeSet] at hi
+    exact hi
+  · rintro ⟨i, hi⟩
+    refine ⟨i, ?_⟩
+    change e ∈ ((P.path i).transfer H (h i)).edgeSet
+    rw [GraphPath.transfer_edgeSet]
+    exact hi
 
 /-- Restrict an endpoint-clean packing to a finite set of path indices. -/
 noncomputable def restrictIndexSet (P : EndpointCleanPathPacking G S T)
@@ -1667,8 +1705,8 @@ noncomputable def restrictIndexSet (P : EndpointCleanPathPacking G S T)
 @[simp] theorem restrictIndexSet_card
     (P : EndpointCleanPathPacking G S T) (I : Finset P.Index) :
     (P.restrictIndexSet I).card = I.card := by
-  classical
-  simp [restrictIndexSet, EndpointCleanPathPacking.card]
+  change Fintype.card {i : P.Index // i ∈ I} = I.card
+  exact Fintype.card_coe I
 
 @[simp] theorem restrictIndexSet_path_vertexSet
     (P : EndpointCleanPathPacking G S T) (I : Finset P.Index)
@@ -1738,18 +1776,19 @@ theorem restrictSources_sourceSet_eq
   ext v
   constructor
   · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hiv⟩
+    rcases (P.restrictSources U).mem_sourceSet.1 hv with ⟨i, hiv⟩
     have hiU : (P.path i.1).source ∈ U := by
       exact (Finset.mem_filter.mp i.2).2
     have heq : (P.path i.1).source = v := by
-      simpa [restrictSources] using hiv
+      exact hiv.symm
     simpa [heq] using hiU
   · intro hvU
     rcases P.exists_index_source_eq_of_mem_sourceSet (hU hvU) with
       ⟨i, hi⟩
-    exact Finset.mem_image.mpr
-      ⟨⟨i, by simp [sourceIndexSet, hi, hvU]⟩, by simp, by
-        exact hi⟩
+    rw [(P.restrictSources U).mem_sourceSet]
+    refine ⟨⟨i, ?_⟩, hi.symm⟩
+    rw [sourceIndexSet, Finset.mem_filter]
+    exact ⟨Finset.mem_univ i, by simpa [hi] using hvU⟩
 
 end EndpointCleanPathPacking
 
@@ -1841,17 +1880,15 @@ noncomputable def toEndpointCleanInOfTerminalDegreeOne
     (hTdeg : ∀ v ∈ T, DegreeEquals G v 1) :
     (P.toEndpointCleanInOfTerminalDegreeOne
       hS₀ hT₀ hST hSdeg hTdeg).sourceSet = S₀ := by
-  classical
   ext v
+  rw [(P.toEndpointCleanInOfTerminalDegreeOne
+    hS₀ hT₀ hST hSdeg hTdeg).mem_sourceSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hvi⟩
-    simpa [toEndpointCleanInOfTerminalDegreeOne] using
-      (hvi ▸ P.source_mem i)
+  · rintro ⟨i, hvi⟩
+    exact hvi.symm ▸ P.source_mem i
   · intro hv
     rcases P.source_bijective.2 ⟨v, hv⟩ with ⟨i, hi⟩
-    exact Finset.mem_image.mpr
-      ⟨i, by simp, congrArg Subtype.val hi⟩
+    exact ⟨i, (congrArg Subtype.val hi).symm⟩
 
 @[simp] theorem toEndpointCleanInOfTerminalDegreeOne_targetSet
     {S₀ T₀ S T : Finset V}
@@ -1862,17 +1899,15 @@ noncomputable def toEndpointCleanInOfTerminalDegreeOne
     (hTdeg : ∀ v ∈ T, DegreeEquals G v 1) :
     (P.toEndpointCleanInOfTerminalDegreeOne
       hS₀ hT₀ hST hSdeg hTdeg).targetSet = T₀ := by
-  classical
   ext v
+  rw [(P.toEndpointCleanInOfTerminalDegreeOne
+    hS₀ hT₀ hST hSdeg hTdeg).mem_targetSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hvi⟩
-    simpa [toEndpointCleanInOfTerminalDegreeOne] using
-      (hvi ▸ P.target_mem i)
+  · rintro ⟨i, hvi⟩
+    exact hvi.symm ▸ P.target_mem i
   · intro hv
     rcases P.target_bijective.2 ⟨v, hv⟩ with ⟨i, hi⟩
-    exact Finset.mem_image.mpr
-      ⟨i, by simp, congrArg Subtype.val hi⟩
+    exact ⟨i, (congrArg Subtype.val hi).symm⟩
 
 /-- A perfect packing whose terminal vertices all have degree one is already
 endpoint-clean.  This is the proof-facing form of the standard pendant-copy
@@ -1922,18 +1957,14 @@ noncomputable def toEndpointCleanOfTerminalDegreeOne
     (hSdeg : ∀ v ∈ S, DegreeEquals G v 1)
     (hTdeg : ∀ v ∈ T, DegreeEquals G v 1) :
     (P.toEndpointCleanOfTerminalDegreeOne hST hSdeg hTdeg).sourceSet = S := by
-  classical
   ext v
+  rw [(P.toEndpointCleanOfTerminalDegreeOne hST hSdeg hTdeg).mem_sourceSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hvi⟩
-    simpa [toEndpointCleanOfTerminalDegreeOne] using
-      (hvi ▸ P.source_mem i)
+  · rintro ⟨i, hvi⟩
+    exact hvi.symm ▸ P.source_mem i
   · intro hv
     rcases P.source_bijective.2 ⟨v, hv⟩ with ⟨i, hi⟩
-    exact Finset.mem_image.mpr
-      ⟨i, by simp, by
-        exact congrArg Subtype.val hi⟩
+    exact ⟨i, (congrArg Subtype.val hi).symm⟩
 
 @[simp] theorem toEndpointCleanOfTerminalDegreeOne_targetSet
     (P : PerfectPathPacking G S T)
@@ -1941,18 +1972,14 @@ noncomputable def toEndpointCleanOfTerminalDegreeOne
     (hSdeg : ∀ v ∈ S, DegreeEquals G v 1)
     (hTdeg : ∀ v ∈ T, DegreeEquals G v 1) :
     (P.toEndpointCleanOfTerminalDegreeOne hST hSdeg hTdeg).targetSet = T := by
-  classical
   ext v
+  rw [(P.toEndpointCleanOfTerminalDegreeOne hST hSdeg hTdeg).mem_targetSet]
   constructor
-  · intro hv
-    rcases Finset.mem_image.mp hv with ⟨i, _hi, hvi⟩
-    simpa [toEndpointCleanOfTerminalDegreeOne] using
-      (hvi ▸ P.target_mem i)
+  · rintro ⟨i, hvi⟩
+    exact hvi.symm ▸ P.target_mem i
   · intro hv
     rcases P.target_bijective.2 ⟨v, hv⟩ with ⟨i, hi⟩
-    exact Finset.mem_image.mpr
-      ⟨i, by simp, by
-        exact congrArg Subtype.val hi⟩
+    exact ⟨i, (congrArg Subtype.val hi).symm⟩
 
 end PerfectPathPacking
 

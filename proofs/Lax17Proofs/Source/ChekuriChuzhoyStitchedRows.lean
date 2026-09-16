@@ -784,13 +784,18 @@ theorem exists_stitchingPacking_to_next
     rw [PathPacking.targetSet_card, PathPacking.sourceSet_card,
       E.paths_card, E_next.paths_card]
   rcases P.exists_twoGap_concatPacking_between_subsets e
-      (by simpa [eOdd] using (oddClusterAfterEvenIndex g i hi).2)
+      (by simpa [e, eOdd] using (oddClusterAfterEvenIndex g i hi).2)
       hOddSucc
       hR hL hcard with
     ⟨S, hS_card, _hS_stays, hS_first, hS_last⟩
   refine ⟨S, ?_, by simpa [e] using hS_first, ?_⟩
   · exact hS_card.trans (by rw [PathPacking.targetSet_card, E.paths_card])
-  · simpa [hnext] using hS_last
+  · convert hS_last using 1
+    apply congrArg P.cluster
+    apply Fin.ext
+    simp [e, eOdd, evenClusterIndex, oddClusterAfterEvenIndex,
+      nextEvenClusterOrdinal]
+    omega
 
 /-- Consecutive local even-cluster outputs can be stitched through the
 intervening odd cluster, retaining both the collapsed-packing invariants and the
@@ -871,8 +876,15 @@ theorem exists_stitchingPacking_to_next_with_invariants_and_provenance
       intro a
       simpa [heOdd_eq] using D.trace_eq a
   }⟩, hS_card, ?_, by simpa [e] using D.internallyDisjoint_left, ?_⟩
-  · simpa [betweenStitchingRegion, e, eOdd, heOdd_eq, hnext] using D.staysIn
-  · simpa [hnext] using D.internallyDisjoint_right
+  · convert D.staysIn using 1
+    simp [betweenStitchingRegion, e, eOdd, evenClusterIndex,
+      oddClusterAfterEvenIndex]
+  · convert D.internallyDisjoint_right using 1
+    apply congrArg P.cluster
+    apply Fin.ext
+    simp [e, eOdd, evenClusterIndex, oddClusterAfterEvenIndex,
+      nextEvenClusterOrdinal]
+    omega
 
 /-- Consecutive local even-cluster outputs can be stitched through the
 intervening odd cluster, with the full region and endpoint-cluster separation
@@ -987,7 +999,8 @@ theorem exists_startPacking_to_first_with_invariants_and_provenance
   }⟩, ?_, ?_, ?_⟩
   · calc
       S.card = R.card := rfl
-      _ = E.paths.sourceSet.card := by simp [R, L]
+      _ = E.paths.sourceSet.card :=
+        PerfectPathPacking.restrictTargetSet_card L E.paths.sourceSet hT
       _ = E.paths.card := by rw [PathPacking.sourceSet_card]
       _ = q := E.paths_card
   · intro a v hv
@@ -995,7 +1008,11 @@ theorem exists_startPacking_to_first_with_invariants_and_provenance
     simpa [firstStitchingRegion, hgap] using hRstay a hvR
   · intro a v hv hvC
     have hvR : v ∈ (R.path a).vertexSet := by simpa [S] using hv
-    exact hRinternal a hvR (by simpa [hfirstEven, firstEven] using hvC)
+    have hvC' :
+        v ∈ P.cluster ⟨P.firstIndex.1 + 1, hgap⟩ := by
+      rw [hfirstEven]
+      exact hvC
+    exact hRinternal a hvR hvC'
 
 /-- Compatibility projection of the provenance-aware initial producer. -/
 theorem exists_startPacking_to_first_with_invariants
@@ -1415,7 +1432,7 @@ noncomputable def canonicalOfTwoLe
 /-- The initial stitching piece, promoted to a perfect packing on the source
 terminals it actually uses and the full local source set of the first even
 one-based cluster. -/
-noncomputable def startPerfect
+noncomputable abbrev startPerfect
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E) :
@@ -1437,8 +1454,11 @@ theorem startPerfect_staysIn
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E) :
     K.startPerfect.toPathPacking.StaysIn (firstStitchingRegion P K.hN) := by
-  simpa [startPerfect] using
-    K.start.toPerfectUsedTerminals_staysIn K.start_staysIn
+  exact K.start.toPerfectUsedTerminals.copyTerminals_staysIn rfl
+    (K.start.targetSet_eq_right_of_card_eq (by
+      rw [K.start_card, PathPacking.sourceSet_card,
+        (E.output ⟨0, K.hN⟩).paths_card]))
+    (K.start.toPerfectUsedTerminals_staysIn K.start_staysIn)
 
 theorem startPerfect_internallyDisjoint_firstEven
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
@@ -1446,13 +1466,16 @@ theorem startPerfect_internallyDisjoint_firstEven
     (K : StitchingPieces P E) :
     K.startPerfect.toPathPacking.InternallyDisjointFromSet
       (P.cluster (evenClusterIndex g ⟨0, K.hN⟩)) := by
-  simpa [startPerfect] using
-    K.start.toPerfectUsedTerminals_internallyDisjointFromSet
-      K.start_internallyDisjoint_firstEven
+  exact K.start.toPerfectUsedTerminals.copyTerminals_internallyDisjointFromSet rfl
+    (K.start.targetSet_eq_right_of_card_eq (by
+      rw [K.start_card, PathPacking.sourceSet_card,
+        (E.output ⟨0, K.hN⟩).paths_card]))
+    (K.start.toPerfectUsedTerminals_internallyDisjointFromSet
+      K.start_internallyDisjoint_firstEven)
 
 /-- The retained full-width first-cluster path underlying each perfect start
 path. -/
-noncomputable def startFirstClusterIndex
+noncomputable abbrev startFirstClusterIndex
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E) :
@@ -1481,7 +1504,7 @@ theorem startPerfect_firstCluster_trace_eq
 
 /-- A local even-cluster row output, promoted to a perfect packing on the
 terminal sets it actually uses. -/
-noncomputable def localPerfect
+noncomputable abbrev localPerfect
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (_K : StitchingPieces P E) (i : Fin (g * (g - 1))) :
@@ -1587,7 +1610,7 @@ theorem startPerfect_source_disjoint_firstEven
 
 /-- The first stitched prefix: the initial linkage followed by the local row
 pieces in the first even one-based cluster. -/
-noncomputable def firstPrefix
+noncomputable abbrev firstPrefix
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E) :
@@ -1604,7 +1627,9 @@ noncomputable def firstPrefix
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E) :
     K.firstPrefix.card = q := by
-  simp [firstPrefix]
+  calc
+    K.firstPrefix.card = K.startPerfect.card := rfl
+    _ = q := K.startPerfect_card
 
 theorem firstPrefix_staysIn
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
@@ -1728,7 +1753,9 @@ noncomputable def secondPrefix
     (K : StitchingPieces P E)
     (hi : 0 + 1 < g * (g - 1)) :
     (K.secondPrefix hi).card = q := by
-  simp [secondPrefix]
+  calc
+    (K.secondPrefix hi).card = K.firstPrefix.card := rfl
+    _ = q := K.firstPrefix_card
 
 theorem secondPrefix_staysIn
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
@@ -1880,11 +1907,18 @@ theorem secondPrefix_internallyDisjoint_nextEvenCluster
     (K.secondPrefix hi).toPathPacking.InternallyDisjointFromSet
       (P.cluster (evenClusterIndex g
         (nextEvenClusterOrdinal ⟨0, K.hN⟩ hi))) := by
-  dsimp [secondPrefix, PerfectPathPacking.concatOfFirstStaysInSecondInternallyDisjoint]
-  apply PerfectPathPacking.concat_internallyDisjointFromSet_right
-  · exact K.firstPrefix_vertexSet_disjoint_nextEvenCluster hi
-  · exact K.firstEvenTarget_disjoint_nextEvenCluster hi
-  · exact K.betweenPerfect_internallyDisjoint_right ⟨0, K.hN⟩ hi
+  exact K.firstPrefix.concatOfFirstStaysInSecondInternallyDisjoint_internallyDisjointFromSet
+    (K.between ⟨0, K.hN⟩ hi)
+    K.firstPrefix_staysIn
+    (K.betweenPerfect_internallyDisjoint_firstPrefixRegion_first hi)
+    (K.nextEvenSource_disjoint_firstPrefixRegion hi)
+    (by
+      intro a v hv hvC
+      exact False.elim (Finset.disjoint_left.mp
+        (K.firstPrefix_vertexSet_disjoint_nextEvenCluster hi)
+        (K.firstPrefix.toPathPacking.path_vertexSet_subset_vertexSet a hv) hvC))
+    (K.betweenPerfect_internallyDisjoint_right ⟨0, K.hN⟩ hi)
+    (K.firstEvenTarget_disjoint_nextEvenCluster hi)
 
 /-- The prefix through the second local even-cluster output. -/
 noncomputable def thirdPrefix
@@ -2355,7 +2389,7 @@ theorem StitchedPrefix.hasPairwiseBridgesIn_evenCluster
   exact F.liftLocalBridge j hji beta hbeta
 
 /-- The first local-piece index followed by a row of `firstPrefix`. -/
-noncomputable def firstPrefixLocalIndex
+noncomputable abbrev firstPrefixLocalIndex
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     (K : StitchingPieces P E)
@@ -2620,7 +2654,7 @@ noncomputable def firstStitchedPrefix
 
 /-- Append the two-gap stitching packing after a completed prefix, stopping at
 the source terminals of the next local output. -/
-noncomputable def StitchedPrefix.toNextSource
+noncomputable abbrev StitchedPrefix.toNextSource
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     {K : StitchingPieces P E} {i : Fin (g * (g - 1))}
@@ -2673,7 +2707,7 @@ theorem StitchedPrefix.toNextSource_internallyDisjoint_nextEvenCluster
 
 /-- Complete the successor step by appending the local output in the next even
 cluster. -/
-noncomputable def StitchedPrefix.extendPacking
+noncomputable abbrev StitchedPrefix.extendPacking
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     {K : StitchingPieces P E} {i : Fin (g * (g - 1))}
@@ -3002,7 +3036,7 @@ theorem StitchedPrefix.extendStart_trace_eq
         (Finset.mem_inter.mp hvOldTrace).2⟩
 
 /-- Local-piece provenance after one successor step. -/
-noncomputable def StitchedPrefix.extendLocalIndex
+noncomputable abbrev StitchedPrefix.extendLocalIndex
     {P : StrongPathOfSetsSystem G (2 * g * (g - 1)) w}
     {E : EvenClusterOutputs P.toPathOfSetsSystem q}
     {K : StitchingPieces P E} {i : Fin (g * (g - 1))}

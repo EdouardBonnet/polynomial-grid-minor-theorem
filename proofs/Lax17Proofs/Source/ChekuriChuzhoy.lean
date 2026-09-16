@@ -146,7 +146,7 @@ noncomputable def toGridAssemblyCertificate {V : Type u} [DecidableEq V]
           exact xc.2
         have hx : xc = ⟨yc.1 + 1, hc⟩ := Fin.ext hpred.symm
         rcases C.adjacent_right xr yc hc with ⟨u, hu, v, hv, huv⟩
-        refine ⟨v, ?_, u, ?_, G.symm huv⟩
+        refine ⟨v, ?_, u, ?_, G.adj_symm huv⟩
         · simpa [hx] using hv
         · exact hu
     · change xc = yc at hcol
@@ -162,7 +162,7 @@ noncomputable def toGridAssemblyCertificate {V : Type u} [DecidableEq V]
           exact xr.2
         have hx : xr = ⟨yr.1 + 1, hr⟩ := Fin.ext hpred.symm
         rcases C.adjacent_down yr xc hr with ⟨u, hu, v, hv, huv⟩
-        refine ⟨v, ?_, u, ?_, G.symm huv⟩
+        refine ⟨v, ?_, u, ?_, G.adj_symm huv⟩
         · simpa [hx] using hv
         · exact hu)
 
@@ -498,10 +498,12 @@ theorem branchSet_connected
       let S : Set V := {z : V | z ∈ (C.edgePath hxy).dropLast.vertexSet}
       refine ⟨S, ?_, ?_, hvpath, ?_⟩
       · intro z hz
+        change z ∈ (C.edgePath hxy).dropLast.vertexSet at hz
         rw [branchSet]
         exact Finset.mem_union_right _ <|
           Finset.mem_biUnion.mpr ⟨y, Finset.mem_univ y, by
-            simpa [hxy] using hz⟩
+            rw [dif_pos hxy]
+            exact hz⟩
       · have hsource :
             (C.edgePath hxy).dropLast.source = C.image x := by
           rw [GraphPath.dropLast_source, C.edgePath_source hxy]
@@ -867,10 +869,12 @@ theorem orientedBranchSet_connected
       let S : Set V := {z : V | z ∈ (C.edgePath hcond.1).dropLast.vertexSet}
       refine ⟨S, ?_, ?_, hvpath, ?_⟩
       · intro z hz
+        change z ∈ (C.edgePath hcond.1).dropLast.vertexSet at hz
         rw [orientedBranchSet]
         exact Finset.mem_union_right _ <|
           Finset.mem_biUnion.mpr ⟨y, Finset.mem_univ y, by
-            simpa [hcond] using hz⟩
+            rw [dif_pos hcond]
+            exact hz⟩
       · have hsource :
             (C.edgePath hcond.1).dropLast.source = C.image x := by
           rw [GraphPath.dropLast_source, C.edgePath_source hcond.1]
@@ -906,7 +910,7 @@ theorem orientedBranchSet_adjacent
     have hadj := (C.edgePath hxy).penultimate_adj_target hne
     simpa [C.edgePath_target hxy] using hadj
   · have hyx : (SparseGrid.validGraph g).Adj y x :=
-      (SparseGrid.validGraph g).symm hxy
+      (SparseGrid.validGraph g).adj_symm hxy
     refine ⟨C.image x, C.image_mem_orientedBranchSet x,
       (C.edgePath hyx).penultimate,
       C.edge_penultimate_mem_orientedBranchSet hyx hrank, ?_⟩
@@ -914,7 +918,7 @@ theorem orientedBranchSet_adjacent
         (C.edgePath hyx).source ≠ (C.edgePath hyx).target :=
       C.edgePath_source_ne_target hinj hyx
     have hadj := (C.edgePath hyx).penultimate_adj_target hne
-    simpa [C.edgePath_target hyx] using G.symm hadj
+    simpa [C.edgePath_target hyx] using G.adj_symm hadj
 
 /-- Build a direct sparse-grid minor certificate from the orientation-aware
 branch sets, once their pairwise disjointness has been proved. -/
@@ -5470,22 +5474,26 @@ noncomputable def validSparseGridPathCertificate
     intro x y hxy
     change SparseGrid.Adj x.1 y.1 at hxy
     by_cases hhorizontal : SparseGrid.HorizontalAdj x.1 y.1
-    · simpa [hhorizontal] using R.horizontalAdjPath_source hg hhorizontal
+    · dsimp only [id]
+      simpa only [dif_pos hhorizontal] using R.horizontalAdjPath_source hg hhorizontal
     · have hvertical : SparseGrid.VerticalAdj x.1 y.1 := by
         rcases hxy with hhorizontal' | hvertical
         · exact False.elim (hhorizontal hhorizontal')
         · exact hvertical
-      simpa [hhorizontal] using R.verticalAdjPath_source hg hvertical
+      dsimp only [id]
+      simpa only [dif_neg hhorizontal] using R.verticalAdjPath_source hg hvertical
   edgePath_target := by
     intro x y hxy
     change SparseGrid.Adj x.1 y.1 at hxy
     by_cases hhorizontal : SparseGrid.HorizontalAdj x.1 y.1
-    · simpa [hhorizontal] using R.horizontalAdjPath_target hg hhorizontal
+    · dsimp only [id]
+      simpa only [dif_pos hhorizontal] using R.horizontalAdjPath_target hg hhorizontal
     · have hvertical : SparseGrid.VerticalAdj x.1 y.1 := by
         rcases hxy with hhorizontal' | hvertical
         · exact False.elim (hhorizontal hhorizontal')
         · exact hvertical
-      simpa [hhorizontal] using R.verticalAdjPath_target hg hvertical
+      dsimp only [id]
+      simpa only [dif_neg hhorizontal] using R.verticalAdjPath_target hg hvertical
 
 /-- The stitched-row sparse-grid path certificate uses the explicit row-segment
 selector for horizontal sparse-grid edges. -/
@@ -5500,6 +5508,7 @@ theorem validSparseGridPathCertificate_edgePath_of_horizontal
       (show (SparseGrid.validGraph g).Adj x y from Or.inl hhorizontal)) =
         R.horizontalAdjPath hg hhorizontal := by
   simp [validSparseGridPathCertificate, hhorizontal]
+  dsimp only [id]
 
 /-- Drop-last vertex sets for horizontal edges in the stitched-row certificate
 are the drop-last sets of the explicit row-segment selector. -/
@@ -5603,6 +5612,7 @@ theorem validSparseGridPathCertificate_edgePath_of_vertical
         R.verticalAdjPath hvertical := by
   have hnot := SparseGrid.not_horizontalAdj_of_verticalAdj hvertical
   simp [validSparseGridPathCertificate, hnot]
+  dsimp only [id]
 
 /-- Drop-last vertex sets for vertical edges in the stitched-row certificate are
 the drop-last sets of the explicit bridge selector. -/

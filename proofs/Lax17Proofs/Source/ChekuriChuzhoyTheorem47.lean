@@ -1348,7 +1348,10 @@ theorem Theorem47OneChildTransitionData.composeSubtreeRouting
             hzCluster (by simpa [hzGlue] using hglueCluster))
     rcases Finset.mem_union.mp hsplit with hzD | hzE
     · rcases hDinternal i hzD (hclusterSub hzCluster) with hsource | htarget
-      · exact Or.inl (by simpa [P] using hsource)
+      · exact Or.inl (hsource.trans
+          (D.transition
+            |>.concatOfFirstInternallyDisjointSecondStaysIn_path_source
+              E.packing hDinternal E.packing_staysIn hAdisj i).symm)
       · exact Or.inr (hglue_eq_fullTarget htarget)
     · rcases E.packing_internallyDisjoint_leafCluster x hx j hzE hzCluster with
         hsource | htarget
@@ -1357,7 +1360,10 @@ theorem Theorem47OneChildTransitionData.composeSubtreeRouting
             calc
               z = (E.packing.path j).source := hsource
               _ = (D.transition.path i).target := hmatch))
-      · exact Or.inr (by simpa [P, j] using htarget)
+      · exact Or.inr (htarget.trans
+          (D.transition
+            |>.concatOfFirstInternallyDisjointSecondStaysIn_path_target
+              E.packing hDinternal E.packing_staysIn hAdisj i).symm)
   let P' :
       PerfectPathPacking G A
         ((S.selectedBelow v).biUnion E.leafTarget) :=
@@ -1381,7 +1387,9 @@ theorem Theorem47OneChildTransitionData.composeSubtreeRouting
       P.copyTerminals_staysIn rfl (by simp [hbelow]) hPstay
     packing_internallyDisjoint_leafCluster := by
       intro x hx
-      simpa [P'] using hPinternalLeaf x (by simpa [hbelow] using hx)
+      dsimp only [P']
+      apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
+      exact hPinternalLeaf x (by simpa [hbelow] using hx)
     packing_trivial_of_root_selected := by
       intro hv
       exact False.elim (hvnotleaf hv) }⟩
@@ -1701,7 +1709,10 @@ theorem Theorem47TwoChildTransitionData.composeSubtreeRouting
                 hzCluster hzD)
     rcases Finset.mem_union.mp hsplit with hzD | hzQ
     · rcases hDinternal i hzD (hxRegion hzCluster) with hsource | htarget
-      · exact Or.inl (by simpa [P] using hsource)
+      · exact Or.inl (hsource.trans
+          (D.transition
+            |>.concatOfFirstInternallyDisjointSecondStaysIn_path_source
+              Q hDinternal hQstay hAdisj i).symm)
       · exact Or.inr (hglue_eq_fullTarget htarget)
     · rcases hQinternalLeaf x hx j hzQ hzCluster with hsource | htarget
       · exact Or.inr
@@ -1709,7 +1720,10 @@ theorem Theorem47TwoChildTransitionData.composeSubtreeRouting
             calc
               z = (Q.path j).source := hsource
               _ = (D.transition.path i).target := hmatch))
-      · exact Or.inr (by simpa [P, j] using htarget)
+      · exact Or.inr (htarget.trans
+          (D.transition
+            |>.concatOfFirstInternallyDisjointSecondStaysIn_path_target
+              Q hDinternal hQstay hAdisj i).symm)
   let target : Fin m → Finset V := fun x =>
     if x ∈ S.selectedBelow c then E₁.leafTarget x else E₂.leafTarget x
   have htargetUnion :
@@ -1795,7 +1809,9 @@ theorem Theorem47TwoChildTransitionData.composeSubtreeRouting
       P.copyTerminals_staysIn rfl htargetUnion.symm hPstay
     packing_internallyDisjoint_leafCluster := by
       intro x hx
-      simpa [P'] using hPinternalLeaf x hx
+      dsimp only [P']
+      apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
+      exact hPinternalLeaf x hx
     packing_trivial_of_root_selected := by
       intro hv
       have hdeg := S.leaves_leaf v hv

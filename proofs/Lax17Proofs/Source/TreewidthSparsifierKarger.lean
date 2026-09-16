@@ -211,35 +211,36 @@ noncomputable def incidenceEquiv
       ⟨H.left x.1, ⟨x.1, Or.inl rfl⟩⟩
     else
       ⟨H.right x.1, ⟨x.1, Or.inr rfl⟩⟩
+  have f_edge (x : H.Edge × Fin 2) : (f x).2.1 = x.1 := by
+    rcases x with ⟨e, i⟩
+    fin_cases i <;> simp [f]
   have hf : Function.Bijective f := by
     constructor
     · rintro ⟨e, i⟩ ⟨e', j⟩ hij
       fin_cases i <;> fin_cases j
       · have he : e = e' := by
-          simpa only [f, if_pos rfl] using
-            congrArg (fun z : Incidence H => z.2.1) hij
+          have he' := congrArg (fun z : Incidence H => z.2.1) hij
+          simpa only [f_edge] using he'
         simp [he]
       · have he : e = e' := by
-          simpa only [f, if_pos rfl,
-            if_neg (by omega : (1 : ℕ) ≠ 0)] using
-              congrArg (fun z : Incidence H => z.2.1) hij
+          have he' := congrArg (fun z : Incidence H => z.2.1) hij
+          simpa only [f_edge] using he'
         subst e'
         simp only [f, if_pos rfl,
           if_neg (by omega : (1 : ℕ) ≠ 0)] at hij
         have := congrArg (fun z : Incidence H => z.1) hij
         exact (H.end_ne e this).elim
       · have he : e = e' := by
-          simpa only [f, if_pos rfl,
-            if_neg (by omega : (1 : ℕ) ≠ 0)] using
-              congrArg (fun z : Incidence H => z.2.1) hij
+          have he' := congrArg (fun z : Incidence H => z.2.1) hij
+          simpa only [f_edge] using he'
         subst e'
         simp only [f, if_pos rfl,
           if_neg (by omega : (1 : ℕ) ≠ 0)] at hij
         have := congrArg (fun z : Incidence H => z.1) hij
         exact (H.end_ne e this.symm).elim
       · have he : e = e' := by
-          simpa only [f, if_neg (by omega : (1 : ℕ) ≠ 0)] using
-            congrArg (fun z : Incidence H => z.2.1) hij
+          have he' := congrArg (fun z : Incidence H => z.2.1) hij
+          simpa only [f_edge] using he'
         simp [he]
     · rintro ⟨w, e, he⟩
       rcases he with hleft | hright

@@ -69,7 +69,8 @@ structure TreeOfSetsSystem {V : Type u} [DecidableEq V]
   /-- Connector paths crossing an oriented meta-edge. -/
   connector :
     ∀ (i j : Fin m) (hij : metaTree.Adj i j),
-      PerfectPathPacking G (interface i j hij) (interface j i (metaTree.symm hij))
+      PerfectPathPacking G (interface i j hij)
+        (interface j i (metaTree.adj_symm hij))
   /-- Each connector has cardinality `w`. -/
   connector_card :
     ∀ (i j : Fin m) (hij : metaTree.Adj i j), (connector i j hij).card = w
@@ -112,10 +113,18 @@ def mapLe (T : TreeOfSetsSystem G m w) {G' : _root_.SimpleGraph V}
     simpa using T.connector_card i j hij
   connector_internally_disjoint_clusters := by
     intro i j hij r a
-    change (((T.connector i j hij).path a).mapLe hGG').InternallyDisjointFromSet
-      (T.cluster r)
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      T.connector_internally_disjoint_clusters i j hij r a
+    intro v hv hvCluster
+    have hv' : v ∈ ((T.connector i j hij).path a).vertexSet := by
+      rw [← GraphPath.mapLe_vertexSet ((T.connector i j hij).path a) hGG']
+      exact hv
+    rcases T.connector_internally_disjoint_clusters i j hij r a hv' hvCluster with
+      hsource | htarget
+    · exact Or.inl (by
+        change v = ((T.connector i j hij).path a).source
+        exact hsource)
+    · exact Or.inr (by
+        change v = ((T.connector i j hij).path a).target
+        exact htarget)
   connector_mutually_nodeDisjoint := by
     intro i j hij p q hpq hedge a b
     change GraphPath.NodeDisjoint
@@ -239,8 +248,8 @@ theorem exists_interface_self_perfect_linkage_between_disjoint_subsets
     simpa [hcard] using hQcard
   have hQcardB : Q.card = B.card := hQcardA.trans hcard
   refine ⟨Q.toPerfectOfCardEq hQcardA hQcardB, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hQcardA
+  · change Q.orient.card = A.card
+    exact Q.orient_card.trans hQcardA
   · exact PathPacking.orient_staysIn hQstay
 
 /-- The selected middle cluster for a buffered meta-path. -/
@@ -365,7 +374,7 @@ noncomputable def toStrongPathOfSetsSystem_of_bufferedMetaPath
     exact congrArg Fin.val hidx
   left := fun i =>
     T.interface (bufferedClusterIndex order i) (bufferedPrevIndex order i)
-      (T.metaTree.symm (hadj ⟨i.1, by omega⟩))
+      (T.metaTree.adj_symm (hadj ⟨i.1, by omega⟩))
   right := fun i =>
     T.interface (bufferedClusterIndex order i) (bufferedNextIndex order i)
       (hadj ⟨i.1 + 1, by omega⟩)

@@ -960,7 +960,7 @@ theorem TreeOfSetsSystem.connector_staysIn_oldRegion
       (T.interface_subset_cluster i j hij ((T.connector i j hij).source_mem a))
   · apply (mem_oldRegion_iff_isOld _).mp
     exact hcluster j
-      (T.interface_subset_cluster j i (T.metaTree.symm hij)
+      (T.interface_subset_cluster j i (T.metaTree.adj_symm hij)
         ((T.connector i j hij).target_mem a))
 
 /-- Transport an ordinary tree-of-sets system whose clusters avoid all

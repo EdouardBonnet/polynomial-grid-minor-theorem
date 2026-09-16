@@ -98,7 +98,7 @@ end MaderSplitPair
 The right summand has one inhabitant exactly when the new edge is not a loop.
 Thus two copies with the same other endpoint are both removed and no loop is
 stored. -/
-def maderSplit (H : FiniteEdgeIndexedGraph W) {s : W} (p : H.MaderSplitPair s) :
+abbrev maderSplit (H : FiniteEdgeIndexedGraph W) {s : W} (p : H.MaderSplitPair s) :
     FiniteEdgeIndexedGraph W where
   Edge := {e : H.Edge // e ≠ p.first ∧ e ≠ p.second} ⊕
     {u : Unit // p.firstOther ≠ p.secondOther}
@@ -242,8 +242,10 @@ private def centerIncidentEquiv (H : FiniteEdgeIndexedGraph W) {s : W}
     · refine ⟨old.1, ?_⟩
       have hold : old.1 ∈ H.incidentEdges s := by
         rw [H.mem_incidentEdges]
-        simpa only [maderSplit_old_left, maderSplit_old_right] using
+        have hinc :=
           ((H.maderSplit p).mem_incidentEdges s (Sum.inl old)).mp hvalue
+        change H.left old.1 = s ∨ H.right old.1 = s at hinc
+        exact hinc
       simpa [old.2.1, old.2.2] using hold
     · have hinc := ((H.maderSplit p).mem_incidentEdges s (Sum.inr new)).mp hvalue
       simp only [maderSplit_new_left, maderSplit_new_right] at hinc
@@ -257,9 +259,9 @@ private def centerIncidentEquiv (H : FiniteEdgeIndexedGraph W) {s : W}
       exact ⟨hneFirst, hneSecond⟩
     refine ⟨Sum.inl ⟨e.1, he⟩, ?_⟩
     rw [(H.maderSplit p).mem_incidentEdges]
-    simpa only [maderSplit_old_left, maderSplit_old_right] using
-      (H.mem_incidentEdges s e.1).mp
-        (Finset.mem_of_mem_erase (Finset.mem_of_mem_erase e.2))
+    change H.left e.1 = s ∨ H.right e.1 = s
+    exact (H.mem_incidentEdges s e.1).mp
+      (Finset.mem_of_mem_erase (Finset.mem_of_mem_erase e.2))
   left_inv := by
     intro e
     obtain ⟨value, hvalue⟩ := e
@@ -294,8 +296,10 @@ theorem maderSplit_degree_le (H : FiniteEdgeIndexedGraph W) {s : W}
     rcases value with old | new
     · refine ⟨old.1, ?_⟩
       rw [H.mem_incidentEdges]
-      simpa only [maderSplit_old_left, maderSplit_old_right] using
+      have hinc :=
         ((H.maderSplit p).mem_incidentEdges w (Sum.inl old)).mp hvalue
+      change H.left old.1 = w ∨ H.right old.1 = w at hinc
+      exact hinc
     · by_cases hw : w = p.firstOther
       · refine ⟨p.first, ?_⟩
         rw [H.mem_incidentEdges]

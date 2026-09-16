@@ -515,8 +515,10 @@ theorem exists_spanning_path_of_connected_degree_le_two
         simp [S, GraphPath.appendWithEqOfInterSubsetTarget, GraphPath.appendWithEq]
       omega
     by_cases hx_target : R.target = P.target
-    · let S : GraphPath H :=
-        R.appendWithEqOfInterSubsetTarget P.reverse (by simpa using hx_target) (by
+    · have hglue : R.target = P.reverse.source := by
+        simpa using hx_target
+      let S : GraphPath H :=
+        R.appendWithEqOfInterSubsetTarget P.reverse hglue (by
           intro v hvR hvP
           exact hinter hvR (by simpa using hvP))
       have hle : S.walk.length ≤ P.walk.length :=
@@ -524,9 +526,19 @@ theorem exists_spanning_path_of_connected_degree_le_two
       have hlen : S.walk.length = R.walk.length + P.walk.length := by
         have hrev : P.reverse.walk.length = P.walk.length := by
           simp [GraphPath.reverse]
-        rw [show S.walk.length = R.walk.length + P.reverse.walk.length by
-          simp [S, GraphPath.appendWithEqOfInterSubsetTarget, GraphPath.appendWithEq]]
-        rw [hrev]
+        have hcopy :
+            (P.reverse.walk.copy hglue.symm rfl).length =
+              P.reverse.walk.length :=
+          _root_.SimpleGraph.Walk.length_copy _ _ _
+        calc
+          S.walk.length =
+              (R.walk.append (P.reverse.walk.copy hglue.symm rfl)).length := rfl
+          _ = R.walk.length +
+              (P.reverse.walk.copy hglue.symm rfl).length :=
+            _root_.SimpleGraph.Walk.length_append _ _
+          _ = R.walk.length + P.reverse.walk.length :=
+            congrArg (R.walk.length + ·) hcopy
+          _ = R.walk.length + P.walk.length := congrArg (R.walk.length + ·) hrev
       omega
     let Apath : GraphPath H := P.takeUntil hR_target_mem
     have hApath_ne : Apath.source ≠ Apath.target := by
@@ -1340,7 +1352,7 @@ theorem delete_tree_edge_not_reachable_of_sides
   have hxy_not_reach : ¬ D.Reachable x y := by
     simpa [D] using
       ((_root_.SimpleGraph.isBridge_iff (G := T) (u := x) (v := y)).1
-        hxy_bridge).2
+        hxy_bridge)
   intro hab
   exact hxy_not_reach (hax.symm.trans (hab.trans hby))
 
@@ -1609,7 +1621,7 @@ theorem edgeSwap_acyclic_firstShortcut
   have hbc_not_reach : ¬ D.Reachable b c := by
     simpa [D] using
       ((_root_.SimpleGraph.isBridge_iff (G := T) (u := b) (v := c)).1
-        hbc_bridge).2
+        hbc_bridge)
   have hsym_ne : s(b, a) ≠ s(b, c) := by
     intro h
     rw [Sym2.eq_iff] at h
@@ -2491,8 +2503,7 @@ theorem degreeTwoSubtype_card_eq
     Fintype.card {v : V // v ∈ treeDegreeTwoVertexSet T} =
       (treeDegreeTwoVertexSet T).card := by
   classical
-  simpa [treeDegreeTwoVertexSet] using
-    (Fintype.card_subtype (fun v : V => v ∈ treeDegreeTwoVertexSet T))
+  exact Fintype.card_coe (treeDegreeTwoVertexSet T)
 
 /-- Mapping the edges of the degree-two induced graph back to the ambient
 vertex type gives exactly the ambient tree edges with both endpoints of tree
@@ -2505,9 +2516,37 @@ theorem degreeTwoInducedGraph_map_edgeFinset_eq_inter
           (fun v : V => v ∈ treeDegreeTwoVertexSet T)).sym2Map =
       (T.edgeFinset ∩ (treeDegreeTwoVertexSet T).sym2) := by
   classical
-  aesop (add simp [Finset.ext_iff, Sym2.exists, Sym2.forall,
-    degreeTwoInducedGraph, _root_.SimpleGraph.mem_edgeFinset,
-    _root_.SimpleGraph.adj_comm])
+  ext e
+  induction e using Sym2.inductionOn with
+  | _ x y =>
+      simp only [Finset.mem_map, Finset.mem_inter,
+        _root_.SimpleGraph.mem_edgeFinset, Finset.mk_mem_sym2_iff,
+        mem_treeDegreeTwoVertexSet]
+      constructor
+      · rintro ⟨a, ha, hmap⟩
+        induction a using Sym2.inductionOn with
+        | _ u v =>
+            have huv : T.Adj u.1 v.1 := by
+              simpa [degreeTwoInducedGraph] using ha
+            have hu : T.degree u.1 = 2 :=
+              (mem_treeDegreeTwoVertexSet T u.1).1 u.2
+            have hv : T.degree v.1 = 2 :=
+              (mem_treeDegreeTwoVertexSet T v.1).1 v.2
+            have hmap' : s(u.1, v.1) = s(x, y) := by
+              simpa [Function.Embedding.sym2Map_apply, Sym2.map_mk] using hmap
+            rcases Sym2.eq_iff.mp hmap' with hxy | hxy
+            · rcases hxy with ⟨rfl, rfl⟩
+              exact ⟨huv, hu, hv⟩
+            · rcases hxy with ⟨rfl, rfl⟩
+              exact ⟨huv.symm, hv, hu⟩
+      · rintro ⟨hxy, hx, hy⟩
+        let u : {v : V // v ∈ treeDegreeTwoVertexSet T} :=
+          ⟨x, (mem_treeDegreeTwoVertexSet T x).2 hx⟩
+        let v : {v : V // v ∈ treeDegreeTwoVertexSet T} :=
+          ⟨y, (mem_treeDegreeTwoVertexSet T y).2 hy⟩
+        refine ⟨s(u, v), ?_, ?_⟩
+        · simpa [degreeTwoInducedGraph, u, v] using hxy
+        · rfl
 
 /-- The edges of the graph induced by the degree-two vertices are exactly the
 tree edges whose endpoints both have tree degree two. -/

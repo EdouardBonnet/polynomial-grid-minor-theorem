@@ -50,10 +50,10 @@ noncomputable def phase1Support
     _root_.SimpleGraph (Fin n) where
   Adj i j :=
     i ≠ j ∧ phase1Threshold n h ≤ H.bundleCapacity s(i, j)
-  symm := by
+  symm := ⟨by
     intro i j hij
     refine ⟨hij.1.symm, ?_⟩
-    simpa [FiniteEdgeIndexedGraph.bundleCapacity, Sym2.eq_swap] using hij.2
+    simpa [FiniteEdgeIndexedGraph.bundleCapacity, Sym2.eq_swap] using hij.2⟩
   loopless := ⟨by
     intro i hii
     exact hii.1 rfl⟩

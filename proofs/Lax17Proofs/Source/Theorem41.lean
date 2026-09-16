@@ -661,7 +661,7 @@ noncomputable def trace (C : SeparatorChoiceRun S) (i : Fin D) :
   S.separatorTraceVertices (C.J i)
 
 /-- The immediate core run extracted from the chosen contracted separators. -/
-noncomputable def toCore (C : SeparatorChoiceRun S) :
+noncomputable abbrev toCore (C : SeparatorChoiceRun S) :
     SeparatorRunCore S where
   reserved := C.reserved
   original := C.original
@@ -958,7 +958,7 @@ end SeparatorChoiceRun
 /-- Transport a finite separator across an equality of the current
 remaining-index sets.  Keeping this as a named definition prevents repeated
 large reductions of raw equality casts in the iteration proof. -/
-noncomputable def transportContractedSeparator
+noncomputable abbrev transportContractedSeparator
     {I I' : Finset P.Index} (h : I = I')
     (J : Finset (ContractedPathVertex P I)) :
     Finset (ContractedPathVertex P I') :=
@@ -1048,7 +1048,7 @@ variable (L : PathPacking (S.contractedGraph I)
     (S.contractedPathTerminals I) (S.contractedXTerminals I))
 
 /-- The terminal-clean, oriented version of a contracted linkage. -/
-noncomputable def clean :
+noncomputable abbrev clean :
     PathPacking (S.contractedGraph I)
       (S.contractedPathTerminals I) (S.contractedXTerminals I) :=
   L.cleanToTerminals.orient
@@ -1076,9 +1076,10 @@ theorem source_spec (a : L.Index) :
       ((clean S L).path a).source ∈ S.contractedPathTerminals I := by
     change (L.cleanToTerminals.orient.path a).source ∈
       S.contractedPathTerminals I
-    simpa [clean] using
-      GraphPath.orient_source_mem
-        (L.cleanToTerminals.path a) (L.cleanToTerminals.connects a)
+    change ((L.cleanToTerminals.path a).orient
+      (L.cleanToTerminals.connects a)).source ∈ S.contractedPathTerminals I
+    exact GraphPath.orient_source_mem
+      (L.cleanToTerminals.path a) (L.cleanToTerminals.connects a)
   exact (ContractedPathVertex.mem_pathTerminalSet_iff
     (P := P) (I := I) ((clean S L).path a).source).1 hsource
 
@@ -1108,9 +1109,10 @@ theorem target_spec (a : L.Index) :
       ((clean S L).path a).target ∈ S.contractedXTerminals I := by
     change (L.cleanToTerminals.orient.path a).target ∈
       S.contractedXTerminals I
-    simpa [clean] using
-      GraphPath.orient_target_mem
-        (L.cleanToTerminals.path a) (L.cleanToTerminals.connects a)
+    change ((L.cleanToTerminals.path a).orient
+      (L.cleanToTerminals.connects a)).target ∈ S.contractedXTerminals I
+    exact GraphPath.orient_target_mem
+      (L.cleanToTerminals.path a) (L.cleanToTerminals.connects a)
   exact (ContractedPathVertex.mem_vertexTerminalSet_iff
     (P := P) (I := I) X (S.x_outside_contracted_paths I)
     ((clean S L).path a).target).1 htarget
@@ -1698,7 +1700,7 @@ namespace SeparatorRun
 variable {S : Theorem41Setup G A B X g kappa D P Q}
 
 /-- The matched `Q`-path associated with a `P`-path index. -/
-noncomputable def matchedQPath
+noncomputable abbrev matchedQPath
     (_R : SeparatorRun S) (p : P.Index) : GraphPath G :=
   Q.path (P.matchedSourceIndex Q p)
 

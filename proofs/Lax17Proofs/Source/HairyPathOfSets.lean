@@ -254,13 +254,15 @@ noncomputable def restrictWidth (H : HairyPathOfSetsSystem G ell w)
       H.hairConnector_mutually_nodeDisjoint hij a.1 b.1
   hairConnector_disjoint_baseConnectors := by
     intro i j hj a b
-    simpa [PathOfSetsSystem.restrictWidth, PerfectPathPacking.copyTerminals,
-      PerfectPathPacking.restrictIndexSet, GraphPath.NodeDisjoint] using
-      H.hairConnector_disjoint_baseConnectors i j hj a.1 b.1
+    change GraphPath.NodeDisjoint
+      ((H.hairConnector i).path a.1)
+      ((H.base.connector j hj).path b.1)
+    exact H.hairConnector_disjoint_baseConnectors i j hj a.1 b.1
   hairConnector_internally_disjoint_baseClusters := by
     intro i j a
-    simpa [PerfectPathPacking.restrictIndexSet] using
-      H.hairConnector_internally_disjoint_baseClusters i j a.1
+    change ((H.hairConnector i).path a.1).InternallyDisjointFromSet
+      (H.base.cluster j)
+    exact H.hairConnector_internally_disjoint_baseClusters i j a.1
   hairConnector_internally_disjoint_hairClusters := by
     intro i j a
     simpa [PerfectPathPacking.restrictIndexSet] using
@@ -393,14 +395,28 @@ def mapLe (H : HairyPathOfSetsSystem G ell w)
     intro i j a
     change (((H.hairConnector i).path a).mapLe hGG').InternallyDisjointFromSet
       (H.base.cluster j)
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      H.hairConnector_internally_disjoint_baseClusters i j a
+    intro v hvPath hvCluster
+    have hvPath' : v ∈ ((H.hairConnector i).path a).vertexSet := by
+      simpa using hvPath
+    rcases H.hairConnector_internally_disjoint_baseClusters i j a
+        hvPath' hvCluster with hsource | htarget
+    · left
+      simpa [GraphPath.mapLe] using hsource
+    · right
+      simpa [GraphPath.mapLe] using htarget
   hairConnector_internally_disjoint_hairClusters := by
     intro i j a
     change (((H.hairConnector i).path a).mapLe hGG').InternallyDisjointFromSet
       (H.hairCluster j)
-    simpa [GraphPath.InternallyDisjointFromSet, GraphPath.IsEndpoint] using
-      H.hairConnector_internally_disjoint_hairClusters i j a
+    intro v hvPath hvCluster
+    have hvPath' : v ∈ ((H.hairConnector i).path a).vertexSet := by
+      simpa using hvPath
+    rcases H.hairConnector_internally_disjoint_hairClusters i j a
+        hvPath' hvCluster with hsource | htarget
+    · left
+      simpa [GraphPath.mapLe] using hsource
+    · right
+      simpa [GraphPath.mapLe] using htarget
 
 /-- The local graph on a base cluster after adding the corresponding hair
 connector paths. -/
@@ -677,8 +693,8 @@ theorem exists_left_right_perfect_linkage
   have hright : P.card = (H.base.right i).card :=
     hcard.trans (H.base.right_card i).symm
   refine ⟨P.toPerfectOfCardEq hleft hright, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hcard
+  · change P.orient.card = w
+    exact P.orient_card.trans hcard
   · exact PathPacking.orient_staysIn hstay
 
 /-- A hairy system supplies a full-width linkage from the left nails to the
@@ -704,8 +720,8 @@ theorem exists_left_x_perfect_linkage
   have hx : P.card = (H.x i).card :=
     hcard.trans (H.x_card i).symm
   refine ⟨P.toPerfectOfCardEq hleft hx, ?_, ?_⟩
-  · simpa [PathPacking.toPerfectOfCardEq, PerfectPathPacking.card,
-      PathPacking.card] using hcard
+  · change P.orient.card = w
+    exact P.orient_card.trans hcard
   · exact PathPacking.orient_staysIn hstay
 
 /-- The left-right linkage inside a base cluster can be viewed inside any
@@ -753,7 +769,8 @@ theorem exists_left_x_linkage_inHairLocalGraph_with_staysIn
   rcases H.exists_left_x_linkage i with ⟨P, hcard, hstay⟩
   refine ⟨P.inClusterWithPackingGraph hstay
     (H.hairConnector i).toPathPacking, ?_, ?_⟩
-  · simpa using hcard
+  · exact (PathPacking.inClusterWithPackingGraph_card P hstay
+      (H.hairConnector i).toPathPacking).trans hcard
   · exact PathPacking.inClusterWithPackingGraph_staysIn P hstay
       (H.hairConnector i).toPathPacking
 
@@ -767,7 +784,8 @@ theorem exists_left_x_perfect_linkage_inHairLocalGraph
       P.card = w := by
   rcases H.exists_left_x_perfect_linkage i with ⟨P, hcard, hstay⟩
   exact ⟨P.inClusterWithPackingGraph hstay (H.hairConnector i).toPathPacking,
-    by simpa using hcard⟩
+    (PerfectPathPacking.inClusterWithPackingGraph_card P hstay
+      (H.hairConnector i).toPathPacking).trans hcard⟩
 
 /-- The local perfect left-to-`x` linkage in the hair-local graph still stays
 inside the base cluster. -/
@@ -780,7 +798,8 @@ theorem exists_left_x_perfect_linkage_inHairLocalGraph_with_staysIn
   rcases H.exists_left_x_perfect_linkage i with ⟨P, hcard, hstay⟩
   refine ⟨P.inClusterWithPackingGraph hstay
     (H.hairConnector i).toPathPacking, ?_, ?_⟩
-  · simpa using hcard
+  · exact (PerfectPathPacking.inClusterWithPackingGraph_card P hstay
+      (H.hairConnector i).toPathPacking).trans hcard
   · exact PerfectPathPacking.inClusterWithPackingGraph_staysIn P hstay
       (H.hairConnector i).toPathPacking
 
@@ -860,7 +879,9 @@ theorem hairConnector_inHairLocalGraph_source_ne_target
     (a : (H.hairConnector_inHairLocalGraph i).Index) :
     ((H.hairConnector_inHairLocalGraph i).path a).source ≠
       ((H.hairConnector_inHairLocalGraph i).path a).target := by
-  simpa using H.hairConnector_source_ne_target i a
+  rw [H.hairConnector_inHairLocalGraph_path_source i a,
+    H.hairConnector_inHairLocalGraph_path_target i a]
+  exact H.hairConnector_source_ne_target i a
 
 /-- The target of a local hair-connector path is adjacent to the penultimate
 vertex of that path. -/
@@ -923,11 +944,9 @@ theorem exists_hairLocalGraph_neighbor_of_mem_y
         (PerfectPathPacking.target_indexOfTarget
           (H.hairConnector_inHairLocalGraph i) ⟨y, hy⟩)
     simpa [a] using h
-  have htarget_original :
-      ((H.hairConnector i).path a).target = y := by
-    simpa using htarget
-  exact ⟨((H.hairConnector_inHairLocalGraph i).path a).walk.penultimate,
-    by simpa [htarget_original] using
+  exact Eq.mp
+    (congrArg (fun x : V => ∃ z : V, (H.hairLocalGraph i).Adj x z) htarget)
+    ⟨((H.hairConnector_inHairLocalGraph i).path a).walk.penultimate,
       H.hairConnector_inHairLocalGraph_target_adj_penultimate i a⟩
 
 /-- The unique neighbor of a `y_i` endpoint in the hair-local graph is the
@@ -949,7 +968,7 @@ theorem hairLocalGraph_neighbor_eq_penultimate_of_mem_y
     simpa [a] using h
   have htarget_original :
       ((H.hairConnector i).path a).target = y := by
-    simpa using htarget
+    exact (H.hairConnector_inHairLocalGraph_path_target i a).symm.trans htarget
   have hy_hair : y ∈ H.hairCluster i := H.y_subset_hairCluster i hy
   have hy_not_cluster : y ∉ H.base.cluster i := by
     intro hy_cluster
@@ -1006,7 +1025,7 @@ theorem hairLocalGraph_degreeEquals_one_of_mem_y
     simpa [a] using h
   have htarget_original :
       ((H.hairConnector i).path a).target = y := by
-    simpa using htarget
+    exact (H.hairConnector_inHairLocalGraph_path_target i a).symm.trans htarget
   refine degreeEquals_one_of_unique_neighbor
     (u := ((H.hairConnector i).path a).walk.penultimate) ?hadj ?huniq
   · simpa [htarget_original] using
@@ -1033,7 +1052,8 @@ theorem exists_left_right_linkage_inHairLocalGraph_with_staysIn
   rcases H.exists_left_right_linkage i with ⟨P, hcard, hstay⟩
   refine ⟨P.inClusterWithPackingGraph hstay
     (H.hairConnector i).toPathPacking, ?_, ?_⟩
-  · simpa using hcard
+  · exact (PathPacking.inClusterWithPackingGraph_card P hstay
+      (H.hairConnector i).toPathPacking).trans hcard
   · exact PathPacking.inClusterWithPackingGraph_staysIn P hstay
       (H.hairConnector i).toPathPacking
 
@@ -1062,12 +1082,9 @@ theorem left_x_hairConnector_concat_isPath
   have hvQ_original :
       v ∈ ((H.hairConnector i).path
         (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) a)).vertexSet := by
-    change v ∈ (((H.hairConnector i).inOwnClusterWithPackingGraph
-      (H.base.cluster i)).path
-        (P.indexOfSourceTarget ((H.hairConnector i).inOwnClusterWithPackingGraph
-          (H.base.cluster i)) a)).vertexSet at hvQ
-    rw [PerfectPathPacking.inOwnClusterWithPackingGraph_path_vertexSet] at hvQ
-    exact hvQ
+    have hvertex := H.hairConnector_inHairLocalGraph_path_vertexSet i
+      (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) a)
+    exact Eq.mp (congrArg (fun S : Finset V => v ∈ S) hvertex) hvQ
   have hendpoint :=
     H.hairConnector_internally_disjoint_baseClusters i i
       (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) a)
@@ -1125,7 +1142,9 @@ theorem left_x_hairConnector_concat_nodeDisjoint
     have hvQ_original :
         v ∈ ((H.hairConnector i).path
           (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) b)).vertexSet := by
-      simpa using hvQ
+      have hvertex := H.hairConnector_inHairLocalGraph_path_vertexSet i
+        (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) b)
+      exact Eq.mp (congrArg (fun S : Finset V => v ∈ S) hvertex) hvQ
     have hendpoint :=
       H.hairConnector_internally_disjoint_baseClusters i i
         (P.indexOfSourceTarget (H.hairConnector_inHairLocalGraph i) b)

@@ -69,10 +69,10 @@ noncomputable def contractedPathGraph {V : Type u} [DecidableEq V]
     x ≠ y ∧
       ∃ u ∈ contractedPathBranch x,
         ∃ v ∈ contractedPathBranch y, G.Adj u v
-  symm := by
+  symm := ⟨by
     intro x y hxy
     rcases hxy with ⟨hxy_ne, u, hu, v, hv, huv⟩
-    exact ⟨hxy_ne.symm, v, hv, u, hu, G.symm huv⟩
+    exact ⟨hxy_ne.symm, v, hv, u, hu, G.symm.symm u v huv⟩⟩
   loopless := ⟨by
     intro x hxx
     exact hxx.1 rfl⟩
@@ -110,8 +110,9 @@ theorem branch_connected (x : ContractedPathVertex P I) :
       simpa [contractedPathBranch] using
         GraphPath.connected_induce_vertexSet (P.path i.1)
   | inr v =>
-      simpa [contractedPathBranch] using
-        GraphPath.connected_induce_vertexSet (GraphPath.refl G v.1)
+      have hconn := GraphPath.connected_induce_vertexSet (GraphPath.refl G v.1)
+      rw [GraphPath.refl_vertexSet] at hconn
+      exact hconn
 
 /-- Distinct contracted vertices have disjoint branch sets. -/
 theorem branch_disjoint ⦃x y : ContractedPathVertex P I⦄
@@ -128,20 +129,24 @@ theorem branch_disjoint ⦃x y : ContractedPathVertex P I⦄
             cases i
             cases j
             simp_all
-          · simpa [contractedPathBranch] using
-              P.toPathPacking.node_disjoint hij
+          · change GraphPath.NodeDisjoint (P.path i.1) (P.path j.1)
+            exact P.toPathPacking.node_disjoint hij
       | inr v =>
           rw [Finset.disjoint_left]
           intro z hz hvz
           have hzv : z = v.1 := by simpa [contractedPathBranch] using hvz
-          exact v.2 i.1 i.2 (by simpa [hzv] using hz)
+          subst z
+          change v.1 ∈ (P.path i.1).vertexSet at hz
+          exact v.2 i.1 i.2 hz
   | inr v =>
       cases y with
       | inl j =>
           rw [Finset.disjoint_left]
           intro z hzv hzj
           have hzv' : z = v.1 := by simpa [contractedPathBranch] using hzv
-          exact v.2 j.1 j.2 (by simpa [hzv'] using hzj)
+          subst z
+          change v.1 ∈ (P.path j.1).vertexSet at hzj
+          exact v.2 j.1 j.2 hzj
       | inr w =>
           rw [Finset.disjoint_left]
           intro z hzv hzw
@@ -444,7 +449,7 @@ theorem support_subset_projection : {x y : V} → (W : G.Walk x y) →
           exact ⟨v, by simp [hv], hvz⟩
 
 /-- Turn the projected walk into a simple graph path. -/
-noncomputable def toGraphPath (R : GraphPath G) :
+noncomputable abbrev toGraphPath (R : GraphPath G) :
     GraphPath (contractedPathGraph G P I) where
   source := projection (P := P) (I := I) R.source
   target := projection (P := P) (I := I) R.target

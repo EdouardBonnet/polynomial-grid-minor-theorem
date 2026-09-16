@@ -35,15 +35,19 @@ variable {S T S' T' : Finset V}
     (P : EndpointCleanPathPacking G S T) :
     P.toPathPacking.sourceSet = P.sourceSet := by
   classical
-  simp only [PathPacking.sourceSet, sourceSet, toPathPacking_orient_path]
-  rfl
+  rw [PathPacking.sourceSet, sourceSet]
+  apply Finset.image_congr
+  intro i _hi
+  exact congrArg GraphPath.source (P.toPathPacking_orient_path i)
 
 @[simp] theorem toPathPacking_targetSet
     (P : EndpointCleanPathPacking G S T) :
     P.toPathPacking.targetSet = P.targetSet := by
   classical
-  simp only [PathPacking.targetSet, targetSet, toPathPacking_orient_path]
-  rfl
+  rw [PathPacking.targetSet, targetSet]
+  apply Finset.image_congr
+  intro i _hi
+  exact congrArg GraphPath.target (P.toPathPacking_orient_path i)
 
 /-- Reverse every path in an endpoint-clean packing. -/
 noncomputable def reverse (P : EndpointCleanPathPacking G S T) :
@@ -74,15 +78,21 @@ noncomputable def reverse (P : EndpointCleanPathPacking G S T) :
 
 @[simp] theorem reverse_sourceSet (P : EndpointCleanPathPacking G S T) :
     P.reverse.sourceSet = P.targetSet := by
-  classical
   ext v
-  simp [reverse, sourceSet, targetSet]
+  rw [P.reverse.mem_sourceSet, P.mem_targetSet]
+  constructor <;> rintro ⟨i, hi⟩
+  · change P.Index at i
+    exact ⟨i, by simpa [reverse] using hi⟩
+  · exact ⟨i, by simpa [reverse] using hi⟩
 
 @[simp] theorem reverse_targetSet (P : EndpointCleanPathPacking G S T) :
     P.reverse.targetSet = P.sourceSet := by
-  classical
   ext v
-  simp [reverse, sourceSet, targetSet]
+  rw [P.reverse.mem_targetSet, P.mem_sourceSet]
+  constructor <;> rintro ⟨i, hi⟩
+  · change P.Index at i
+    exact ⟨i, by simpa [reverse] using hi⟩
+  · exact ⟨i, by simpa [reverse] using hi⟩
 
 @[simp] theorem reverse_path_vertexSet
     (P : EndpointCleanPathPacking G S T) (i : P.reverse.Index) :

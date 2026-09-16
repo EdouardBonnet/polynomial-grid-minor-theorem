@@ -1683,8 +1683,9 @@ theorem ThresholdSequence.two_second_slice_card_ge
     exact Finset.mem_inter.2 ⟨by
       simpa [tau] using hqTwo
     , by
-      simpa [tau] using mem_qOne_card_of_not_mem_qZero_card
-        theta Qpack hnotZero⟩
+      have hsucc : (1 : Fin 2).succ = Fin.last 2 := by rfl
+      rw [hsucc, tau.threshold_last]
+      exact mem_qOne_card_of_not_mem_qZero_card theta Qpack hnotZero⟩
   have hIcard : w ≤ I.card := by
     have hq0 := qZero_card_le theta Qpack (Fintype.card V)
     have hwq0 : w + (theta.qZero Qpack (Fintype.card V)).card ≤
@@ -2084,13 +2085,13 @@ theorem section42_discard_bad_paths
 
 /-- The row linkage `R = ⋃ᵢ R_i` from Section 4.2, as a subpacking of the
 original `A`--`B` linkage `P`. -/
-noncomputable def rowPacking
+noncomputable abbrev rowPacking
     (Gamma : PseudoGrid G A B X g D P Q) : PathPacking G A B :=
   P.toPathPacking.restrictIndexSet Gamma.reservedUnion
 
 /-- The row linkage `R = ⋃ᵢ R_i` as a perfect linkage with terminal sets
 `A'` and `B'`, the sources and targets of the selected row paths. -/
-noncomputable def rowPerfectPacking
+noncomputable abbrev rowPerfectPacking
     (Gamma : PseudoGrid G A B X g D P Q) :
     PerfectPathPacking G (P.sourceSet Gamma.reservedUnion)
       (P.targetSet Gamma.reservedUnion) :=
@@ -2109,8 +2110,9 @@ theorem rowPacking_edgeSet_subset_P
   classical
   intro e he
   rcases (Gamma.rowPacking.mem_edgeSet).1 he with ⟨i, hei⟩
+  change e ∈ (P.path i.1).edgeSet at hei
   exact (P.toPathPacking.mem_edgeSet).2
-    ⟨i.1, by simpa [rowPacking] using hei⟩
+    ⟨i.1, hei⟩
 
 /-- Edges of the unselected part of the original `P` linkage are original
 `P` edges. -/
@@ -2142,7 +2144,9 @@ theorem rowPacking_edge_not_mem_remainingPerfectPacking
     GraphPath.edgeDisjoint_of_nodeDisjoint
       (P.toPathPacking.node_disjoint hne)
   exact Finset.disjoint_left.mp hEdgeDisj
-    (by simpa [rowPacking] using her)
+    (by
+      change e ∈ (P.path r.1).edgeSet at her
+      exact her)
     (by simpa using hep)
 
 @[simp] theorem rowPerfectPacking_card
@@ -2150,6 +2154,20 @@ theorem rowPacking_edge_not_mem_remainingPerfectPacking
     Gamma.rowPerfectPacking.card = Gamma.reservedUnion.card := by
   classical
   simp [rowPerfectPacking]
+
+@[simp] theorem rowPerfectPacking_path_vertexSet
+    (Gamma : PseudoGrid G A B X g D P Q)
+    (r : Gamma.rowPerfectPacking.Index) :
+    (Gamma.rowPerfectPacking.path r).vertexSet =
+      (Gamma.rowPacking.path r).vertexSet := by
+  rfl
+
+@[simp] theorem rowPerfectPacking_path_edgeSet
+    (Gamma : PseudoGrid G A B X g D P Q)
+    (r : Gamma.rowPerfectPacking.Index) :
+    (Gamma.rowPerfectPacking.path r).edgeSet =
+      (Gamma.rowPacking.path r).edgeSet := by
+  rfl
 
 /-- The retained `Q''` subfamily, viewed as a path packing with one endpoint in
 `X` and the other endpoint unconstrained.  The formal terminal set on the
@@ -2174,7 +2192,9 @@ noncomputable def goodQPathPacking
     (Gamma : PseudoGrid G A B X g D P Q) :
     Gamma.goodQPathPacking.card = Gamma.goodQSet.card := by
   classical
-  simp [goodQPathPacking, PathPacking.card]
+  change Fintype.card {j : Gamma.QIndex // j ∈ Gamma.goodQSet} =
+    Gamma.goodQSet.card
+  exact Fintype.card_coe Gamma.goodQSet
 
 /-- Every retained auxiliary edge is an original `Q` edge. -/
 theorem goodQPathPacking_edgeSet_subset_Q
@@ -2218,7 +2238,9 @@ theorem remaining_path_disjoint_rowPacking_vertexSet
     apply hpnot
     simp [h, r.2]
   exact Finset.disjoint_left.mp (P.toPathPacking.node_disjoint hpr)
-    hvP (by simpa [rowPacking] using hvR)
+    hvP (by
+      change v ∈ (P.path r.1).vertexSet at hvR
+      exact hvR)
 
 /-- A `P`-path outside the selected rows is disjoint from every retained
 auxiliary path, hence from the retained auxiliary packing. -/
@@ -2446,7 +2468,11 @@ theorem rowPerfectPacking_spanningGraph_le_hPrimeGraph
     Gamma.rowPerfectPacking.toPathPacking.spanningGraph ≤ Gamma.hPrimeGraph := by
   intro u v huv
   apply Gamma.rowPacking_spanningGraph_le_hPrimeGraph
-  simpa [rowPerfectPacking, rowPacking] using huv
+  change (P.restrictIndexSet Gamma.reservedUnion).toPathPacking.spanningGraph.Adj
+    u v at huv
+  change (P.toPathPacking.restrictIndexSet Gamma.reservedUnion).spanningGraph.Adj
+    u v
+  exact huv
 
 /-- The row linkage viewed inside `H'`. -/
 noncomputable def rowPackingInHPrime
@@ -2464,7 +2490,7 @@ noncomputable def rowPackingInHPrime
 
 /-- The row linkage viewed as a perfect linkage inside `H'`, with terminal
 sets `A'` and `B'`. -/
-noncomputable def rowPerfectPackingInHPrime
+noncomputable abbrev rowPerfectPackingInHPrime
     [Fintype V]
     (Gamma : PseudoGrid G A B X g D P Q) :
     PerfectPathPacking Gamma.hPrimeGraph
@@ -2477,6 +2503,16 @@ noncomputable def rowPerfectPackingInHPrime
     (Gamma : PseudoGrid G A B X g D P Q) :
     Gamma.rowPerfectPackingInHPrime.card = Gamma.rowPerfectPacking.card := by
   simp [rowPerfectPackingInHPrime]
+
+@[simp] theorem rowPerfectPackingInHPrime_path_vertexSet
+    [Fintype V]
+    (Gamma : PseudoGrid G A B X g D P Q)
+    (r : Gamma.rowPerfectPackingInHPrime.Index) :
+    (Gamma.rowPerfectPackingInHPrime.path r).vertexSet =
+      (Gamma.rowPacking.path r).vertexSet := by
+  simp [rowPerfectPackingInHPrime, rowPerfectPacking, rowPacking,
+    PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
+    PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer]
 
 /-- The graph induced by the vertices of the row linkage inside the row
 spanning graph.  This is the vertex-exact support graph needed for the
@@ -2496,12 +2532,16 @@ theorem rowPerfectPacking_spanningGraph_le_rowPacking_spanningGraph
     Gamma.rowPerfectPacking.toPathPacking.spanningGraph ≤
       Gamma.rowPacking.spanningGraph := by
   intro u v huv
-  simpa [rowPerfectPacking, rowPacking] using huv
+  change (P.restrictIndexSet Gamma.reservedUnion).toPathPacking.spanningGraph.Adj
+    u v at huv
+  change (P.toPathPacking.restrictIndexSet Gamma.reservedUnion).spanningGraph.Adj
+    u v
+  exact huv
 
 /-- The row perfect packing, first viewed in the spanning graph of the selected
 row paths.  This named intermediate avoids repeating the same `mapLe`
 coercion in the induced row-support graph. -/
-noncomputable def rowPerfectPackingInRowSpanningGraph
+noncomputable abbrev rowPerfectPackingInRowSpanningGraph
     (Gamma : PseudoGrid G A B X g D P Q) :
     PerfectPathPacking Gamma.rowPacking.spanningGraph
       (P.sourceSet Gamma.reservedUnion) (P.targetSet Gamma.reservedUnion) :=
@@ -2514,6 +2554,24 @@ noncomputable def rowPerfectPackingInRowSpanningGraph
       Gamma.rowPerfectPacking.card := by
   simp [rowPerfectPackingInRowSpanningGraph]
 
+@[simp] theorem rowPerfectPackingInRowSpanningGraph_path_vertexSet
+    (Gamma : PseudoGrid G A B X g D P Q)
+    (r : Gamma.rowPerfectPackingInRowSpanningGraph.Index) :
+    (Gamma.rowPerfectPackingInRowSpanningGraph.path r).vertexSet =
+      (Gamma.rowPacking.path r).vertexSet := by
+  simp [rowPerfectPackingInRowSpanningGraph, rowPerfectPacking, rowPacking,
+    PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
+    PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer]
+
+@[simp] theorem rowPerfectPackingInRowSpanningGraph_path_edgeSet
+    (Gamma : PseudoGrid G A B X g D P Q)
+    (r : Gamma.rowPerfectPackingInRowSpanningGraph.Index) :
+    (Gamma.rowPerfectPackingInRowSpanningGraph.path r).edgeSet =
+      (Gamma.rowPacking.path r).edgeSet := by
+  simp [rowPerfectPackingInRowSpanningGraph, rowPerfectPacking, rowPacking,
+    PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
+    PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer]
+
 /-- Every row path of the row-spanning linkage stays inside the row-packing
 vertex set. -/
 theorem rowPerfectPackingInRowSpanningGraph_staysIn
@@ -2523,10 +2581,8 @@ theorem rowPerfectPackingInRowSpanningGraph_staysIn
   intro r v hv
   exact (Gamma.rowPacking.mem_vertexSet).2
     ⟨r, by
-      simpa [rowPerfectPackingInRowSpanningGraph, rowPerfectPacking, rowPacking,
-        PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
-        PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer]
-        using hv⟩
+      have hset := Gamma.rowPerfectPackingInRowSpanningGraph_path_vertexSet r
+      exact Eq.mp (congrArg (fun S : Finset V => v ∈ S) hset) hv⟩
 
 /-- The source terminal set of the row linkage in the row-support vertex type. -/
 noncomputable abbrev rowSupportSourceSet
@@ -2581,9 +2637,8 @@ noncomputable def rowPerfectPackingInRowSupport
         (Gamma.rowPerfectPackingInRowSpanningGraph_staysIn r)).vertexSet ↔
       v.1 ∈ (Gamma.rowPacking.path r).vertexSet
   rw [GraphPath.mem_induce_vertexSet]
-  simp [rowPerfectPackingInRowSpanningGraph, rowPerfectPacking, rowPacking,
-    PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
-    PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer]
+  have hset := Gamma.rowPerfectPackingInRowSpanningGraph_path_vertexSet r
+  exact (congrArg (fun S : Finset V => v.1 ∈ S) hset).to_iff
 
 /-- The row-support graph is a minor of the original graph: first embed the
 induced row-support graph into the row spanning subgraph, then use monotonicity
@@ -3252,9 +3307,9 @@ theorem rowSupportGraph_adj_mem_rowPerfectPackingInRowSupport_edgeSet
         Gamma.rowPacking.vertexSet
         (Gamma.rowPerfectPackingInRowSpanningGraph_staysIn r)).edgeSet
     rw [GraphPath.mem_induce_edgeSet]
-    simpa [Sym2.map_mk, rowPerfectPackingInRowSpanningGraph, rowPerfectPacking,
-      rowPacking, PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
-      PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer] using he
+    have hset := Gamma.rowPerfectPackingInRowSpanningGraph_path_edgeSet r
+    exact Eq.mpr
+      (congrArg (fun S : Finset (Sym2 V) => s(u.1, v.1) ∈ S) hset) he
   exact (Gamma.rowPerfectPackingInRowSupport.toPathPacking.mem_edgeSet).2
     ⟨r, hePath⟩
 
@@ -3294,9 +3349,9 @@ theorem rowSupportGraph_adj_mem_rowPerfectPackingInRowSupport_path_edgeSet
       Gamma.rowPacking.vertexSet
       (Gamma.rowPerfectPackingInRowSpanningGraph_staysIn r)).edgeSet
   rw [GraphPath.mem_induce_edgeSet]
-  simpa [Sym2.map_mk, rowPerfectPackingInRowSpanningGraph, rowPerfectPacking,
-    rowPacking, PerfectPathPacking.mapLe, PerfectPathPacking.inSpanningGraph,
-    PathPacking.mapLe, PathPacking.inSpanningGraph, PathPacking.transfer] using heRow
+  have hset := Gamma.rowPerfectPackingInRowSpanningGraph_path_edgeSet r
+  exact Eq.mpr
+    (congrArg (fun S : Finset (Sym2 V) => s(u.1, v.1) ∈ S) hset) heRow
 
 /-- Every path in the row-support graph uses only row-linkage edges. -/
 theorem rowSupportGraph_path_edgeSet_subset_rowPerfectPackingInRowSupport
@@ -3986,11 +4041,13 @@ theorem exists_replacement_pair_of_full_delete_linkage
     P.restrictIndexSet Gamma.remaining
   have hSdisj :
       Disjoint (P.sourceSet Gamma.reservedUnion) (P.sourceSet Gamma.remaining) := by
-    simpa [PseudoGrid.remaining] using
+    simpa [PseudoGrid.remaining, PseudoGrid.reservedUnion,
+      pseudoGridRemaining] using
       P.sourceSet_disjoint_sdiff Gamma.reservedUnion
   have hTdisj :
       Disjoint (P.targetSet Gamma.reservedUnion) (P.targetSet Gamma.remaining) := by
-    simpa [PseudoGrid.remaining] using
+    simpa [PseudoGrid.remaining, PseudoGrid.reservedUnion,
+      pseudoGridRemaining] using
       P.targetSet_disjoint_sdiff Gamma.reservedUnion
   have hnode : LperfectG.toPathPacking.MutuallyNodeDisjoint Prem.toPathPacking := by
     intro i j
@@ -4007,11 +4064,13 @@ theorem exists_replacement_pair_of_full_delete_linkage
     LperfectG.disjointUnion Prem hSdisj hTdisj hnode
   have hSourceUnion :
       P.sourceSet Gamma.reservedUnion ∪ P.sourceSet Gamma.remaining = A := by
-    simpa [PseudoGrid.remaining] using
+    simpa [PseudoGrid.remaining, PseudoGrid.reservedUnion,
+      pseudoGridRemaining] using
       P.sourceSet_union_sdiff_eq_left Gamma.reservedUnion
   have hTargetUnion :
       P.targetSet Gamma.reservedUnion ∪ P.targetSet Gamma.remaining = B := by
-    simpa [PseudoGrid.remaining] using
+    simpa [PseudoGrid.remaining, PseudoGrid.reservedUnion,
+      pseudoGridRemaining] using
       P.targetSet_union_sdiff_eq_right Gamma.reservedUnion
   let Pnew : PerfectPathPacking G A B :=
     Punion.copyTerminals hSourceUnion hTargetUnion
@@ -4164,7 +4223,9 @@ theorem goodQPathPacking_intersects_rowPacking
   intro v hvP hvQ
   exact Finset.disjoint_left.mp h
     (by simpa [goodQPathPacking] using hvQ)
-    (by simpa [rowPacking, r] using hvP)
+    (by
+      change v ∈ (P.path r.1).vertexSet
+      exact hvP)
 
 /-- A row path intersected by a retained auxiliary path. -/
 noncomputable def goodQContactRow
@@ -4273,10 +4334,11 @@ theorem goodQContactPackingInHPrime_intersects_rowPerfectPackingInHPrime
   exact ⟨Gamma.goodQContactVertex j,
     by simp [goodQContactPackingInHPrime],
     by
-      simpa [rowPerfectPackingInHPrime, PerfectPathPacking.mapLe,
-        PerfectPathPacking.inSpanningGraph, PathPacking.mapLe,
-        PathPacking.inSpanningGraph, PathPacking.transfer, r]
-        using Gamma.goodQContactVertex_mem_contactRow j⟩
+      have hv := Gamma.goodQContactVertex_mem_contactRow j
+      have hset := Gamma.rowPerfectPackingInHPrime_path_vertexSet r
+      exact Eq.mpr
+        (congrArg (fun S : Finset V => Gamma.goodQContactVertex j ∈ S) hset)
+        hv⟩
 
 /-- The contracted retained auxiliary family inside the row-support graph.  The
 vertex type is already the set of row-linkage vertices, so each retained `Q''`
@@ -4491,8 +4553,10 @@ theorem section42_slicing_minor_of_pseudoGrid_rowSupport
   rcases PathSlicing.exists_slicing_of_linkageOrdering
       theta Qpack M w hM
       (by
-        simpa [R, Qpack] using
-          Gamma.goodQContactPackingInRowSupport_intersects_rowPerfectPackingInRowSupport)
+        change PathSlicing.PathPackingIntersectsLinkage
+          Gamma.rowPerfectPackingInRowSupport
+          Gamma.goodQContactPackingInRowSupport
+        exact Gamma.goodQContactPackingInRowSupport_intersects_rowPerfectPackingInRowSupport)
       hcard' with
     ⟨sigma, hwidth⟩
   refine ⟨W, inferInstance, inferInstance, H, A', B', Finset.univ, Finset.univ,
@@ -4516,7 +4580,9 @@ theorem goodQPathPacking_intersects_rowPerfectPacking
   intro v hvQ hvR
   exact Finset.disjoint_left.mp h
     (by simpa [goodQPathPacking] using hvQ)
-    (by simpa [rowPerfectPacking] using hvR)
+    (by
+      change v ∈ (P.path r.1).vertexSet at hvR
+      exact hvR)
 
 /-- Property I1 inside `H'`, with the row family viewed as the perfect linkage
 on `A'` and `B'`. -/

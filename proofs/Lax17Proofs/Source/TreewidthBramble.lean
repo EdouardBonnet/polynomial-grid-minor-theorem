@@ -41,7 +41,7 @@ theorem refl (hA : A.Nonempty) : Touches G A A := by
 theorem symm (h : Touches G A B) : Touches G B A := by
   rcases h with h | ⟨a, ha, b, hb, hab⟩
   · exact Or.inl (by simpa [Finset.inter_comm] using h)
-  · exact Or.inr ⟨b, hb, a, ha, G.symm hab⟩
+  · exact Or.inr ⟨b, hb, a, ha, G.symm.symm a b hab⟩
 
 theorem mono (h : Touches G A B) (hAC : A ⊆ C) (hBD : B ⊆ D) :
     Touches G C D := by
@@ -147,7 +147,8 @@ theorem reachable_meetingNodes_of_walk {A : Finset V} {u v : V}
         exact mem_meetingNodes_iff D |>.2
           ⟨x, hn, hp x (by simp)⟩
       have hreach := D.bag_indices_connected x ⟨i, hui⟩ ⟨j, hvj⟩
-      simpa using hreach.map (D.tree.induceHomOfLE hsub).toHom
+      convert hreach.map (D.tree.induceHomOfLE hsub).toHom using 1 <;>
+        apply Subtype.ext <;> rfl
   | @cons u w v huw q ih =>
       obtain ⟨e, hue, hwe⟩ := D.edge_mem_bag huw
       have huA : u ∈ A := hp u (by simp)
@@ -161,7 +162,7 @@ theorem reachable_meetingNodes_of_walk {A : Finset V} {u v : V}
         intro x hx
         exact hp x (by simp [hx])
       have hsecond := ih hq hwe hvj
-      simpa using hfirst.trans hsecond
+      convert hfirst.trans hsecond using 1 <;> apply Subtype.ext <;> rfl
 
 /-- The bags meeting a nonempty connected vertex set induce a connected
 subgraph of the decomposition tree. -/

@@ -271,20 +271,10 @@ def reindex {κ : Type*} [Fintype κ] (e : κ ≃ ι)
 to the original edge instances. -/
 def reindexEdgeEquiv {κ : Type*} [Fintype κ] (e : κ ≃ ι)
     (F : RoundFamily X ι) :
-    (F.reindex e).Edge ≃ F.Edge where
-  toFun a := ⟨e a.1, a.2⟩
-  invFun a := ⟨e.symm a.1, by
-    simpa [reindex] using a.2⟩
-  left_inv := by
-    intro a
-    cases a with
-    | mk k x =>
-        simp [reindex]
-  right_inv := by
-    intro a
-    cases a with
-    | mk i x =>
-        simp [reindex]
+    (F.reindex e).Edge ≃ F.Edge := by
+  change (Σ k : κ, {x : X // x ∈ (F.cut (e k)).left}) ≃ F.Edge
+  exact Equiv.sigmaCongrLeft
+    (β := fun i : ι => {x : X // x ∈ (F.cut i).left}) e
 
 omit [Fintype ι] in
 @[simp]
@@ -325,15 +315,25 @@ theorem edgeBoundary_card_reindex {κ : Type*} [Fintype κ]
       have hsource :
           (F.reindex e).edgeSource ((F.reindexEdgeEquiv e).symm a) =
             F.edgeSource a := by
-        have h :=
-          congrArg F.edgeSource ((F.reindexEdgeEquiv e).right_inv a)
-        simpa only [reindexEdgeEquiv_edgeSource] using h
+        calc
+          (F.reindex e).edgeSource ((F.reindexEdgeEquiv e).symm a) =
+              F.edgeSource
+                (F.reindexEdgeEquiv e ((F.reindexEdgeEquiv e).symm a)) :=
+            (F.reindexEdgeEquiv_edgeSource e
+              ((F.reindexEdgeEquiv e).symm a)).symm
+          _ = F.edgeSource a :=
+            congrArg F.edgeSource ((F.reindexEdgeEquiv e).apply_symm_apply a)
       have htarget :
           (F.reindex e).edgeTarget ((F.reindexEdgeEquiv e).symm a) =
             F.edgeTarget a := by
-        have h :=
-          congrArg F.edgeTarget ((F.reindexEdgeEquiv e).right_inv a)
-        simpa only [reindexEdgeEquiv_edgeTarget] using h
+        calc
+          (F.reindex e).edgeTarget ((F.reindexEdgeEquiv e).symm a) =
+              F.edgeTarget
+                (F.reindexEdgeEquiv e ((F.reindexEdgeEquiv e).symm a)) :=
+            (F.reindexEdgeEquiv_edgeTarget e
+              ((F.reindexEdgeEquiv e).symm a)).symm
+          _ = F.edgeTarget a :=
+            congrArg F.edgeTarget ((F.reindexEdgeEquiv e).apply_symm_apply a)
       unfold edgeCrosses
       rw [hsource, htarget]
       exact ha

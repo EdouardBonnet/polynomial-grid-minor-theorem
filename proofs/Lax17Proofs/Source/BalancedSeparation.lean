@@ -65,7 +65,7 @@ theorem symm (h : VertexSeparation G C Y Z) :
   refine ⟨h.right_subset, h.left_subset, ?_, ?_⟩
   · simpa [union_comm] using h.cover
   · intro u v huZ huY vY vZ huv
-    exact h.no_cross vY vZ huZ huY (G.symm huv)
+    exact h.no_cross vY vZ huZ huY (G.symm.symm u v huv)
 
 /-- No edge crosses from the right exclusive side to the left exclusive side
 either. -/
@@ -74,7 +74,7 @@ theorem no_cross_symm (h : VertexSeparation G C Y Z)
     (hvY : v ∈ Y) (hvZ : v ∉ Z) :
     ¬ G.Adj u v := by
   intro huv
-  exact h.no_cross hvY hvZ huZ huY (G.symm huv)
+  exact h.no_cross hvY hvZ huZ huY (G.symm.symm u v huv)
 
 /-- Both sides of a separation are subsets of `C`. -/
 theorem inter_subset_left (_h : VertexSeparation G C Y Z) :

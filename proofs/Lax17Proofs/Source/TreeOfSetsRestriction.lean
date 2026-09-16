@@ -45,8 +45,8 @@ noncomputable def restrictedInterface (T : TreeOfSetsSystem G m w)
   · exact (T.connector i j hij).sourceSet (I i j hij h)
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
-    exact (T.connector j i (T.metaTree.symm hij)).targetSet
-      (I j i (T.metaTree.symm hij) hji)
+    exact (T.connector j i (T.metaTree.adj_symm hij)).targetSet
+      (I j i (T.metaTree.adj_symm hij) hji)
 
 /-- The oriented restricted connector.  Both orientations of a meta-edge use
 the restriction selected in the increasing orientation. -/
@@ -55,7 +55,7 @@ noncomputable def restrictedConnector (T : TreeOfSetsSystem G m w)
     (hij : T.metaTree.Adj i j) :
     PerfectPathPacking G
       (T.restrictedInterface I i j hij)
-      (T.restrictedInterface I j i (T.metaTree.symm hij)) := by
+      (T.restrictedInterface I j i (T.metaTree.adj_symm hij)) := by
   classical
   by_cases h : i < j
   · let P := (T.connector i j hij).restrictIndexSet (I i j hij h)
@@ -64,8 +64,8 @@ noncomputable def restrictedConnector (T : TreeOfSetsSystem G m w)
       (by simp [restrictedInterface, not_lt_of_ge h.le])
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
-    let P := ((T.connector j i (T.metaTree.symm hij)).restrictIndexSet
-      (I j i (T.metaTree.symm hij) hji)).reverse
+    let P := ((T.connector j i (T.metaTree.adj_symm hij)).restrictIndexSet
+      (I j i (T.metaTree.adj_symm hij) hji)).reverse
     exact P.copyTerminals
       (by simp [restrictedInterface, h])
       (by simp [restrictedInterface, hji])
@@ -82,8 +82,8 @@ theorem restrictedInterface_subset_interface
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [restrictedInterface, h, hji] using
-      (T.connector j i (T.metaTree.symm hij)).targetSet_subset_right
-        (I j i (T.metaTree.symm hij) hji)
+      (T.connector j i (T.metaTree.adj_symm hij)).targetSet_subset_right
+        (I j i (T.metaTree.adj_symm hij) hji)
 
 /-- A restricted endpoint lies in its cluster. -/
 theorem restrictedInterface_subset_cluster
@@ -114,7 +114,7 @@ theorem restrictedInterface_card
     (i j : Fin m) (hij : T.metaTree.Adj i j) :
     (T.restrictedInterface I i j hij).card =
       if h : i < j then (I i j hij h).card
-      else (I j i (T.metaTree.symm hij)
+      else (I j i (T.metaTree.adj_symm hij)
         (lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm)).card := by
   classical
   by_cases h : i < j
@@ -162,7 +162,7 @@ theorem interface_card (D : StrongRestrictionData T W)
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     simpa [restrictedInterface, h, hji] using
-      D.indexSet_card j i (T.metaTree.symm hij) hji
+      D.indexSet_card j i (T.metaTree.adj_symm hij) hji
 
 /-- Every oriented restricted connector has the requested width. -/
 theorem connector_card (D : StrongRestrictionData T W)
@@ -180,20 +180,22 @@ theorem connector_internallyDisjointFromSet
       (T.cluster r) := by
   classical
   by_cases h : i < j
-  · simpa [restrictedConnector, h, not_lt_of_ge h.le] using
-      (T.connector i j hij).restrictIndexSet_internallyDisjointFromSet
+  · simp only [restrictedConnector, h, dite_true]
+    apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
+    exact (T.connector i j hij).restrictIndexSet_internallyDisjointFromSet
         (D.indexSet i j hij h)
         (T.connector_internally_disjoint_cluster i j hij r)
   · have hji : j < i :=
       lt_of_le_of_ne (le_of_not_gt h) hij.ne.symm
     have hrestricted :=
-      (T.connector j i (T.metaTree.symm hij))
+      (T.connector j i (T.metaTree.adj_symm hij))
         |>.restrictIndexSet_internallyDisjointFromSet
-            (D.indexSet j i (T.metaTree.symm hij) hji)
+            (D.indexSet j i (T.metaTree.adj_symm hij) hji)
             (T.connector_internally_disjoint_cluster j i
-              (T.metaTree.symm hij) r)
-    simpa [restrictedConnector, h, hji] using
-      PerfectPathPacking.reverse_internallyDisjointFromSet _ hrestricted
+              (T.metaTree.adj_symm hij) r)
+    simp only [restrictedConnector, h, dite_false]
+    apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
+    exact PerfectPathPacking.reverse_internallyDisjointFromSet _ hrestricted
 
 /-- In the increasing orientation, restriction only removes vertices from the
 trace of the original connector family. -/
@@ -210,13 +212,7 @@ private theorem reverse_vertexSet_eq
     {S U : Finset V} (P : PerfectPathPacking G S U) :
     P.reverse.toPathPacking.vertexSet = P.toPathPacking.vertexSet := by
   classical
-  ext v
-  rw [PathPacking.mem_vertexSet, PathPacking.mem_vertexSet]
-  constructor
-  · rintro ⟨a, ha⟩
-    exact ⟨a, by simpa using ha⟩
-  · rintro ⟨a, ha⟩
-    exact ⟨a, by simpa using ha⟩
+  simp [PathPacking.vertexSet, PerfectPathPacking.reverse] <;> rfl
 
 /-- In the decreasing orientation, the restricted connector is the reversal
 of a subfamily of the increasing (`j -> i`) original connector. -/
@@ -224,21 +220,21 @@ theorem connector_vertexSet_subset_of_not_lt
     (D : StrongRestrictionData T W) (i j : Fin m)
     (hij : T.metaTree.Adj i j) (hij_lt : ¬ i < j) :
     (T.restrictedConnector D.indexSet i j hij).toPathPacking.vertexSet ⊆
-      (T.connector j i (T.metaTree.symm hij)).toPathPacking.vertexSet := by
+      (T.connector j i (T.metaTree.adj_symm hij)).toPathPacking.vertexSet := by
   classical
   have hji : j < i :=
     lt_of_le_of_ne (le_of_not_gt hij_lt) hij.ne.symm
-  let P := (T.connector j i (T.metaTree.symm hij)).restrictIndexSet
-    (D.indexSet j i (T.metaTree.symm hij) hji)
+  let P := (T.connector j i (T.metaTree.adj_symm hij)).restrictIndexSet
+    (D.indexSet j i (T.metaTree.adj_symm hij) hji)
   calc
     (T.restrictedConnector D.indexSet i j hij).toPathPacking.vertexSet =
         P.reverse.toPathPacking.vertexSet := by
       simp [P, restrictedConnector, hij_lt]
     _ = P.toPathPacking.vertexSet := reverse_vertexSet_eq P
-    _ ⊆ (T.connector j i (T.metaTree.symm hij)).toPathPacking.vertexSet :=
+    _ ⊆ (T.connector j i (T.metaTree.adj_symm hij)).toPathPacking.vertexSet :=
       PerfectPathPacking.restrictIndexSet_vertexSet_subset
-        (T.connector j i (T.metaTree.symm hij))
-        (D.indexSet j i (T.metaTree.symm hij) hji)
+        (T.connector j i (T.metaTree.adj_symm hij))
+        (D.indexSet j i (T.metaTree.adj_symm hij) hji)
 
 /-- Restricted connector families on distinct meta-edges remain mutually
 node-disjoint. -/
@@ -270,7 +266,7 @@ theorem connector_mutuallyNodeDisjoint
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
         (T.connector_mutually_nodeDisjoint i j hij q p
-          (T.metaTree.symm hpq) hedge')
+          (T.metaTree.adj_symm hpq) hedge')
       exact hdisj.mono
         (subset_trans
           (PathPacking.path_vertexSet_subset_vertexSet
@@ -284,7 +280,7 @@ theorem connector_mutuallyNodeDisjoint
     · have hedge' : s(j, i) ≠ s(p, q) := by
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
-        (T.connector_mutually_nodeDisjoint j i (T.metaTree.symm hij)
+        (T.connector_mutually_nodeDisjoint j i (T.metaTree.adj_symm hij)
           p q hpq hedge')
       exact hdisj.mono
         (subset_trans
@@ -298,8 +294,8 @@ theorem connector_mutuallyNodeDisjoint
     · have hedge' : s(j, i) ≠ s(q, p) := by
         simpa [Sym2.eq_swap] using hedge
       have hdisj := PathPacking.vertexSet_disjoint_of_mutuallyNodeDisjoint
-        (T.connector_mutually_nodeDisjoint j i (T.metaTree.symm hij)
-          q p (T.metaTree.symm hpq) hedge')
+        (T.connector_mutually_nodeDisjoint j i (T.metaTree.adj_symm hij)
+          q p (T.metaTree.adj_symm hpq) hedge')
       exact hdisj.mono
         (subset_trans
           (PathPacking.path_vertexSet_subset_vertexSet

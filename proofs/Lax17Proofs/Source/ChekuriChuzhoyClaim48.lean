@@ -231,8 +231,12 @@ theorem exists_projected_pendant_perfectPathPacking
       Q.card = P.card := hQcard
       _ = P.targetSet.card := P.targetSet_card.symm
       _ = (baseSet P.targetSet hPT).card := by simp
+  have hPusedCard : Pused.card = P.card := by
+    change Fintype.card P.Index = Fintype.card P.Index
+    rfl
   exact ⟨Q.toPerfectOfCardEq hQleft hQright, by
-    simpa using hQcard⟩
+    change Q.orient.card = P.card
+    exact Q.orient_card.trans (hQcard.trans hPusedCard)⟩
 
 /-- Projecting all pendant copies of `U` recovers exactly `U`. -/
 @[simp] theorem baseSet_leavesOf

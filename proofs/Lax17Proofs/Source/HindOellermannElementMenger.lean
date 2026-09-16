@@ -98,9 +98,9 @@ def elementMengerGraph (H : FiniteEdgeIndexedGraph W)
       (y.Represents (H.left e) ∨ y.Represents (H.right e))) ∨
     (∃ e, y = .edge e ∧
       (x.Represents (H.left e) ∨ x.Represents (H.right e)))
-  symm := by
+  symm := ⟨by
     intro x y h
-    exact h.elim Or.inr Or.inl
+    exact h.elim Or.inr Or.inl⟩
   loopless := ⟨by
     intro x h
     rcases h with ⟨e, rfl, h⟩ | ⟨e, rfl, h⟩ <;>
@@ -200,9 +200,9 @@ theorem terminal_right_adj (e : H.Edge) (hright : H.right e ∈ terminals) (i : 
 def avoidingGraph (X : Finset (ElementMengerNode H terminals k)) :
     _root_.SimpleGraph (ElementMengerNode H terminals k) where
   Adj x y := (elementMengerGraph H terminals k).Adj x y ∧ x ∉ X ∧ y ∉ X
-  symm := by
+  symm := ⟨by
     intro x y h
-    exact ⟨(elementMengerGraph H terminals k).symm h.1, h.2.2, h.2.1⟩
+    exact ⟨(elementMengerGraph H terminals k).adj_symm h.1, h.2.2, h.2.1⟩⟩
   loopless := ⟨by
     intro x h
     exact (elementMengerGraph H terminals k).loopless.irrefl x h.1⟩
@@ -316,7 +316,16 @@ noncomputable def elementSet {a b : W}
     (.edge e : ElementMengerNode H terminals k) ∈ removedEdgeNodes C k ↔
       e ∈ C.removedEdges := by
   classical
-  simp [removedEdgeNodes]
+  unfold removedEdgeNodes
+  rw [Finset.mem_map]
+  constructor
+  · rintro ⟨f, _hf, hfe⟩
+    have : f.1 = e := by
+      injection hfe
+    simpa [this] using f.2
+  · intro he
+    refine ⟨⟨e, he⟩, by simp, ?_⟩
+    rfl
 
 @[simp] theorem terminal_not_mem_elementSet {a b : W}
     (C : TerminalElementCut H terminals a b) (k : Nat)

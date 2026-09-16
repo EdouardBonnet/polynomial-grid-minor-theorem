@@ -165,7 +165,7 @@ def Adj {g : ℕ} (x y : Vertex g) : Prop :=
 /-- The compressed sparse grid graph from Appendix C.1. -/
 def graph (g : ℕ) : _root_.SimpleGraph (Vertex g) where
   Adj := Adj
-  symm := by
+  symm := ⟨by
     intro x y h
     rcases h with h | h
     · left
@@ -183,7 +183,7 @@ def graph (g : ℕ) : _root_.SimpleGraph (Vertex g) where
       exact ⟨hcol.symm, by
         rcases h with h | h
         · exact Or.inr ⟨h.1, h.2.1, h.2.2⟩
-        · exact Or.inl ⟨h.1, h.2.1, h.2.2⟩⟩
+        · exact Or.inl ⟨h.1, h.2.1, h.2.2⟩⟩⟩
   loopless := ⟨by
     intro x h
     rcases h with h | h
@@ -322,7 +322,7 @@ theorem adjacent {g : ℕ} ⦃x y : GridVertex g⦄
         exact xc.2
       have hx : xc = ⟨yc.1 + 1, hc⟩ := Fin.ext hpred.symm
       rcases adjacent_right xr yc hc with ⟨u, hu, v, hv, huv⟩
-      refine ⟨v, ?_, u, ?_, (graph g).symm huv⟩
+      refine ⟨v, ?_, u, ?_, (graph g).symm.symm u v huv⟩
       · simpa [hx] using hv
       · exact hu
   · change xc = yc at hcol
@@ -338,7 +338,7 @@ theorem adjacent {g : ℕ} ⦃x y : GridVertex g⦄
         exact xr.2
       have hx : xr = ⟨yr.1 + 1, hr⟩ := Fin.ext hpred.symm
       rcases adjacent_down yr xc hr with ⟨u, hu, v, hv, huv⟩
-      refine ⟨v, ?_, u, ?_, (graph g).symm huv⟩
+      refine ⟨v, ?_, u, ?_, (graph g).symm.symm u v huv⟩
       · simpa [hx] using hv
       · exact hu
 

@@ -222,6 +222,11 @@ theorem old_injective : Function.Injective (old (V := V) (X := X)) := by
   cases hxy
   rfl
 
+theorem oldHom_injective (G : _root_.SimpleGraph V) :
+    Function.Injective (oldHom (X := X) G) := by
+  intro x y hxy
+  exact old_injective (V := V) (X := X) hxy
+
 namespace GraphPath
 
 /-- Map a bundled path along an injective graph homomorphism. -/
@@ -397,7 +402,7 @@ noncomputable def oldPerfectPathPacking
   toPathPacking := {
     Index := P.Index
     path := fun i => GraphPath.mapHomInjective (P.path i)
-      (oldHom (X := X) G) (old_injective (V := V) (X := X))
+      (oldHom (X := X) G) (oldHom_injective (X := X) G)
     connects := by
       intro i
       exact Or.inl
@@ -456,8 +461,9 @@ theorem oldPerfectPathPacking_staysIn
       (oldImage (X := X) (Finset.univ : Finset V)) := by
   classical
   intro i z hz
+  change P.Index at i
   change z ∈ (GraphPath.mapHomInjective (P.path i)
-    (oldHom (X := X) G) (old_injective (V := V) (X := X))).vertexSet at hz
+    (oldHom (X := X) G) (oldHom_injective (X := X) G)).vertexSet at hz
   rw [GraphPath.mapHomInjective_vertexSet] at hz
   rcases Finset.mem_image.mp hz with ⟨x, _hx, rfl⟩
   exact mem_oldImage.mpr (by simp)
@@ -653,9 +659,10 @@ theorem prependLeafSourcesPerfectPathPacking_staysIn_region [Fintype V]
         (mem_oldImage.mpr (hAC (A.equivFin.symm i).2))
   have hOstay : O.toPathPacking.StaysIn oldC := by
     intro i z hz
+    change P.Index at i
     change z ∈
       (GraphPath.mapHomInjective (P.path i)
-        (oldHom (X := X) G) (old_injective (V := V) (X := X))).vertexSet at hz
+        (oldHom (X := X) G) (oldHom_injective (X := X) G)).vertexSet at hz
     rw [GraphPath.mapHomInjective_vertexSet] at hz
     rcases Finset.mem_image.mp hz with ⟨x, hx, rfl⟩
     exact mem_oldImage.mpr (hP i hx)
@@ -664,10 +671,12 @@ theorem prependLeafSourcesPerfectPathPacking_staysIn_region [Fintype V]
   have hLdisj : Disjoint (leavesOf (X := X) A hA) oldC :=
     leavesOf_disjoint_oldImage (X := X) A C hA
   intro i z hz
+  change L.Index at i
+  change z ∈ ((L.concatOfFirstInternallyDisjointSecondStaysIn
+    O hLint hOstay hLdisj).path i).vertexSet at hz
   have hsplit :=
     PerfectPathPacking.concatOfFirstInternallyDisjointSecondStaysIn_path_vertexSet_subset
-      L O hLint hOstay hLdisj i (by
-        simpa [prependLeafSourcesPerfectPathPacking, L, O] using hz)
+      L O hLint hOstay hLdisj i hz
   rcases Finset.mem_union.mp hsplit with hzL | hzO
   · exact hLstay i hzL
   · exact Finset.mem_union_right _ (hOstay _ hzO)
@@ -697,6 +706,7 @@ theorem prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
   have hLdisj : Disjoint (leavesOf (X := X) A hA) oldRegion := by
     simpa [oldRegion] using
       leavesOf_disjoint_oldImage (X := X) A (Finset.univ : Finset V) hA
+  change L.Index at i
   have hsplit :=
     PerfectPathPacking.concatOfFirstInternallyDisjointSecondStaysIn_path_vertexSet_subset
       L O hLint hOstay hLdisj i (by
@@ -712,7 +722,7 @@ theorem prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
           (⟨(A.equivFin.symm i).1, hA (A.equivFin.symm i).2⟩ :
             {x : V // x ∈ X}) at hxSource
       cases hxSource
-    · let j := L.indexOfSourceTarget O i
+    · let j : P.Index := L.indexOfSourceTarget O i
       have hxOsource :
           old (X := X) x = (O.path j).source := by
         exact hxTarget.trans (L.source_indexOfSourceTarget O i).symm
@@ -723,24 +733,26 @@ theorem prependLeafSourcesPerfectPathPacking_old_vertex_mem_originalVertexSet
       change old (X := X) x ∈
         (GraphPath.mapHomInjective (P.path j)
           (oldHom (X := X) G)
-          (old_injective (V := V) (X := X))).vertexSet at hxOpath
+          (oldHom_injective (X := X) G)).vertexSet at hxOpath
       rw [GraphPath.mapHomInjective_vertexSet] at hxOpath
       rcases Finset.mem_image.mp hxOpath with ⟨y, hy, hyx⟩
       have hxy : x = y :=
         old_injective (V := V) (X := X) hyx.symm
       exact P.toPathPacking.path_vertexSet_subset_vertexSet j
         (by simpa [hxy] using hy)
-  · change old (X := X) x ∈
+  · let j : P.Index := L.indexOfSourceTarget O i
+    change old (X := X) x ∈ (O.path j).vertexSet at hxO
+    change old (X := X) x ∈
       (GraphPath.mapHomInjective
-        (P.path (L.indexOfSourceTarget O i))
+        (P.path j)
         (oldHom (X := X) G)
-        (old_injective (V := V) (X := X))).vertexSet at hxO
+        (oldHom_injective (X := X) G)).vertexSet at hxO
     rw [GraphPath.mapHomInjective_vertexSet] at hxO
     rcases Finset.mem_image.mp hxO with ⟨y, hy, hyx⟩
     have hxy : x = y :=
       old_injective (V := V) (X := X) hyx.symm
     exact P.toPathPacking.path_vertexSet_subset_vertexSet
-      (L.indexOfSourceTarget O i) (by simpa [hxy] using hy)
+      j (by simpa [hxy] using hy)
 
 /-- The artificial-source lift is endpoint-clean with respect to an old-copy
 target region whenever the original paths meet that region only at their
@@ -772,13 +784,14 @@ theorem prependLeafSourcesPerfectPathPacking_internallyDisjoint_oldImage
   have hOtarget :
       O.toPathPacking.InternallyDisjointFromSet (oldImage (X := X) C) := by
     intro i z hz hzC
+    change P.Index at i
     cases z with
     | leaf z => simpa [oldImage] using hzC
     | old x =>
         change old (X := X) x ∈
           (GraphPath.mapHomInjective (P.path i)
             (oldHom (X := X) G)
-            (old_injective (V := V) (X := X))).vertexSet at hz
+            (oldHom_injective (X := X) G)).vertexSet at hz
         rw [GraphPath.mapHomInjective_vertexSet] at hz
         rcases Finset.mem_image.mp hz with ⟨y, hy, hyx⟩
         have hxy : x = y :=
@@ -913,9 +926,10 @@ theorem augmentPerfectPathPacking_staysIn [Fintype V]
         (mem_oldImage.mpr (hAC (A.equivFin.symm i).2))
   have hOstay : O.toPathPacking.StaysIn oldC := by
     intro i z hz
+    change P.Index at i
     change z ∈
       (GraphPath.mapHomInjective (P.path i)
-        (oldHom (X := X) G) (old_injective (V := V) (X := X))).vertexSet at hz
+        (oldHom (X := X) G) (oldHom_injective (X := X) G)).vertexSet at hz
     rw [GraphPath.mapHomInjective_vertexSet] at hz
     rcases Finset.mem_image.mp hz with ⟨x, hx, rfl⟩
     exact mem_oldImage.mpr (hP i hx)
@@ -940,10 +954,14 @@ theorem augmentPerfectPathPacking_staysIn [Fintype V]
       R.toPathPacking.StaysIn
         (oldC ∪ leavesOf (X := X) B hB) := by
     intro i z hz
+    have hz' :
+        z ∈ ((leafToOldPacking (G := G) B hB).path i).vertexSet := by
+      rw [← PerfectPathPacking.reverse_path_vertexSet
+        (leafToOldPacking (G := G) B hB) i]
+      exact hz
     have hpair := GraphPath.ofAdj_vertexSet_subset_pair
       ((adj_leaf_iff (G := G) (⟨(B.equivFin.symm i).1,
-        hB (B.equivFin.symm i).2⟩ : {x : V // x ∈ X})).2 rfl) (by
-          simpa [R, oldToLeafPacking, GraphPath.reverse_vertexSet] using hz)
+        hB (B.equivFin.symm i).2⟩ : {x : V // x ∈ X})).2 rfl) hz'
     simp only [Finset.mem_insert, Finset.mem_singleton] at hpair
     rcases hpair with rfl | rfl
     · exact Finset.mem_union_right _

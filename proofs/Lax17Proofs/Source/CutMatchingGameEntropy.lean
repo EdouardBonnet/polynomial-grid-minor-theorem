@@ -58,8 +58,13 @@ theorem entropyTerm_add_le_two_mul_entropyTerm_average
   have hhalf :
       (entropyTerm p + entropyTerm q) / 2 ≤
         entropyTerm ((p + q) / 2) := by
-    unfold entropyTerm
-    convert hconc using 1 <;> ring_nf
+    calc
+      (entropyTerm p + entropyTerm q) / 2 =
+          (2 : ℝ)⁻¹ * entropyTerm p + (2 : ℝ)⁻¹ * entropyTerm q := by ring
+      _ ≤ entropyTerm ((2 : ℝ)⁻¹ * p + (2 : ℝ)⁻¹ * q) := hconc
+      _ = entropyTerm ((p + q) / 2) := by
+        congr 1
+        ring
   nlinarith
 
 namespace MatchingAcross

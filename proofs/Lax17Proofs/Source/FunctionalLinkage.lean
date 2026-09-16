@@ -188,9 +188,9 @@ theorem reaches_reachedTarget (s : {v : V // v ∈ S}) :
 /-- The undirected graph consisting exactly of successor edges. -/
 def stepGraph : _root_.SimpleGraph V where
   Adj u v := F.step u v ∨ F.step v u
-  symm := by
+  symm := ⟨by
     intro u v h
-    exact h.symm
+    exact h.symm⟩
   loopless := ⟨by
     intro v h
     rcases h with h | h

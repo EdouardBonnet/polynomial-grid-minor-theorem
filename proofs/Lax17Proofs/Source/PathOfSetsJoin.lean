@@ -74,7 +74,8 @@ noncomputable def castLength {ell' : ℕ}
     change
       ((P.connector (Fin.cast h.symm i) hik).copyTerminals _ _).toPathPacking
         |>.InternallyDisjointFromSet (P.cluster (Fin.cast h.symm j))
-    simpa using P.connector_internally_disjoint_clusters
+    apply PerfectPathPacking.copyTerminals_internallyDisjointFromSet
+    exact P.connector_internally_disjoint_clusters
       (Fin.cast h.symm i) hik (Fin.cast h.symm j)
   connector_mutually_nodeDisjoint := by
     intro i j hi hj hij
@@ -93,7 +94,8 @@ noncomputable def castLength {ell' : ℕ}
       ((P.connector (Fin.cast h.symm i) hik).copyTerminals _ _).toPathPacking
         |>.MutuallyNodeDisjoint
         ((P.connector (Fin.cast h.symm j) hjk).copyTerminals _ _).toPathPacking
-    simpa using P.connector_mutually_nodeDisjoint hik hjk hij'
+    apply PerfectPathPacking.copyTerminals_mutuallyNodeDisjoint
+    exact P.connector_mutually_nodeDisjoint hik hjk hij'
   left_nodeWellLinked := fun i => P.left_nodeWellLinked (Fin.cast h.symm i)
   right_nodeWellLinked := fun i => P.right_nodeWellLinked (Fin.cast h.symm i)
   left_right_nodeLinked := fun i =>
@@ -743,10 +745,20 @@ noncomputable def joinOfCompatible
         have hjEq : j = Fin.castAdd ell₂ b := by
           apply Fin.ext
           rfl
+        have hiEq : i = Fin.castAdd ell₂ a := by
+          apply Fin.ext
+          rfl
+        let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+        have hnextEq :
+            (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+          apply Fin.ext
+          rfl
         rw [hjEq]
         simpa [joinConnector, hinsideP, a, ha] using
           (copyTerminals_internallyDisjointFromSet
-            (P.connector a ha) _ _
+            (P.connector a ha)
+            (by rw [hiEq]; simp [joinRight])
+            (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
             (P.connector_internally_disjoint_clusters a ha b))
       · let a : Fin ell₁ := ⟨i.1, by omega⟩
         let ha : a.1 + 1 < ell₁ := by
@@ -757,10 +769,21 @@ noncomputable def joinOfCompatible
           apply Fin.ext
           dsimp [b]
           omega
+        have hiEq : i = Fin.castAdd ell₂ a := by
+          apply Fin.ext
+          rfl
+        let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+        have hnextEq :
+            (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+          apply Fin.ext
+          rfl
         rw [hjEq]
         simpa [joinConnector, hinsideP, a, ha] using
           (copyTerminals_internallyDisjointFromSet
-            (P.connector a ha) _ _ (hPConnectorInternalQ a ha b))
+            (P.connector a ha)
+            (by rw [hiEq]; simp [joinRight])
+            (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+            (hPConnectorInternalQ a ha b))
     · by_cases hinP : i.1 < ell₁
       · by_cases hjP : j.1 < ell₁
         · let b : Fin ell₁ := ⟨j.1, hjP⟩
@@ -768,18 +791,44 @@ noncomputable def joinOfCompatible
             apply Fin.ext
             rfl
           rw [hjEq]
+          have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+            omega
+          have hnextFirst :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+                Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+            omega
           simpa [joinConnector, hinsideP, hinP] using
             (copyTerminals_internallyDisjointFromSet
-              bridge _ _ (hbridgeInternalP b))
+              bridge
+              (by rw [hiLast]; simp [joinRight])
+              (by rw [hnextFirst]; simp [joinLeft])
+              (hbridgeInternalP b))
         · let b : Fin ell₂ := ⟨j.1 - ell₁, by omega⟩
           have hjEq : j = Fin.natAdd ell₁ b := by
             apply Fin.ext
             dsimp [b]
             omega
           rw [hjEq]
+          have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+            omega
+          have hnextFirst :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+                Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+            omega
           simpa [joinConnector, hinsideP, hinP] using
             (copyTerminals_internallyDisjointFromSet
-              bridge _ _ (hbridgeInternalQ b))
+              bridge
+              (by rw [hiLast]; simp [joinRight])
+              (by rw [hnextFirst]; simp [joinLeft])
+              (hbridgeInternalQ b))
       · let a : Fin ell₂ := ⟨i.1 - ell₁, by omega⟩
         let ha : a.1 + 1 < ell₂ := by
           dsimp [a]
@@ -789,19 +838,44 @@ noncomputable def joinOfCompatible
           have hjEq : j = Fin.castAdd ell₂ b := by
             apply Fin.ext
             rfl
+          have hiEq : i = Fin.natAdd ell₁ a := by
+            apply Fin.ext
+            dsimp [a]
+            omega
+          let aNext : Fin ell₂ := ⟨a.1 + 1, ha⟩
+          have hnextEq :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ aNext := by
+            apply Fin.ext
+            dsimp [a, aNext]
+            omega
           rw [hjEq]
           simpa [joinConnector, hinsideP, hinP, a, ha] using
             (copyTerminals_internallyDisjointFromSet
-              (Q.connector a ha) _ _ (hQConnectorInternalP a ha b))
+              (Q.connector a ha)
+              (by rw [hiEq]; simp [joinRight])
+              (by rw [hnextEq]; exact (joinLeft_natAdd P Q aNext).symm)
+              (hQConnectorInternalP a ha b))
         · let b : Fin ell₂ := ⟨j.1 - ell₁, by omega⟩
           have hjEq : j = Fin.natAdd ell₁ b := by
             apply Fin.ext
             dsimp [b]
             omega
+          have hiEq : i = Fin.natAdd ell₁ a := by
+            apply Fin.ext
+            dsimp [a]
+            omega
+          let aNext : Fin ell₂ := ⟨a.1 + 1, ha⟩
+          have hnextEq :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ aNext := by
+            apply Fin.ext
+            dsimp [a, aNext]
+            omega
           rw [hjEq]
           simpa [joinConnector, hinsideP, hinP, a, ha] using
             (copyTerminals_internallyDisjointFromSet
-              (Q.connector a ha) _ _
+              (Q.connector a ha)
+              (by rw [hiEq]; simp [joinRight])
+              (by rw [hnextEq]; exact (joinLeft_natAdd P Q aNext).symm)
               (Q.connector_internally_disjoint_clusters a ha b))
   · intro i j hi hj hij
     by_cases hiInsideP : i.1 + 1 < ell₁
@@ -814,40 +888,158 @@ noncomputable def joinOfCompatible
         let hb : b.1 + 1 < ell₁ := by
           dsimp [b]
           omega
+        have hiEq : i = Fin.castAdd ell₂ a := by
+          apply Fin.ext
+          rfl
+        let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+        have hnextEq :
+            (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+          apply Fin.ext
+          rfl
+        have hjEq : j = Fin.castAdd ell₂ b := by
+          apply Fin.ext
+          rfl
+        let bNext : Fin ell₁ := ⟨b.1 + 1, hb⟩
+        have hjnextEq :
+            (⟨j.1 + 1, hj⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ bNext := by
+          apply Fin.ext
+          rfl
         simpa [joinConnector, hiInsideP, hjInsideP, a, ha, b, hb] using
-          P.connector_mutually_nodeDisjoint ha hb (by
-            intro h
-            apply hij
-            apply Fin.ext
-            simpa [a, b] using congrArg Fin.val h)
+          copyTerminals_mutuallyNodeDisjoint
+            (P.connector a ha) (P.connector b hb)
+            (by rw [hiEq]; simp [joinRight])
+            (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+            (by rw [hjEq]; simp [joinRight])
+            (by rw [hjnextEq]; exact (joinLeft_castAdd P Q bNext).symm)
+            (P.connector_mutually_nodeDisjoint ha hb (by
+              intro h
+              apply hij
+              apply Fin.ext
+              simpa [a, b] using congrArg Fin.val h))
       · by_cases hjInP : j.1 < ell₁
-        · simpa [joinConnector, hiInsideP, hjInsideP, hjInP, a, ha] using
-            hPBridge a ha
+        · have hiEq : i = Fin.castAdd ell₂ a := by
+            apply Fin.ext
+            rfl
+          let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+          have hnextEq :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+            apply Fin.ext
+            rfl
+          have hjLast : j = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+            omega
+          have hjnextFirst :
+              (⟨j.1 + 1, hj⟩ : Fin (ell₁ + ell₂)) =
+                Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+            omega
+          simpa [joinConnector, hiInsideP, hjInsideP, hjInP, a, ha] using
+            copyTerminals_mutuallyNodeDisjoint
+              (P.connector a ha) bridge
+              (by rw [hiEq]; simp [joinRight])
+              (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+              (by rw [hjLast]; simp [joinRight])
+              (by rw [hjnextFirst]; simp [joinLeft])
+              (hPBridge a ha)
         · let b : Fin ell₂ := ⟨j.1 - ell₁, by omega⟩
           let hb : b.1 + 1 < ell₂ := by
             dsimp [b]
             omega
+          have hiEq : i = Fin.castAdd ell₂ a := by
+            apply Fin.ext
+            rfl
+          let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+          have hnextEq :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+            apply Fin.ext
+            rfl
+          have hjEq : j = Fin.natAdd ell₁ b := by
+            apply Fin.ext
+            dsimp [b]
+            omega
+          let bNext : Fin ell₂ := ⟨b.1 + 1, hb⟩
+          have hjnextEq :
+              (⟨j.1 + 1, hj⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ bNext := by
+            apply Fin.ext
+            dsimp [b, bNext]
+            omega
           simpa [joinConnector, hiInsideP, hjInsideP, hjInP, a, ha, b, hb] using
-            hcrossConnector a ha b hb
+            copyTerminals_mutuallyNodeDisjoint
+              (P.connector a ha) (Q.connector b hb)
+              (by rw [hiEq]; simp [joinRight])
+              (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+              (by rw [hjEq]; simp [joinRight])
+              (by rw [hjnextEq]; exact (joinLeft_natAdd P Q bNext).symm)
+              (hcrossConnector a ha b hb)
     · by_cases hiInP : i.1 < ell₁
       · by_cases hjInsideP : j.1 + 1 < ell₁
         · let b : Fin ell₁ := ⟨j.1, by omega⟩
           let hb : b.1 + 1 < ell₁ := by
             dsimp [b]
             omega
+          have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+            omega
+          have hnextFirst :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+                Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+            omega
+          have hjEq : j = Fin.castAdd ell₂ b := by
+            apply Fin.ext
+            rfl
+          let bNext : Fin ell₁ := ⟨b.1 + 1, hb⟩
+          have hjnextEq :
+              (⟨j.1 + 1, hj⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ bNext := by
+            apply Fin.ext
+            rfl
           simpa [joinConnector, hiInsideP, hiInP, hjInsideP, b, hb] using
-            PathPacking.mutuallyNodeDisjoint_symm (hPBridge b hb)
+            copyTerminals_mutuallyNodeDisjoint bridge (P.connector b hb)
+              (by rw [hiLast]; simp [joinRight])
+              (by rw [hnextFirst]; simp [joinLeft])
+              (by rw [hjEq]; simp [joinRight])
+              (by rw [hjnextEq]; exact (joinLeft_castAdd P Q bNext).symm)
+              (PathPacking.mutuallyNodeDisjoint_symm (hPBridge b hb))
         · by_cases hjInP : j.1 < ell₁
           · exfalso
             apply hij
             apply Fin.ext
             omega
           · let b : Fin ell₂ := ⟨j.1 - ell₁, by omega⟩
-            let hb : b.1 + 1 < ell₂ := by
-              dsimp [b]
-              omega
-            simpa [joinConnector, hiInsideP, hiInP, hjInsideP, hjInP, b, hb] using
-              hBridgeQ b hb
+          let hb : b.1 + 1 < ell₂ := by
+            dsimp [b]
+            omega
+          have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+            omega
+          have hnextFirst :
+              (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+                Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+            apply Fin.ext
+            simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+            omega
+          have hjEq : j = Fin.natAdd ell₁ b := by
+            apply Fin.ext
+            dsimp [b]
+            omega
+          let bNext : Fin ell₂ := ⟨b.1 + 1, hb⟩
+          have hjnextEq :
+              (⟨j.1 + 1, hj⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ bNext := by
+            apply Fin.ext
+            dsimp [b, bNext]
+            omega
+          simpa [joinConnector, hiInsideP, hiInP, hjInsideP, hjInP, b, hb] using
+            copyTerminals_mutuallyNodeDisjoint bridge (Q.connector b hb)
+                (by rw [hiLast]; simp [joinRight])
+                (by rw [hnextFirst]; simp [joinLeft])
+                (by rw [hjEq]; simp [joinRight])
+                (by rw [hjnextEq]; exact (joinLeft_natAdd P Q bNext).symm)
+                (hBridgeQ b hb)
       · let a : Fin ell₂ := ⟨i.1 - ell₁, by omega⟩
         let ha : a.1 + 1 < ell₂ := by
           dsimp [a]
@@ -858,30 +1050,35 @@ noncomputable def joinOfCompatible
             dsimp [b]
             omega
           simpa [joinConnector, hiInsideP, hiInP, hjInsideP, a, ha, b, hb] using
-            PathPacking.mutuallyNodeDisjoint_symm
-              (hcrossConnector b hb a ha)
+            copyTerminals_mutuallyNodeDisjoint
+              (Q.connector a ha) (P.connector b hb) _ _ _ _
+              (PathPacking.mutuallyNodeDisjoint_symm
+                (hcrossConnector b hb a ha))
         · by_cases hjInP : j.1 < ell₁
           · simpa [joinConnector, hiInsideP, hiInP, hjInsideP, hjInP, a, ha] using
-              PathPacking.mutuallyNodeDisjoint_symm (hBridgeQ a ha)
+              copyTerminals_mutuallyNodeDisjoint (Q.connector a ha) bridge
+                _ _ _ _ (PathPacking.mutuallyNodeDisjoint_symm (hBridgeQ a ha))
           · let b : Fin ell₂ := ⟨j.1 - ell₁, by omega⟩
             let hb : b.1 + 1 < ell₂ := by
               dsimp [b]
               omega
             simpa [joinConnector, hiInsideP, hiInP, hjInsideP, hjInP,
                 a, ha, b, hb] using
-              Q.connector_mutually_nodeDisjoint ha hb (by
-                intro h
-                apply hij
-                apply Fin.ext
-                have hiVal :
-                    ell₁ + (i.1 - ell₁) = i.1 :=
-                  Nat.add_sub_of_le (Nat.le_of_not_gt hiInP)
-                have hjVal :
-                    ell₁ + (j.1 - ell₁) = j.1 :=
-                  Nat.add_sub_of_le (Nat.le_of_not_gt hjInP)
-                have hv := congrArg Fin.val h
-                dsimp [a, b] at hv
-                omega)
+              copyTerminals_mutuallyNodeDisjoint
+                (Q.connector a ha) (Q.connector b hb) _ _ _ _
+                (Q.connector_mutually_nodeDisjoint ha hb (by
+                  intro h
+                  apply hij
+                  apply Fin.ext
+                  have hiVal :
+                      ell₁ + (i.1 - ell₁) = i.1 :=
+                    Nat.add_sub_of_le (Nat.le_of_not_gt hiInP)
+                  have hjVal :
+                      ell₁ + (j.1 - ell₁) = j.1 :=
+                    Nat.add_sub_of_le (Nat.le_of_not_gt hjInP)
+                  have hv := congrArg Fin.val h
+                  dsimp [a, b] at hv
+                  omega))
 
 /-- A joined connector is supported wherever the two old connector families
 and the new middle connector are supported. -/
@@ -903,16 +1100,59 @@ theorem joinConnector_staysIn
     (joinConnector P Q bridge i hi).toPathPacking.StaysIn C := by
   classical
   by_cases hinsideP : i.1 + 1 < ell₁
-  · simpa [joinConnector, hinsideP] using
-      hP ⟨i.1, by omega⟩ (by omega)
+  · let a : Fin ell₁ := ⟨i.1, by omega⟩
+    let ha : a.1 + 1 < ell₁ := by
+      dsimp [a]
+      omega
+    have hiEq : i = Fin.castAdd ell₂ a := by
+      apply Fin.ext
+      rfl
+    let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+    have hnextEq :
+        (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+      apply Fin.ext
+      rfl
+    simpa [joinConnector, hinsideP, a, ha] using
+      PerfectPathPacking.copyTerminals_staysIn (P.connector a ha)
+        (by rw [hiEq]; simp [joinRight])
+        (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+        (hP a ha)
   · by_cases hinP : i.1 < ell₁
-    · simpa [joinConnector, hinsideP, hinP] using hbridge
+    · have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+        apply Fin.ext
+        simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+        omega
+      have hnextFirst :
+          (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+            Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+        apply Fin.ext
+        simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+        omega
+      simpa [joinConnector, hinsideP, hinP] using
+        PerfectPathPacking.copyTerminals_staysIn bridge
+          (by rw [hiLast]; simp [joinRight])
+          (by rw [hnextFirst]; simp [joinLeft]) hbridge
     · have hge : ell₁ ≤ i.1 := Nat.le_of_not_gt hinP
       let j : Fin ell₂ := ⟨i.1 - ell₁, by omega⟩
       have hj : j.1 + 1 < ell₂ := by
         dsimp [j]
         omega
-      simpa [joinConnector, hinsideP, hinP, j, hj] using hQ j hj
+      have hiEq : i = Fin.natAdd ell₁ j := by
+        apply Fin.ext
+        dsimp [j]
+        omega
+      let jNext : Fin ell₂ := ⟨j.1 + 1, hj⟩
+      have hnextEq :
+          (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ jNext := by
+        apply Fin.ext
+        dsimp [j, jNext]
+        omega
+      simpa [joinConnector, hinsideP, hinP, j, hj] using
+        PerfectPathPacking.copyTerminals_staysIn
+          (Q.connector j hj)
+          (by rw [hiEq]; simp [joinRight])
+          (by rw [hnextEq]; exact (joinLeft_natAdd P Q jNext).symm)
+          (hQ j hj)
 
 /-- A packing disjoint from every old connector and the middle bridge is
 disjoint from every connector of the joined system. -/
@@ -936,16 +1176,60 @@ theorem mutuallyNodeDisjoint_joinConnector
       (joinConnector P Q bridge i hi).toPathPacking := by
   classical
   by_cases hinsideP : i.1 + 1 < ell₁
-  · simpa [joinConnector, hinsideP] using
-      hP ⟨i.1, by omega⟩ (by omega)
+  · let a : Fin ell₁ := ⟨i.1, by omega⟩
+    let ha : a.1 + 1 < ell₁ := by
+      dsimp [a]
+      omega
+    have hiEq : i = Fin.castAdd ell₂ a := by
+      apply Fin.ext
+      rfl
+    let aNext : Fin ell₁ := ⟨a.1 + 1, ha⟩
+    have hnextEq :
+        (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.castAdd ell₂ aNext := by
+      apply Fin.ext
+      rfl
+    simpa [joinConnector, hinsideP, a, ha] using
+      PerfectPathPacking.mutuallyNodeDisjoint_copyTerminals_right R
+        (P.connector a ha)
+        (by rw [hiEq]; simp [joinRight])
+        (by rw [hnextEq]; exact (joinLeft_castAdd P Q aNext).symm)
+        (hP a ha)
   · by_cases hinP : i.1 < ell₁
-    · simpa [joinConnector, hinsideP, hinP] using hbridge
+    · have hiLast : i = Fin.castAdd ell₂ P.toPathOfSetsSystem.lastIndex := by
+        apply Fin.ext
+        simp only [PathOfSetsSystem.lastIndex_val, Fin.coe_castAdd]
+        omega
+      have hnextFirst :
+          (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) =
+            Fin.natAdd ell₁ Q.toPathOfSetsSystem.firstIndex := by
+        apply Fin.ext
+        simp only [PathOfSetsSystem.firstIndex_val, Fin.coe_natAdd]
+        omega
+      simpa [joinConnector, hinsideP, hinP] using
+        PerfectPathPacking.mutuallyNodeDisjoint_copyTerminals_right R bridge
+          (by rw [hiLast]; simp [joinRight])
+          (by rw [hnextFirst]; simp [joinLeft]) hbridge
     · have hge : ell₁ ≤ i.1 := Nat.le_of_not_gt hinP
       let j : Fin ell₂ := ⟨i.1 - ell₁, by omega⟩
       have hj : j.1 + 1 < ell₂ := by
         dsimp [j]
         omega
-      simpa [joinConnector, hinsideP, hinP, j, hj] using hQ j hj
+      have hiEq : i = Fin.natAdd ell₁ j := by
+        apply Fin.ext
+        dsimp [j]
+        omega
+      let jNext : Fin ell₂ := ⟨j.1 + 1, hj⟩
+      have hnextEq :
+          (⟨i.1 + 1, hi⟩ : Fin (ell₁ + ell₂)) = Fin.natAdd ell₁ jNext := by
+        apply Fin.ext
+        dsimp [j, jNext]
+        omega
+      simpa [joinConnector, hinsideP, hinP, j, hj] using
+        PerfectPathPacking.mutuallyNodeDisjoint_copyTerminals_right R
+          (Q.connector j hj)
+          (by rw [hiEq]; simp [joinRight])
+          (by rw [hnextEq]; exact (joinLeft_natAdd P Q jNext).symm)
+          (hQ j hj)
 
 end Join
 

@@ -273,7 +273,7 @@ theorem UnitStepNatTrace.value_between_endpoints_of_injective
           have ht : t.1 < m := t.2
           dsimp [m] at ht
           omega
-        simpa [g] using hstep ⟨r.1 + t.1, hidx⟩
+        simpa [g, Nat.add_assoc] using hstep ⟨r.1 + t.1, hidx⟩
       have hgfirst : g ⟨0, by omega⟩ ≤ a := by
         change x ≤ a
         exact Nat.le_of_lt hxlt
@@ -408,7 +408,7 @@ theorem UnitStepNatTrace.value_between_endpoints_of_injective
           have ht : t.1 < m := t.2
           dsimp [m] at ht
           omega
-        simpa [g] using hstep ⟨r.1 + t.1, hidx⟩
+        simpa [g, Nat.add_assoc] using hstep ⟨r.1 + t.1, hidx⟩
       have hgfirst : a ≤ g ⟨0, by omega⟩ := by
         change a ≤ x
         exact Nat.le_of_lt haltx
@@ -2230,7 +2230,8 @@ theorem endpointContactIndex_zero_eq_of_source_mem
     endpointContactIndex L Q hsource htarget
         ⟨0, by simp [endpointContactTraceLen]⟩ = i := by
   apply linkageIndexOfVertex_eq_of_mem (L := L)
-  simpa using hsource_i
+  rw [endpointContact_zero]
+  exact hsource_i
 
 /-- The last endpoint-padded contact index is the linkage path containing the
 target. -/
@@ -2242,7 +2243,8 @@ theorem endpointContactIndex_last_eq_of_target_mem
     endpointContactIndex L Q hsource htarget
         ⟨endpointContactTraceLen L Q, by omega⟩ = i := by
   apply linkageIndexOfVertex_eq_of_mem (L := L)
-  simpa using htarget_i
+  rw [endpointContact_last]
+  exact htarget_i
 
 /-- For a nontrivial path, the endpoint-padded contact list is a sublist of
 the path support.  This is the order-theoretic core of the contact-trace
@@ -2346,7 +2348,8 @@ theorem endpointContact_before_succ_of_source_ne_target
   let ir : Fin contacts.length :=
     ⟨r.1, by
       have hr : r.1 < endpointContactTraceLen L Q := r.2
-      simp [contacts, endpointContactTraceLen, endpointContactVertexList] at hr ⊢⟩
+      simp [contacts, endpointContactTraceLen, endpointContactVertexList] at hr ⊢
+      omega⟩
   let is : Fin contacts.length :=
     ⟨r.1 + 1, by
       have hr : r.1 < endpointContactTraceLen L Q := r.2
@@ -2479,7 +2482,8 @@ theorem endpointContactsCleanConsecutive_of_source_ne_target
   let ir : Fin contacts.length :=
     ⟨r.1, by
       have hr : r.1 < endpointContactTraceLen L Q := r.2
-      simp [contacts, endpointContactTraceLen, endpointContactVertexList] at hr ⊢⟩
+      simp [contacts, endpointContactTraceLen, endpointContactVertexList] at hr ⊢
+      omega⟩
   let is : Fin contacts.length :=
     ⟨r.1 + 1, by
       have hr : r.1 < endpointContactTraceLen L Q := r.2
@@ -2528,8 +2532,10 @@ theorem endpointContactsCleanConsecutive_of_source_ne_target
   have hiv_is : iv ≤ is := (OrderEmbedding.le_iff_le f).1 hf_iv_is
   have hiv_val : iv.1 = r.1 ∨ iv.1 = r.1 + 1 := by
     have hleft : r.1 ≤ iv.1 := by
+      change ir.val ≤ iv.val at hir_iv
       simpa [ir] using hir_iv
     have hright : iv.1 ≤ r.1 + 1 := by
+      change iv.val ≤ is.val at hiv_is
       simpa [is] using hiv_is
     omega
   rcases hiv_val with hivr | hivs
@@ -8615,12 +8621,20 @@ theorem initialIterationInput_rowIndexInjective
   omega
 
 /-- The initial row family has its displayed order by construction. -/
-noncomputable def initialIterationInput_orderedRows
+def identityFinOrder (n : ℕ) : Fin n ≃ Fin n := Equiv.refl _
+
+@[simp] theorem identityFinOrder_apply {n : ℕ} (i : Fin n) :
+    identityFinOrder n i = i := rfl
+
+@[simp] theorem identityFinOrder_symm_apply {n : ℕ} (i : Fin n) :
+    (identityFinOrder n).symm i = i := rfl
+
+noncomputable abbrev initialIterationInput_orderedRows
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     (Q0 : TypeOneQStarFamily R hpos Q) :
     (initialIterationInput Q0).OrderedRows where
-  order := Equiv.refl (Fin (z h))
+  order := identityFinOrder (z h)
 
 /-- The concrete type-1 setup that the proof keeps after the page-60
 "without loss of generality" sentence: a large fixed family `Q0`, together
@@ -8839,8 +8853,8 @@ theorem row_adj_upperBoundary_eq_last
     exact Bnd.upperOutside_ne_row lastRow
   have hneighbors :=
     DegreeEquals.two_adj_eq_or_eq Bnd.upper_degree_two
-      Bnd.upper_adj_outside ((linkageAuxGraph I.linkage).symm Bnd.last_adj_upper)
-      hlast_idx_ne_outside ((linkageAuxGraph I.linkage).symm hadj)
+      Bnd.upper_adj_outside ((linkageAuxGraph I.linkage).adj_symm Bnd.last_adj_upper)
+      hlast_idx_ne_outside ((linkageAuxGraph I.linkage).adj_symm hadj)
   rcases hneighbors with houtside | hlast
   · exact False.elim (Bnd.upperOutside_ne_row r houtside.symm)
   · have hrlast : r = lastRow := by
@@ -9136,7 +9150,7 @@ noncomputable def TypeOneQStarFamily.toIterationSetup
 
 /-- The initial type-1 iteration state satisfies the ordered-row,
 row-index-injective, and row-disjointness invariants. -/
-noncomputable def TypeOneQStarFamily.initialIterationInvariants
+noncomputable abbrev TypeOneQStarFamily.initialIterationInvariants
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     (Q0 : TypeOneQStarFamily R hpos Q) :
@@ -9163,8 +9177,9 @@ noncomputable def TypeOneQStarFamily.initialActiveAuxiliaryInvariant
       (R.index (windowPos h 1 (by dsimp [z]; omega) r))
       (R.index (windowPos h 1 (by dsimp [z]; omega) s))
     have hcon_rs : FinConsecutive r s := by
-      simpa [TypeOneQStarFamily.initialIterationInvariants,
-        initialIterationInput_orderedRows] using hcon
+      dsimp [TypeOneQStarFamily.initialIterationInvariants,
+        initialIterationInput_orderedRows, identityFinOrder] at hcon
+      exact hcon
     rcases hcon_rs with hnext | hprev
     · have hadj := R.adj_indexAt_succ
         (k := 1 + r.1) (by
@@ -9268,9 +9283,17 @@ noncomputable def TypeOneQStarFamily.initialBoundaryAuxiliaryInvariant
   upper_degree_two := R.degree_two (pZPlusOnePos h hpos)
   lower_adj_first := by
     have hadj := R.adj_indexAt_succ (k := 0) (by omega)
-    simpa [initialIterationInput, p0Index, p0Pos, windowPos,
+    dsimp [TypeOneQStarFamily.initialIterationInvariants,
+      initialIterationInput_orderedRows, identityFinOrder,
+      initialIterationInput, p0Index, p0Pos, windowPos,
       IndexedAuxiliaryPrefix.indexAt, IndexedAuxiliaryPrefix.posOfNat]
-      using hadj
+    convert hadj using 1
+    apply congrArg R.index
+    apply Fin.ext
+    rfl
+    apply congrArg R.index
+    apply Fin.ext
+    rfl
   last_adj_upper := by
     have hadj := R.adj_indexAt_succ (k := z h) (by
       dsimp [z]
@@ -9343,8 +9366,7 @@ noncomputable def TypeOneQStarFamily.initialBoundaryAuxiliaryInvariant
       R.p0OutsideIndex_ne_indexAt hpos (k := z h + 1)
         (by dsimp [z]; omega)
         (by dsimp [z]; omega)
-    simpa [pZPlusOneIndex, pZPlusOnePos, IndexedAuxiliaryPrefix.indexAt,
-      IndexedAuxiliaryPrefix.posOfNat] using hne
+    exact hne
   upperOutside_ne_lower := by
     intro hidx
     have hpos_eq := congrArg Fin.val (R.index_injective hidx.symm)
@@ -9500,12 +9522,12 @@ theorem initialTypeTwoIterationInput_rowIndexInjective
 
 /-- The initial type-2 row family has its displayed third-block order by
 construction. -/
-noncomputable def initialTypeTwoIterationInput_orderedRows
+noncomputable abbrev initialTypeTwoIterationInput_orderedRows
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     (Q0 : TypeTwoQStarFamily R hpos Q) :
     (initialTypeTwoIterationInput Q0).OrderedRows where
-  order := Equiv.refl (Fin (z h))
+  order := identityFinOrder (z h)
 
 /-- The visible row-order and disjointness invariant for a type-2 iteration
 state.  This is the symmetric counterpart of
@@ -9595,7 +9617,7 @@ structure TypeTwoExtendedFullIterationInvariants
 
 /-- The initial type-2 iteration state satisfies the ordered-row,
 row-index-injective, and row-disjointness invariants. -/
-noncomputable def TypeTwoQStarFamily.initialIterationInvariants
+noncomputable abbrev TypeTwoQStarFamily.initialIterationInvariants
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     (Q0 : TypeTwoQStarFamily R hpos Q) :
@@ -9622,8 +9644,9 @@ noncomputable def TypeTwoQStarFamily.initialActiveAuxiliaryInvariant
       (R.index (windowPos h (2 * z h + 1) (by dsimp [z]; omega) r))
       (R.index (windowPos h (2 * z h + 1) (by dsimp [z]; omega) s))
     have hcon_rs : FinConsecutive r s := by
-      simpa [TypeTwoQStarFamily.initialIterationInvariants,
-        initialTypeTwoIterationInput_orderedRows] using hcon
+      dsimp [TypeTwoQStarFamily.initialIterationInvariants,
+        initialTypeTwoIterationInput_orderedRows, identityFinOrder] at hcon
+      exact hcon
     rcases hcon_rs with hnext | hprev
     · have hadj := R.adj_indexAt_succ
         (k := 2 * z h + 1 + r.1) (by
@@ -10811,7 +10834,7 @@ theorem orientedBranchSet_connected
         rw [orientedBranchSet]
         exact Finset.mem_union_right _ <|
           Finset.mem_biUnion.mpr ⟨y, Finset.mem_univ y, by
-            simpa [hcond] using hz⟩
+            simpa [S, hcond] using hz⟩
       · have hsource :
             (C.edgePath hcond.1).dropLast.source = C.image x := by
           rw [GraphPath.dropLast_source, C.edgePath_source hcond.1]
@@ -10842,13 +10865,13 @@ theorem orientedBranchSet_adjacent
     have hadj := (C.edgePath hxy).penultimate_adj_target hne
     simpa [C.edgePath_target hxy] using hadj
   · have hyx : (SparseGrid.validGraph g).Adj y x :=
-      (SparseGrid.validGraph g).symm hxy
+      (SparseGrid.validGraph g).adj_symm hxy
     refine ⟨C.image x, C.image_mem_orientedBranchSet x,
       (C.edgePath hyx).penultimate,
       C.edge_penultimate_mem_orientedBranchSet hyx hrank, ?_⟩
     have hne := C.edgePath_source_ne_target hyx
     have hadj := (C.edgePath hyx).penultimate_adj_target hne
-    simpa [C.edgePath_target hyx] using G.symm hadj
+    simpa [C.edgePath_target hyx] using G.adj_symm hadj
 
 end TerminalSparseGridPathCertificate
 
@@ -12556,7 +12579,7 @@ structure TerminalIntersectionCoreData
 /-- The row-column intersection used as a terminal branch set in Claim B.3:
 the `i`-th current row intersected with the `j`-th selected trimmed
 transversal `Q*`. -/
-noncomputable def claimB3BranchSet
+noncomputable abbrev claimB3BranchSet
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     {Q0 : TypeOneQStarFamily R hpos Q}
@@ -12568,7 +12591,7 @@ noncomputable def claimB3BranchSet
       (Q0.selectedColumn_mem_selectedIndexSet j)).qstar.vertexSet)
 
 /-- The `i`-th current row in the ordered terminal row family. -/
-noncomputable def claimB3RowPath
+noncomputable abbrev claimB3RowPath
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     {Q0 : TypeOneQStarFamily R hpos Q}
@@ -12578,7 +12601,7 @@ noncomputable def claimB3RowPath
   I.rowPath (inv.orderedRows.order.symm i)
 
 /-- The `j`-th selected trimmed transversal `Q*`. -/
-noncomputable def claimB3ColumnPath
+noncomputable abbrev claimB3ColumnPath
     {R : IndexedAuxiliaryPrefix L h} {hpos : 0 < h}
     {Q : PerfectPathPacking G R.X R.Y}
     {Q0 : TypeOneQStarFamily R hpos Q}
@@ -16545,22 +16568,28 @@ noncomputable def toOrderedSelected
         right := N.right
         left_mem := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.left_mem
+            TypeOneQStarFamily.selectedData, claimB3ColumnPath,
+            claimB3RowPath] using N.left_mem
         right_mem := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.right_mem
+            TypeOneQStarFamily.selectedData, claimB3ColumnPath,
+            claimB3RowPath] using N.right_mem
         middle_mem_column := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.middle_mem_column
+            TypeOneQStarFamily.selectedData, claimB3ColumnPath] using
+              N.middle_mem_column
         left_before_middle := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.left_before_middle
+            TypeOneQStarFamily.selectedData, claimB3ColumnPath] using
+              N.left_before_middle
         middle_before_right := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.middle_before_right
+            TypeOneQStarFamily.selectedData, claimB3ColumnPath] using
+              N.middle_before_right
         middle_not_mem_row := by
           simpa [TerminalColumnOrder.selected, TerminalColumnOrder.qstar,
-            TypeOneQStarFamily.selectedData] using N.middle_not_mem_row
+            TypeOneQStarFamily.selectedData, claimB3RowPath] using
+              N.middle_not_mem_row
       }⟩
     exact C.candidate_of_nonconvex_trace ⟨i, j, hbadij'⟩
   higher_candidate_of_candidate := C.higher_candidate_of_candidate
@@ -19034,8 +19063,8 @@ theorem mem_local_triple_of_old_adj_to_bumped_row
       i = auxA ∨ i = auxC := by
     have h := DegreeEquals.two_adj_eq_or_eq
       (G := linkageAuxGraph I.linkage) hM_old
-      ((linkageAuxGraph I.linkage).symm hAM_old) hMC_old
-      hA_ne_C ((linkageAuxGraph I.linkage).symm hadj)
+      ((linkageAuxGraph I.linkage).adj_symm hAM_old) hMC_old
+      hA_ne_C ((linkageAuxGraph I.linkage).adj_symm hadj)
     rcases h with h | h
     · exact Or.inl h
     · exact Or.inr h
@@ -19571,8 +19600,8 @@ theorem replacementLinkageConcrete_adj_from_replacement_of_old_adj
       (linkageAuxGraph Bump.replacementLinkageConcrete).Adj
         i (I.rowIndex Bump.row) :=
     Bump.replacementLinkageConcrete_adj_to_replacement_of_old_adj
-      (fun h => hirow h.symm) ((linkageAuxGraph I.linkage).symm hadj)
-  exact (linkageAuxGraph Bump.replacementLinkageConcrete).symm hnew
+      (fun h => hirow h.symm) ((linkageAuxGraph I.linkage).adj_symm hadj)
+  exact (linkageAuxGraph Bump.replacementLinkageConcrete).adj_symm hnew
 
 /-- If an old bridge between unchanged rows does not survive after a bump,
 then the first endpoint is in the local triple. -/
@@ -19691,8 +19720,8 @@ theorem mem_local_triple_of_old_adj_not_new_at_right_endpoint
     j ∈ ({auxA, I.rowIndex Bump.row, auxC} :
         Finset I.linkage.Index) := by
   exact Bump.mem_local_triple_of_old_adj_not_new_at_left_endpoint
-    hjrow ((linkageAuxGraph I.linkage).symm hold)
-    (fun hnew => hnotnew ((linkageAuxGraph Bump.replacementLinkageConcrete).symm hnew))
+    hjrow ((linkageAuxGraph I.linkage).adj_symm hold)
+    (fun hnew => hnotnew ((linkageAuxGraph Bump.replacementLinkageConcrete).adj_symm hnew))
     hAM_old hMC_old hM_old hA_ne_C
 
 /-- Endpoint-localizing form for a successor auxiliary edge that was not an
@@ -19751,8 +19780,8 @@ theorem mem_local_triple_of_new_adj_not_old_at_right_endpoint
     j ∈ ({auxA, I.rowIndex Bump.row, auxC} :
         Finset I.linkage.Index) := by
   exact Bump.mem_local_triple_of_new_adj_not_old_at_left_endpoint
-    hjrow ((linkageAuxGraph Bump.replacementLinkageConcrete).symm hnew)
-    (fun hold => hnotold ((linkageAuxGraph I.linkage).symm hold))
+    hjrow ((linkageAuxGraph Bump.replacementLinkageConcrete).adj_symm hnew)
+    (fun hold => hnotold ((linkageAuxGraph I.linkage).adj_symm hold))
     hAM_old hMC_old hM_old hA_ne_C
 
 /-- If the local bump analysis proves that the auxiliary adjacency relation is
@@ -19850,7 +19879,7 @@ theorem successorRowPath_eq_linkage_path
       (fun hidx => hr (hinj hidx))).symm
 
 /-- Concrete successor `IterationInput` for a bump nonterminating branch. -/
-noncomputable def successorInput
+noncomputable abbrev successorInput
     (hdisj :
       ∀ i : I.linkage.Index, i ≠ I.rowIndex Bump.row →
         Bump.replacementPath.path.NodeDisjoint (I.linkage.path i))
@@ -19887,7 +19916,7 @@ theorem successorInput_rowIndexInjective
   exact hinj hrs
 
 /-- The concrete bump successor keeps the same displayed row order. -/
-noncomputable def successorInput_orderedRows
+noncomputable abbrev successorInput_orderedRows
     (hdisj :
       ∀ i : I.linkage.Index, i ≠ I.rowIndex Bump.row →
         Bump.replacementPath.path.NodeDisjoint (I.linkage.path i))
@@ -19902,7 +19931,7 @@ noncomputable def successorInput_orderedRows
 
 /-- The concrete bump successor preserves the explicit iteration invariant
 package. -/
-noncomputable def successorInput_iterationInvariants
+noncomputable abbrev successorInput_iterationInvariants
     (hdisj :
       ∀ i : I.linkage.Index, i ≠ I.rowIndex Bump.row →
         Bump.replacementPath.path.NodeDisjoint (I.linkage.path i))
@@ -19953,6 +19982,9 @@ noncomputable def successorInput_activeAuxiliaryInvariant
             (linkageAuxGraph (Bump.replacementLinkage hdisj)).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph (Bump.replacementLinkage hdisj))
+      (I.rowIndex r) 2
     simpa [successorInput, successorRowIndex] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         (Haux.degree_two r)
@@ -20010,6 +20042,9 @@ noncomputable def successorInput_boundaryAuxiliaryInvariant
             (linkageAuxGraph (Bump.replacementLinkage hdisj)).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph (Bump.replacementLinkage hdisj))
+      Inv.boundary.lowerBoundary 2
     simpa [successorInput, successorRowIndex] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         Inv.boundary.lower_degree_two
@@ -20020,6 +20055,9 @@ noncomputable def successorInput_boundaryAuxiliaryInvariant
             (linkageAuxGraph (Bump.replacementLinkage hdisj)).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph (Bump.replacementLinkage hdisj))
+      Inv.boundary.upperBoundary 2
     simpa [successorInput, successorRowIndex] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         Inv.boundary.upper_degree_two
@@ -20396,7 +20434,7 @@ theorem DegreeEquals.bump_three_no_skip {α : Type*} [DecidableEq α]
   · exact DegreeEquals.two_not_adj_of_ne hA hLA hAX hLX
       (fun hCL => hLC hCL.symm) hCX
   · intro w hw
-    exact DegreeEquals.two_adj_eq_or_eq hX (H.symm hAX) hXC hAC hw
+    exact DegreeEquals.two_adj_eq_or_eq hX (H.adj_symm hAX) hXC hAC hw
 
 /-- Finite-graph core of the nonterminating bump branch.
 
@@ -20440,13 +20478,13 @@ theorem bump_local_adj_iff_of_supported_degree_two
         · exact ⟨fun h => False.elim (hAC_new_not h),
             fun h => False.elim (hAC_old_not h)⟩
       · rcases hv with rfl | rfl | rfl
-        · exact ⟨fun _ => H.symm hAM_old, fun _ => H'.symm hAM_new⟩
+        · exact ⟨fun _ => H.adj_symm hAM_old, fun _ => H'.adj_symm hAM_new⟩
         · simp
         · exact ⟨fun _ => hMC_old, fun _ => hMC_new⟩
       · rcases hv with rfl | rfl | rfl
-        · exact ⟨fun h => False.elim (hAC_new_not (H'.symm h)),
-            fun h => False.elim (hAC_old_not (H.symm h))⟩
-        · exact ⟨fun _ => H.symm hMC_old, fun _ => H'.symm hMC_new⟩
+        · exact ⟨fun h => False.elim (hAC_new_not (H'.adj_symm h)),
+            fun h => False.elim (hAC_old_not (H.adj_symm h))⟩
+        · exact ⟨fun _ => H.adj_symm hMC_old, fun _ => H'.adj_symm hMC_new⟩
         · simp
     · exact hsupport (Or.inr hv)
   · exact hsupport (Or.inl hu)
@@ -21535,23 +21573,23 @@ theorem cross_local_adj_iff_of_supported_degree_two
         · exact ⟨fun h => False.elim (hnew_skip.2.1 h),
             fun h => False.elim (hold_skip.2.1 h)⟩
       · rcases hy with rfl | rfl | rfl | rfl
-        · exact ⟨fun _ => H.symm hAU_old, fun _ => H'.symm hAU_new⟩
+        · exact ⟨fun _ => H.adj_symm hAU_old, fun _ => H'.adj_symm hAU_new⟩
         · simp
         · exact ⟨fun _ => hUV_old, fun _ => hUV_new⟩
         · exact ⟨fun h => False.elim (hnew_skip.2.2 h),
             fun h => False.elim (hold_skip.2.2 h)⟩
       · rcases hy with rfl | rfl | rfl | rfl
-        · exact ⟨fun h => False.elim (hnew_skip.1 (H'.symm h)),
-            fun h => False.elim (hold_skip.1 (H.symm h))⟩
-        · exact ⟨fun _ => H.symm hUV_old, fun _ => H'.symm hUV_new⟩
+        · exact ⟨fun h => False.elim (hnew_skip.1 (H'.adj_symm h)),
+            fun h => False.elim (hold_skip.1 (H.adj_symm h))⟩
+        · exact ⟨fun _ => H.adj_symm hUV_old, fun _ => H'.adj_symm hUV_new⟩
         · simp
         · exact ⟨fun _ => hVD_old, fun _ => hVD_new⟩
       · rcases hy with rfl | rfl | rfl | rfl
-        · exact ⟨fun h => False.elim (hnew_skip.2.1 (H'.symm h)),
-            fun h => False.elim (hold_skip.2.1 (H.symm h))⟩
-        · exact ⟨fun h => False.elim (hnew_skip.2.2 (H'.symm h)),
-            fun h => False.elim (hold_skip.2.2 (H.symm h))⟩
-        · exact ⟨fun _ => H.symm hVD_old, fun _ => H'.symm hVD_new⟩
+        · exact ⟨fun h => False.elim (hnew_skip.2.1 (H'.adj_symm h)),
+            fun h => False.elim (hold_skip.2.1 (H.adj_symm h))⟩
+        · exact ⟨fun h => False.elim (hnew_skip.2.2 (H'.adj_symm h)),
+            fun h => False.elim (hold_skip.2.2 (H.adj_symm h))⟩
+        · exact ⟨fun _ => H.adj_symm hVD_old, fun _ => H'.adj_symm hVD_new⟩
         · simp
     · exact hsupport (Or.inr hy)
   · exact hsupport (Or.inl hx)
@@ -21636,16 +21674,16 @@ theorem cross_local_adj_swap_iff_of_supported_degree_two
       · subst y
         have hnot_xU : ¬ H.Adj x U := by
           intro hxu
-          have hUx : H.Adj U x := H.symm hxu
+          have hUx : H.Adj U x := H.adj_symm hxu
           rcases DegreeEquals.two_adj_eq_or_eq hU_old
-              (H.symm hAU_old) hUV_old hAV hUx with hx_eq_A | hx_eq_V
+              (H.adj_symm hAU_old) hUV_old hAV hUx with hx_eq_A | hx_eq_V
           · exact hxA hx_eq_A
           · exact hxV hx_eq_V
         have hnot_xV : ¬ H.Adj x V := by
           intro hxv
-          have hVx : H.Adj V x := H.symm hxv
+          have hVx : H.Adj V x := H.adj_symm hxv
           rcases DegreeEquals.two_adj_eq_or_eq hV_old
-              (H.symm hUV_old) hVD_old hUD hVx with hx_eq_U | hx_eq_D
+              (H.adj_symm hUV_old) hVD_old hUD hVx with hx_eq_U | hx_eq_D
           · exact hxU hx_eq_U
           · exact hxD hx_eq_D
         constructor
@@ -21656,16 +21694,16 @@ theorem cross_local_adj_swap_iff_of_supported_degree_two
       · subst y
         have hnot_xU : ¬ H.Adj x U := by
           intro hxu
-          have hUx : H.Adj U x := H.symm hxu
+          have hUx : H.Adj U x := H.adj_symm hxu
           rcases DegreeEquals.two_adj_eq_or_eq hU_old
-              (H.symm hAU_old) hUV_old hAV hUx with hx_eq_A | hx_eq_V
+              (H.adj_symm hAU_old) hUV_old hAV hUx with hx_eq_A | hx_eq_V
           · exact hxA hx_eq_A
           · exact hxV hx_eq_V
         have hnot_xV : ¬ H.Adj x V := by
           intro hxv
-          have hVx : H.Adj V x := H.symm hxv
+          have hVx : H.Adj V x := H.adj_symm hxv
           rcases DegreeEquals.two_adj_eq_or_eq hV_old
-              (H.symm hUV_old) hVD_old hUD hVx with hx_eq_U | hx_eq_D
+              (H.adj_symm hUV_old) hVD_old hUD hVx with hx_eq_U | hx_eq_D
           · exact hxU hx_eq_U
           · exact hxD hx_eq_D
         constructor
@@ -21695,9 +21733,9 @@ theorem cross_local_adj_swap_iff_of_supported_degree_two
     · have hsym := hswap_old_left (x := y) (y := x) hy
       constructor
       · intro hxy
-        exact H.symm (hsym.1 (H.symm hxy))
+        exact H.adj_symm (hsym.1 (H.adj_symm hxy))
       · intro hswxy
-        exact H.symm (hsym.2 (H.symm hswxy))
+        exact H.adj_symm (hsym.2 (H.adj_symm hswxy))
   have hswapA : (Equiv.swap U V) A = A := by
     rw [Equiv.swap_apply_of_ne_of_ne hAU_ne hAV]
   have hswapD : (Equiv.swap U V) D = D := by
@@ -21735,23 +21773,23 @@ theorem cross_local_adj_swap_iff_of_supported_degree_two
         · subst y
           constructor
           · intro h
-            exact False.elim (hnew_skip.1 (H'.symm h))
+            exact False.elim (hnew_skip.1 (H'.adj_symm h))
           · intro h
             exact False.elim (hold_skip.1 (by
-              simpa [hswapA] using H.symm h))
+              simpa [hswapA] using H.adj_symm h))
         · subst y
           simp
         · subst y
-          exact ⟨fun _ => by simpa [sw] using H.symm hUV_old,
-            fun _ => H'.symm hVU_new⟩
+          exact ⟨fun _ => by simpa [sw] using H.adj_symm hUV_old,
+            fun _ => H'.adj_symm hVU_new⟩
         · subst y
           exact ⟨fun _ => by simpa [hswapD] using hVD_old,
             fun _ => hUD_new⟩
       · subst x
         rcases hy_cases with hyA | hyU | hyV | hyD
         · subst y
-          exact ⟨fun _ => by simpa [hswapA] using H.symm hAU_old,
-            fun _ => H'.symm hAV_new⟩
+          exact ⟨fun _ => by simpa [hswapA] using H.adj_symm hAU_old,
+            fun _ => H'.adj_symm hAV_new⟩
         · subst y
           exact ⟨fun _ => by simpa [sw] using hUV_old,
             fun _ => hVU_new⟩
@@ -21769,20 +21807,20 @@ theorem cross_local_adj_swap_iff_of_supported_degree_two
         · subst y
           constructor
           · intro h
-            exact False.elim (hnew_skip.2.1 (H'.symm h))
+            exact False.elim (hnew_skip.2.1 (H'.adj_symm h))
           · intro h
             exact False.elim (hold_skip.2.1 (by
-              simpa [hswapA, hswapD] using H.symm h))
+              simpa [hswapA, hswapD] using H.adj_symm h))
         · subst y
-          exact ⟨fun _ => by simpa [hswapD] using H.symm hVD_old,
-            fun _ => H'.symm hUD_new⟩
+          exact ⟨fun _ => by simpa [hswapD] using H.adj_symm hVD_old,
+            fun _ => H'.adj_symm hUD_new⟩
         · subst y
           constructor
           · intro h
-            exact False.elim (hnew_skip.2.2 (H'.symm h))
+            exact False.elim (hnew_skip.2.2 (H'.adj_symm h))
           · intro h
             exact False.elim (hold_skip.2.2 (by
-              simpa [hswapD] using H.symm h))
+              simpa [hswapD] using H.adj_symm h))
         · subst y
           simp [hswapD]
     · exact (hsupport (Or.inr hy)).trans
@@ -21873,17 +21911,17 @@ theorem cross_attachment_order_of_degree_two
   rcases hA_attach with hAU | hAV
   · rcases hD_attach with hDU | hDV
     · exfalso
-      have hUD : H.Adj U D := H.symm hDU
-      rcases DegreeEquals.two_adj_eq_or_eq hU (H.symm hAU) hUV
+      have hUD : H.Adj U D := H.adj_symm hDU
+      rcases DegreeEquals.two_adj_eq_or_eq hU (H.adj_symm hAU) hUV
           hAV_ne hUD with hD_eq_A | hD_eq_V
       · exact hAD_ne hD_eq_A.symm
       · exact hDV_ne hD_eq_V
-    · exact Or.inl ⟨hAU, H.symm hDV⟩
+    · exact Or.inl ⟨hAU, H.adj_symm hDV⟩
   · rcases hD_attach with hDU | hDV
-    · exact Or.inr ⟨hAV, H.symm hDU⟩
+    · exact Or.inr ⟨hAV, H.adj_symm hDU⟩
     · exfalso
-      have hVD : H.Adj V D := H.symm hDV
-      rcases DegreeEquals.two_adj_eq_or_eq hV (H.symm hUV) (H.symm hAV)
+      have hVD : H.Adj V D := H.adj_symm hDV
+      rcases DegreeEquals.two_adj_eq_or_eq hV (H.adj_symm hUV) (H.adj_symm hAV)
           (by exact hAU_ne.symm) hVD with hD_eq_U | hD_eq_A
       · exact hUD_ne hD_eq_U.symm
       · exact hAD_ne hD_eq_A.symm
@@ -23687,7 +23725,7 @@ theorem old_aux_adj_of_new_aux_adj_unchanged_miss_deleted
     exact Cross.old_aux_adj_of_new_bridge_unchanged_miss_deleted
       hij hileft hiright hjleft hjright β (hmiss β)
   · rcases hβ with ⟨β⟩
-    exact (linkageAuxGraph I.linkage).symm
+    exact (linkageAuxGraph I.linkage).adj_symm
       (Cross.old_aux_adj_of_new_bridge_unchanged_miss_deleted
         hij.symm hjleft hjright hileft hiright β (hmiss_rev β))
 
@@ -23714,7 +23752,7 @@ theorem new_aux_adj_of_old_aux_adj_unchanged_miss_inserted
     exact Cross.new_aux_adj_of_old_bridge_unchanged_miss_inserted
       hij hileft hiright hjleft hjright β (hmiss β)
   · rcases hβ with ⟨β⟩
-    exact (linkageAuxGraph Cross.replacementLinkageConcrete).symm
+    exact (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm
       (Cross.new_aux_adj_of_old_bridge_unchanged_miss_inserted
         hij.symm hjleft hjright hileft hiright β (hmiss_rev β))
 
@@ -23837,8 +23875,8 @@ theorem mem_local_quad_of_old_adj_to_crossed_row
         i = auxA ∨ i = I.rowIndex Cross.rowRight := by
       have h := DegreeEquals.two_adj_eq_or_eq
         (G := linkageAuxGraph I.linkage) hU_old
-        ((linkageAuxGraph I.linkage).symm hAU_old) hUV_old
-        hA_ne_V ((linkageAuxGraph I.linkage).symm hleft)
+        ((linkageAuxGraph I.linkage).adj_symm hAU_old) hUV_old
+        hA_ne_V ((linkageAuxGraph I.linkage).adj_symm hleft)
       rcases h with h | h
       · exact Or.inl h
       · exact Or.inr h
@@ -23847,8 +23885,8 @@ theorem mem_local_quad_of_old_adj_to_crossed_row
         i = I.rowIndex Cross.rowLeft ∨ i = auxD := by
       have h := DegreeEquals.two_adj_eq_or_eq
         (G := linkageAuxGraph I.linkage) hV_old
-        ((linkageAuxGraph I.linkage).symm hUV_old) hVD_old
-        hU_ne_D ((linkageAuxGraph I.linkage).symm hright)
+        ((linkageAuxGraph I.linkage).adj_symm hUV_old) hVD_old
+        hU_ne_D ((linkageAuxGraph I.linkage).adj_symm hright)
       rcases h with h | h
       · exact Or.inl h
       · exact Or.inr h
@@ -24200,8 +24238,8 @@ theorem mem_local_quad_of_old_adj_not_new_at_right_endpoint
     j ∈ ({auxA, I.rowIndex Cross.rowLeft,
         I.rowIndex Cross.rowRight, auxD} : Finset I.linkage.Index) := by
   exact Cross.mem_local_quad_of_old_adj_not_new_at_left_endpoint
-    hjleft hjright ((linkageAuxGraph I.linkage).symm hadj)
-    (fun hnew => hnotnew ((linkageAuxGraph Cross.replacementLinkageConcrete).symm hnew))
+    hjleft hjright ((linkageAuxGraph I.linkage).adj_symm hadj)
+    (fun hnew => hnotnew ((linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hnew))
     hAU_old hUV_old hVD_old hU_old hV_old hA_ne_V hU_ne_D
 
 /-- New-only analogue of
@@ -24286,7 +24324,7 @@ theorem mem_local_quad_of_new_bridge_not_old_unchanged_right_endpoint
         I.rowIndex Cross.rowRight, auxD} : Finset I.linkage.Index) := by
   exact Cross.mem_local_quad_of_new_bridge_not_old_unchanged
     hij.symm hjleft hjright hileft hiright (reverseBridge β)
-    (fun hold => hnotold ((linkageAuxGraph I.linkage).symm hold))
+    (fun hold => hnotold ((linkageAuxGraph I.linkage).adj_symm hold))
     hAU_old hUV_old hVD_old hU_old hV_old hA_ne_V hU_ne_D
 
 /-- Auxiliary adjacencies between two vertices outside the cross local
@@ -24766,8 +24804,8 @@ theorem mem_local_quad_of_new_adj_not_old_at_right_endpoint
     j ∈ ({auxA, I.rowIndex Cross.rowLeft,
         I.rowIndex Cross.rowRight, auxD} : Finset I.linkage.Index) := by
   exact Cross.mem_local_quad_of_new_adj_not_old_at_left_endpoint
-    hjleft hjright ((linkageAuxGraph Cross.replacementLinkageConcrete).symm hadj)
-    (fun hold => hnotold ((linkageAuxGraph I.linkage).symm hold))
+    hjleft hjright ((linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hadj)
+    (fun hold => hnotold ((linkageAuxGraph I.linkage).adj_symm hold))
     hAU_old hUV_old hVD_old hU_old hV_old hA_ne_V hU_ne_D
 
 /-- Figure 8 auxiliary-locality theorem for the cross operation: every
@@ -25506,10 +25544,10 @@ theorem new_aux_adj_from_left_replacement_of_old_adj_from_left_crossed_row
         (I.rowIndex Cross.rowRight) i := by
   have h :=
     Cross.new_aux_adj_to_replacement_of_old_adj_to_left_crossed_row
-      hileft hiright ((linkageAuxGraph I.linkage).symm hadj)
+      hileft hiright ((linkageAuxGraph I.linkage).adj_symm hadj)
   exact h.imp
-    (fun hleft => (linkageAuxGraph Cross.replacementLinkageConcrete).symm hleft)
-    (fun hright => (linkageAuxGraph Cross.replacementLinkageConcrete).symm hright)
+    (fun hleft => (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hleft)
+    (fun hright => (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hright)
 
 /-- Auxiliary-adjacency version of
 `new_aux_adj_to_replacement_of_old_bridge_to_right_crossed_row`. -/
@@ -25545,10 +25583,10 @@ theorem new_aux_adj_from_replacement_of_old_adj_from_right_crossed_row
         (I.rowIndex Cross.rowRight) i := by
   have h :=
     Cross.new_aux_adj_to_replacement_of_old_adj_to_right_crossed_row
-      hileft hiright ((linkageAuxGraph I.linkage).symm hadj)
+      hileft hiright ((linkageAuxGraph I.linkage).adj_symm hadj)
   exact h.imp
-    (fun hleft => (linkageAuxGraph Cross.replacementLinkageConcrete).symm hleft)
-    (fun hright => (linkageAuxGraph Cross.replacementLinkageConcrete).symm hright)
+    (fun hleft => (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hleft)
+    (fun hright => (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm hright)
 
 /-- The two crossed rows are distinct. -/
 theorem rowLeft_ne_rowRight : Cross.rowLeft ≠ Cross.rowRight := by
@@ -25601,7 +25639,7 @@ theorem replacement_attachment_order_of_old_local_data
     simpa [H'] using
       Cross.new_aux_adj_to_replacement_of_old_adj_to_right_crossed_row
         hD_ne_left hD_ne_right
-        ((linkageAuxGraph I.linkage).symm hVD_old)
+        ((linkageAuxGraph I.linkage).adj_symm hVD_old)
   have horder :=
     cross_attachment_order_of_degree_two
       (H := H') (A := auxA) (U := I.rowIndex Cross.rowLeft)
@@ -25723,7 +25761,7 @@ The only input is the invariant update proved by the nonterminating branch:
 the fixed `Q0` paths still meet every successor row and avoid the same outside
 linkage paths.  The row replacement, linkage construction, row-index
 bookkeeping, and auxiliary isomorphism are all filled in here. -/
-noncomputable def successorInputLeftRight
+noncomputable abbrev successorInputLeftRight
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -25754,7 +25792,7 @@ theorem successorInputLeftRight_rowIndexInjective
   exact hinj hrs
 
 /-- The left-to-right cross successor keeps the same displayed row order. -/
-noncomputable def successorInputLeftRight_orderedRows
+noncomputable abbrev successorInputLeftRight_orderedRows
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -25766,7 +25804,7 @@ noncomputable def successorInputLeftRight_orderedRows
 /-- The left-to-right cross successor preserves the explicit iteration
 invariant package, provided the local nonterminating analysis has supplied the
 successor `Q0` contact invariant. -/
-noncomputable def successorInputLeftRight_iterationInvariants
+noncomputable abbrev successorInputLeftRight_iterationInvariants
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -25810,6 +25848,9 @@ noncomputable def successorInputLeftRight_activeAuxiliaryInvariant
             (linkageAuxGraph Cross.replacementLinkageConcrete).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph Cross.replacementLinkageConcrete)
+      (I.rowIndex r) 2
     simpa [successorInputLeftRight, successorRowIndexLeftRight] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         (Haux.degree_two r)
@@ -25867,6 +25908,9 @@ noncomputable def successorInputLeftRight_boundaryAuxiliaryInvariant
             (linkageAuxGraph Cross.replacementLinkageConcrete).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph Cross.replacementLinkageConcrete)
+      Inv.boundary.lowerBoundary 2
     simpa [successorInputLeftRight, successorRowIndexLeftRight] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         Inv.boundary.lower_degree_two
@@ -25877,6 +25921,9 @@ noncomputable def successorInputLeftRight_boundaryAuxiliaryInvariant
             (linkageAuxGraph Cross.replacementLinkageConcrete).Adj x y := by
       intro x y
       exact (hadj_iff x y).symm
+    change @DegreeEquals I.linkage.Index
+      (linkageAuxGraph Cross.replacementLinkageConcrete)
+      Inv.boundary.upperBoundary 2
     simpa [successorInputLeftRight, successorRowIndexLeftRight] using
       (degreeEquals_equiv_iff (Equiv.refl I.linkage.Index) hiff).1
         Inv.boundary.upper_degree_two
@@ -26254,17 +26301,20 @@ def successorRowIndexRightLeft (r : I.Row) :
     Cross.successorRowIndexRightLeft Cross.rowLeft =
       I.rowIndex Cross.rowRight := by
   simp [successorRowIndexRightLeft]
+  rfl
 
 @[simp] theorem successorRowIndexRightLeft_right :
     Cross.successorRowIndexRightLeft Cross.rowRight =
       I.rowIndex Cross.rowLeft := by
   simp [successorRowIndexRightLeft, Cross.rowLeft_ne_rowRight.symm]
+  rfl
 
 @[simp] theorem successorRowIndexRightLeft_of_ne
     {r : I.Row} (hleft : r ≠ Cross.rowLeft)
     (hright : r ≠ Cross.rowRight) :
     Cross.successorRowIndexRightLeft r = I.rowIndex r := by
   simp [successorRowIndexRightLeft, hleft, hright]
+  rfl
 
 theorem successorRowPathRightLeft_eq_linkage_path
     (r : I.Row) :
@@ -26289,7 +26339,7 @@ theorem successorRowPathRightLeft_eq_linkage_path
 The auxiliary-isomorphism and `Q0` contact invariant are supplied by the
 nonterminating local analysis; this definition only performs the row-order
 bookkeeping. -/
-noncomputable def successorInputRightLeft
+noncomputable abbrev successorInputRightLeft
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -26316,9 +26366,11 @@ theorem successorRowIndexRightLeft_eq_swap
   by_cases hleft : r = Cross.rowLeft
   · subst r
     simp [successorRowIndexRightLeft]
+    rfl
   · by_cases hright : r = Cross.rowRight
     · subst r
       simp [successorRowIndexRightLeft, Cross.rowLeft_ne_rowRight.symm]
+      rfl
     · rw [Cross.successorRowIndexRightLeft_of_ne hleft hright]
       rw [Equiv.swap_apply_of_ne_of_ne hleft hright]
 
@@ -26345,7 +26397,7 @@ theorem successorInputRightLeft_rowIndexInjective
 /-- The switched cross successor keeps the same displayed row positions; the
 swap is already encoded in `successorRowPathRightLeft` and
 `successorRowIndexRightLeft`. -/
-noncomputable def successorInputRightLeft_orderedRows
+noncomputable abbrev successorInputRightLeft_orderedRows
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -26357,7 +26409,7 @@ noncomputable def successorInputRightLeft_orderedRows
 /-- The switched cross successor preserves the explicit iteration invariant
 package, once the local nonterminating branch supplies the successor `Q0`
 contact invariant. -/
-noncomputable def successorInputRightLeft_iterationInvariants
+noncomputable abbrev successorInputRightLeft_iterationInvariants
     (haux : AuxGraphsIsomorphic L Cross.replacementLinkageConcrete)
     (hq0 :
       TypeOneCurrentRowsInvariant R hpos Q0 I.Row
@@ -26578,7 +26630,6 @@ noncomputable def successorInputRightLeft_boundaryAuxiliaryInvariant_of_swapAdj
           exact hfix.symm
         _ = e (Cross.successorRowIndexRightLeft r) := by
           rw [h]
-          rfl
         _ = e (e (I.rowIndex r)) := by rw [hsucc]
         _ = I.rowIndex r := by simp [e]
     exact Inv.boundary.lower_ne_row r hcontra
@@ -26600,7 +26651,6 @@ noncomputable def successorInputRightLeft_boundaryAuxiliaryInvariant_of_swapAdj
           exact hfix.symm
         _ = e (Cross.successorRowIndexRightLeft r) := by
           rw [h]
-          rfl
         _ = e (e (I.rowIndex r)) := by rw [hsucc]
         _ = I.rowIndex r := by simp [e]
     exact Inv.boundary.upper_ne_row r hcontra
@@ -32320,13 +32370,13 @@ def mkOfAllQ0
 
 /-- Forget the future-clean field and keep the boundary-aware extended
 invariant. -/
-def toExtendedFull
+abbrev toExtendedFull
     (Inv : TypeOneExtendedFutureCleanIterationInvariants I) :
     TypeOneExtendedFullIterationInvariants I :=
   Inv.extended
 
 /-- The row-order/row-disjointness part of the paper invariant. -/
-def base
+abbrev base
     (Inv : TypeOneExtendedFutureCleanIterationInvariants I) :
     TypeOneIterationInvariants I :=
   Inv.extended.full.base
@@ -32591,8 +32641,12 @@ theorem qstar_endpointContact_ne_source_of_ne_zero
         (Q0.data i hi).qstar.source ∈
           (Q0.data i hi).qstar.vertexSet :=
       GraphPath.source_mem_vertexSet _
-    simpa [z0, hcontact] using
-      (Q0.data i hi).qstar.before_refl hmem
+    rw [hcontact]
+    have hz : endpointContact I.linkage (Q0.data i hi).qstar z0 =
+        (Q0.data i hi).qstar.source := by
+      simpa [z0] using endpointContact_zero I.linkage (Q0.data i hi).qstar
+    rw [hz]
+    exact (Q0.data i hi).qstar.before_refl hmem
   have hle :=
     (endpointContact_before_iff_le_of_source_ne_target I.linkage
       (Q0.data i hi).qstar Inv.qstar_source_ne_target_current r z0).1
@@ -32779,7 +32833,7 @@ theorem qstar_endpointContact_one_row_eq_last
       simpa [hidx0', hidx1'] using heq.symm
     exact False.elim (Inv.extended.boundary.upper_ne_row row hrow_upper.symm)
   · exact Inv.extended.boundary.row_adj_upperBoundary_eq_last
-      ((linkageAuxGraph I.linkage).symm (by
+      ((linkageAuxGraph I.linkage).adj_symm (by
         simpa [hidx0', hidx1'] using hadj))
 
 /-- If the contact immediately before the lower-boundary target lies on an
@@ -32835,14 +32889,21 @@ theorem qstar_endpointContact_pred_last_row_eq_first
           Inv.qstar_target_mem_current_linkage
           ⟨rlast.1 + 1, by omega⟩ =
         Inv.extended.boundary.lowerBoundary := by
-    simpa [rlast, n, hnpos] using hidx_last
+    have hfin :
+        (⟨rlast.1 + 1, by omega⟩ : Fin
+          (endpointContactTraceLen I.linkage (Q0.data i hi).qstar + 1)) =
+        ⟨n, by omega⟩ := by
+      apply Fin.ext
+      change n - 1 + 1 = n
+      omega
+    simpa only [hfin] using hidx_last
   rcases Inv.qstar_endpointContactIndex_consecutive_aux_step_current
       (i := i) (hi := hi) rlast with heq | hadj
   · have hrow_lower : I.rowIndex row = Inv.extended.boundary.lowerBoundary := by
       simpa [hidx_pred', hidx_last'] using heq
     exact False.elim (Inv.extended.boundary.lower_ne_row row hrow_lower.symm)
   · exact Inv.extended.boundary.row_adj_lowerBoundary_eq_first
-      ((linkageAuxGraph I.linkage).symm (by
+      ((linkageAuxGraph I.linkage).adj_symm (by
         simpa [hidx_pred', hidx_last'] using hadj))
 
 /-- The endpoint-padded linkage-contact list of a fixed type-1 path has at
@@ -33277,7 +33338,11 @@ theorem endpointContact_ne_source_of_ne_zero_of_source_ne_target
       P.Before (endpointContact L' P r) (endpointContact L' P z0) := by
     have hmem : P.source ∈ P.vertexSet :=
       GraphPath.source_mem_vertexSet P
-    simpa [z0, hcontact] using P.before_refl hmem
+    rw [hcontact]
+    have hz : endpointContact L' P z0 = P.source := by
+      simpa [z0] using endpointContact_zero L' P
+    rw [hz]
+    exact P.before_refl hmem
   have hle :=
     (endpointContact_before_iff_le_of_source_ne_target L' P hne r z0).1
       hbefore
@@ -33624,7 +33689,9 @@ theorem qstar_replacement_contacts_rows_eq_or_consecutive_of_succ
       Inv (i := i) (hi := hi) r with heq | hadj
   · left
     apply Inv.base.rowIndexInjective
-    simpa [hidx_row, hidx_row'] using heq
+    rw [hidx_row, hidx_row'] at heq
+    change @Eq I.linkage.Index (I.rowIndex row) (I.rowIndex row') at heq
+    exact heq
   · right
     exact Inv.extended.full.active_aux.no_chord
       ((hadj_iff (I.rowIndex row) (I.rowIndex row')).1
@@ -33702,10 +33769,13 @@ theorem qstar_replacementContact_one_row_eq_last
   rcases Bump.qstar_replacementContactIndex_consecutive_aux_step
       Inv (i := i) (hi := hi) r0 with heq | hadj
   · have hrow_upper : I.rowIndex row = Inv.extended.boundary.upperBoundary := by
-      simpa [hidx0', hidx1'] using heq.symm
+      rw [hidx0', hidx1'] at heq
+      change @Eq I.linkage.Index Inv.extended.boundary.upperBoundary
+        (I.rowIndex row) at heq
+      exact heq.symm
     exact False.elim (Inv.extended.boundary.upper_ne_row row hrow_upper.symm)
   · exact Inv.extended.boundary.row_adj_upperBoundary_eq_last
-      ((linkageAuxGraph I.linkage).symm
+      ((linkageAuxGraph I.linkage).adj_symm
         ((hadj_iff Inv.extended.boundary.upperBoundary (I.rowIndex row)).1
           (by simpa [hidx0', hidx1'] using hadj)))
 
@@ -33781,14 +33851,24 @@ theorem qstar_replacementContact_pred_last_row_eq_first
           (Bump.qstar_target_mem_replacement_linkage Inv)
           ⟨rlast.1 + 1, by omega⟩ =
         Inv.extended.boundary.lowerBoundary := by
-    simpa [rlast, n, hnpos] using hidx_last
+    have hfin :
+        (⟨rlast.1 + 1, by omega⟩ : Fin
+          (endpointContactTraceLen Bump.replacementLinkageConcrete
+            (Q0.data i hi).qstar + 1)) = ⟨n, by omega⟩ := by
+      apply Fin.ext
+      change n - 1 + 1 = n
+      omega
+    simpa only [hfin] using hidx_last
   rcases Bump.qstar_replacementContactIndex_consecutive_aux_step
       Inv (i := i) (hi := hi) rlast with heq | hadj
   · have hrow_lower : I.rowIndex row = Inv.extended.boundary.lowerBoundary := by
-      simpa [hidx_pred', hidx_last'] using heq
+      rw [hidx_pred', hidx_last'] at heq
+      change @Eq I.linkage.Index (I.rowIndex row)
+        Inv.extended.boundary.lowerBoundary at heq
+      exact heq
     exact False.elim (Inv.extended.boundary.lower_ne_row row hrow_lower.symm)
   · exact Inv.extended.boundary.row_adj_lowerBoundary_eq_first
-      ((linkageAuxGraph I.linkage).symm
+      ((linkageAuxGraph I.linkage).adj_symm
         ((hadj_iff (I.rowIndex row) Inv.extended.boundary.lowerBoundary).1
           (by simpa [hidx_pred', hidx_last'] using hadj)))
 
@@ -34521,7 +34601,12 @@ theorem qstar_replacement_internal_index_eq_row_leftRight
       I.rowIndex row := by
   unfold endpointContactIndex
   apply linkageIndexOfVertex_eq_of_mem (L := Cross.replacementLinkageConcrete)
-  simpa [Cross.successorRowPathLeftRight_eq_linkage_path row] using hrow
+  change endpointContact Cross.replacementLinkageConcrete
+      (Q0.data i hi).qstar r ∈
+    (Cross.replacementLinkageConcrete.path
+      (Cross.successorRowIndexLeftRight row)).vertexSet
+  rw [← Cross.successorRowPathLeftRight_eq_linkage_path row]
+  exact hrow
 
 /-- Consecutive endpoint-padded contacts with the cross replacement linkage
 either stay on the same replacement-linkage path or form an edge in the
@@ -34623,7 +34708,9 @@ theorem qstar_replacement_contacts_rows_eq_or_consecutive_leftRight
       Inv (i := i) (hi := hi) r with heq | hadj
   · left
     apply Inv.base.rowIndexInjective
-    simpa [hidx_row, hidx_row'] using heq
+    rw [hidx_row, hidx_row'] at heq
+    change @Eq I.linkage.Index (I.rowIndex row) (I.rowIndex row') at heq
+    exact heq
   · right
     exact Inv.extended.full.active_aux.no_chord
       ((hadj_iff (I.rowIndex row) (I.rowIndex row')).1
@@ -34701,10 +34788,13 @@ theorem qstar_replacementContact_one_row_eq_last_leftRight
   rcases Cross.qstar_replacementContactIndex_consecutive_aux_step
       Inv (i := i) (hi := hi) r0 with heq | hadj
   · have hrow_upper : I.rowIndex row = Inv.extended.boundary.upperBoundary := by
-      simpa [hidx0', hidx1'] using heq.symm
+      rw [hidx0', hidx1'] at heq
+      change @Eq I.linkage.Index Inv.extended.boundary.upperBoundary
+        (I.rowIndex row) at heq
+      exact heq.symm
     exact False.elim (Inv.extended.boundary.upper_ne_row row hrow_upper.symm)
   · exact Inv.extended.boundary.row_adj_upperBoundary_eq_last
-      ((linkageAuxGraph I.linkage).symm
+      ((linkageAuxGraph I.linkage).adj_symm
         ((hadj_iff Inv.extended.boundary.upperBoundary (I.rowIndex row)).1
           (by simpa [hidx0', hidx1'] using hadj)))
 
@@ -34780,14 +34870,24 @@ theorem qstar_replacementContact_pred_last_row_eq_first_leftRight
           (Cross.qstar_target_mem_replacement_linkage Inv)
           ⟨rlast.1 + 1, by omega⟩ =
         Inv.extended.boundary.lowerBoundary := by
-    simpa [rlast, n, hnpos] using hidx_last
+    have hfin :
+        (⟨rlast.1 + 1, by omega⟩ : Fin
+          (endpointContactTraceLen Cross.replacementLinkageConcrete
+            (Q0.data i hi).qstar + 1)) = ⟨n, by omega⟩ := by
+      apply Fin.ext
+      change n - 1 + 1 = n
+      omega
+    simpa only [hfin] using hidx_last
   rcases Cross.qstar_replacementContactIndex_consecutive_aux_step
       Inv (i := i) (hi := hi) rlast with heq | hadj
   · have hrow_lower : I.rowIndex row = Inv.extended.boundary.lowerBoundary := by
-      simpa [hidx_pred', hidx_last'] using heq
+      rw [hidx_pred', hidx_last'] at heq
+      change @Eq I.linkage.Index (I.rowIndex row)
+        Inv.extended.boundary.lowerBoundary at heq
+      exact heq
     exact False.elim (Inv.extended.boundary.lower_ne_row row hrow_lower.symm)
   · exact Inv.extended.boundary.row_adj_lowerBoundary_eq_first
-      ((linkageAuxGraph I.linkage).symm
+      ((linkageAuxGraph I.linkage).adj_symm
         ((hadj_iff (I.rowIndex row) Inv.extended.boundary.lowerBoundary).1
           (by simpa [hidx_pred', hidx_last'] using hadj)))
 
@@ -34851,13 +34951,16 @@ theorem qstar_replacementContactTraceLen_two_le_leftRight
   · have hbad :
         Inv.extended.boundary.upperBoundary =
           Inv.extended.boundary.lowerBoundary := by
-      simpa [hidx0, hidx1] using heq
+      rw [hidx0, hidx1] at heq
+      change @Eq I.linkage.Index Inv.extended.boundary.upperBoundary
+        Inv.extended.boundary.lowerBoundary at heq
+      exact heq
     exact Inv.extended.boundary.lower_ne_upper hbad.symm
   · have hold :
         (linkageAuxGraph I.linkage).Adj
           Inv.extended.boundary.lowerBoundary
           Inv.extended.boundary.upperBoundary := by
-      exact (linkageAuxGraph I.linkage).symm
+      exact (linkageAuxGraph I.linkage).adj_symm
         ((hadj_iff Inv.extended.boundary.upperBoundary
           Inv.extended.boundary.lowerBoundary).1
           (by simpa [hidx0, hidx1] using hadj))
@@ -35440,8 +35543,12 @@ theorem qstar_replacement_contacts_rows_eq_or_consecutive_rightLeft
         (Equiv.swap Cross.rowLeft Cross.rowRight) row =
           (Equiv.swap Cross.rowLeft Cross.rowRight) row' := by
       apply Inv.base.rowIndexInjective
-      simpa [Cross.successorRowIndexRightLeft_eq_swap row,
-        Cross.successorRowIndexRightLeft_eq_swap row'] using hsucc
+      rw [Cross.successorRowIndexRightLeft_eq_swap row,
+        Cross.successorRowIndexRightLeft_eq_swap row'] at hsucc
+      change @Eq I.linkage.Index
+        (I.rowIndex ((Equiv.swap Cross.rowLeft Cross.rowRight) row))
+        (I.rowIndex ((Equiv.swap Cross.rowLeft Cross.rowRight) row')) at hsucc
+      exact hsucc
     exact (Equiv.swap Cross.rowLeft Cross.rowRight).injective hswap_rows
   · right
     have hnew :
@@ -35580,7 +35687,7 @@ theorem qstar_replacementContact_one_row_eq_last_rightLeft
         Cross.successorIndexSwap_apply_successorRowIndexRightLeft Inv row]
         using hold_swapped
     exact Inv.extended.boundary.row_adj_upperBoundary_eq_last
-      ((linkageAuxGraph I.linkage).symm hold)
+      ((linkageAuxGraph I.linkage).adj_symm hold)
 
 /-- If the last contact before the lower boundary lies on a switched-order
 successor row, then that row is the first active row. -/
@@ -35660,7 +35767,14 @@ theorem qstar_replacementContact_pred_last_row_eq_first_rightLeft
           (Cross.qstar_target_mem_replacement_linkage Inv)
           ⟨rlast.1 + 1, by omega⟩ =
         Inv.extended.boundary.lowerBoundary := by
-    simpa [rlast, n, hnpos] using hidx_last
+    have hfin :
+        (⟨rlast.1 + 1, by omega⟩ : Fin
+          (endpointContactTraceLen Cross.replacementLinkageConcrete
+            (Q0.data i hi).qstar + 1)) = ⟨n, by omega⟩ := by
+      apply Fin.ext
+      change n - 1 + 1 = n
+      omega
+    simpa only [hfin] using hidx_last
   rcases Cross.qstar_replacementContactIndex_consecutive_aux_step
       Inv (i := i) (hi := hi) rlast with heq | hadj
   · have hsucc_lower :
@@ -35701,7 +35815,7 @@ theorem qstar_replacementContact_pred_last_row_eq_first_rightLeft
         Cross.successorIndexSwap_apply_successorRowIndexRightLeft Inv row]
         using hold_swapped
     exact Inv.extended.boundary.row_adj_lowerBoundary_eq_first
-      ((linkageAuxGraph I.linkage).symm hold)
+      ((linkageAuxGraph I.linkage).adj_symm hold)
 
 /-- The switched-order cross replacement endpoint-contact list has length at
 least two in the nonterminating branch. -/
@@ -35769,7 +35883,10 @@ theorem qstar_replacementContactTraceLen_two_le_rightLeft
   · have hbad :
         Inv.extended.boundary.upperBoundary =
           Inv.extended.boundary.lowerBoundary := by
-      simpa [hidx0, hidx1] using heq
+      rw [hidx0, hidx1] at heq
+      change @Eq I.linkage.Index Inv.extended.boundary.upperBoundary
+        Inv.extended.boundary.lowerBoundary at heq
+      exact heq
     exact Inv.extended.boundary.lower_ne_upper hbad.symm
   · have hnew :
         (linkageAuxGraph Cross.replacementLinkageConcrete).Adj
@@ -35796,7 +35913,7 @@ theorem qstar_replacementContactTraceLen_two_le_rightLeft
             Inv.extended.boundary.lowerBoundary := by
         simpa [eidx] using
           Cross.successorIndexSwap_apply_lowerBoundary Inv.extended
-      exact (linkageAuxGraph I.linkage).symm
+      exact (linkageAuxGraph I.linkage).adj_symm
         (by simpa [eidx, hfixUpper, hfixLower] using hold_swapped)
     exact no_old_aux_adj_lower_upper Inv hold
 
@@ -36310,9 +36427,9 @@ noncomputable def crossForwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · simpa [auxA, hrow_left_first] using
+      · simpa [order, auxA, hrow_left_first] using
           Inv.extended.boundary.lower_adj_first
-      · simpa [auxD, hrow_right_last] using
+      · simpa [order, auxD, hrow_right_last] using
           Inv.extended.boundary.last_adj_upper
       · exact Inv.extended.boundary.lower_ne_row Cross.rowRight
       · exact (Inv.extended.boundary.upper_ne_row Cross.rowLeft).symm
@@ -36339,7 +36456,7 @@ noncomputable def crossForwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · simpa [auxA, hrow_left_first] using
+      · simpa [order, auxA, hrow_left_first] using
           Inv.extended.boundary.lower_adj_first
       · simpa using Inv.extended.full.active_aux.consecutive_adj hcon_next
       · exact Inv.extended.boundary.lower_ne_row Cross.rowRight
@@ -36388,7 +36505,7 @@ noncomputable def crossForwardLocalQuadData
           hUD := ?_
           hAD := ?_ }
       · simpa using Inv.extended.full.active_aux.consecutive_adj hcon_prev
-      · simpa [auxD, hrow_right_last] using
+      · simpa [order, auxD, hrow_right_last] using
           Inv.extended.boundary.last_adj_upper
       · intro hidx
         have hrow : prevRow = Cross.rowRight :=
@@ -36548,11 +36665,11 @@ noncomputable def crossBackwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · exact (linkageAuxGraph I.linkage).symm (by
-          simpa [auxA, hrow_left_last] using
+      · exact (linkageAuxGraph I.linkage).adj_symm (by
+          simpa [order, auxA, hrow_left_last] using
             Inv.extended.boundary.last_adj_upper)
-      · exact (linkageAuxGraph I.linkage).symm (by
-          simpa [auxD, hrow_right_first] using
+      · exact (linkageAuxGraph I.linkage).adj_symm (by
+          simpa [order, auxD, hrow_right_first] using
             Inv.extended.boundary.lower_adj_first)
       · exact Inv.extended.boundary.upper_ne_row Cross.rowRight
       · exact (Inv.extended.boundary.lower_ne_row Cross.rowLeft).symm
@@ -36580,10 +36697,10 @@ noncomputable def crossBackwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · exact (linkageAuxGraph I.linkage).symm (by
-          simpa [auxA, hrow_left_last] using
+      · exact (linkageAuxGraph I.linkage).adj_symm (by
+          simpa [order, auxA, hrow_left_last] using
             Inv.extended.boundary.last_adj_upper)
-      · exact (linkageAuxGraph I.linkage).symm
+      · exact (linkageAuxGraph I.linkage).adj_symm
           (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
       · exact Inv.extended.boundary.upper_ne_row Cross.rowRight
       · intro hidx
@@ -36627,10 +36744,10 @@ noncomputable def crossBackwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · exact (linkageAuxGraph I.linkage).symm
+      · exact (linkageAuxGraph I.linkage).adj_symm
           (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-      · exact (linkageAuxGraph I.linkage).symm (by
-          simpa [auxD, hrow_right_first] using
+      · exact (linkageAuxGraph I.linkage).adj_symm (by
+          simpa [order, auxD, hrow_right_first] using
             Inv.extended.boundary.lower_adj_first)
       · intro hidx
         have hrow : nextRow = Cross.rowRight :=
@@ -36665,9 +36782,9 @@ noncomputable def crossBackwardLocalQuadData
           hAV := ?_
           hUD := ?_
           hAD := ?_ }
-      · exact (linkageAuxGraph I.linkage).symm
+      · exact (linkageAuxGraph I.linkage).adj_symm
           (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-      · exact (linkageAuxGraph I.linkage).symm
+      · exact (linkageAuxGraph I.linkage).adj_symm
           (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
       · intro hidx
         have hrow : nextRow = Cross.rowRight :=
@@ -36785,7 +36902,7 @@ noncomputable def bumpLocalTripleData
           left_ne_mid := Inv.extended.boundary.lower_ne_row Bump.row
           mid_ne_right := ?_
           left_ne_right := ?_ }
-      · simpa [hrow_first] using
+      · simpa [order, hrow_first] using
           Inv.extended.boundary.lower_adj_first
       · simpa using
           Inv.extended.full.active_aux.consecutive_adj hcon_next
@@ -36831,7 +36948,7 @@ noncomputable def bumpLocalTripleData
           left_ne_right := ?_ }
       · simpa using
           Inv.extended.full.active_aux.consecutive_adj hcon_prev
-      · simpa [hrow_last] using
+      · simpa [order, hrow_last] using
           Inv.extended.boundary.last_adj_upper
       · intro hidx
         have hrow : prevRow = Bump.row :=
@@ -38635,7 +38752,7 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
             hLA_old hAU_old hUV_old hVD_old hDR_old hAV_new
             (by
               exact
-                (linkageAuxGraph Cross.replacementLinkageConcrete).symm
+                (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm
                   Cross.replacementLinkageConcrete_adj_left_right_from_deletedLeftMiddle)
             hUD_new hA_old hU_old hV_old hD_old hA_new hU_new hV_new
             hD_new hL_not hR_not hLU hRV hAU_ne hAD hUD hAV hDV hLD
@@ -38645,8 +38762,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
       let haux_prev : AuxGraphsIsomorphic I.linkage L'' :=
         auxGraphsIsomorphic_of_equiv_adj e (by
           intro i j
+          change (linkageAuxGraph I.linkage).Adj i j ↔
+            (linkageAuxGraph Cross.replacementLinkageConcrete).Adj (e i) (e j)
           have h := hadj_swap (e i) (e j)
-          simpa [e, L''] using h.symm)
+          simpa [e] using h.symm)
       let haux_fixed : AuxGraphsIsomorphic L L'' :=
         auxGraphsIsomorphic_trans I.aux_iso_fixed_outside haux_prev
       exact
@@ -38659,7 +38778,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
         degreeTwoVertexCount_lt_of_supported_local_drop
           (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
           hlocal_old
-          ⟨auxD, by simp [S], by simpa [L''] using hD_new⟩
+          ⟨auxD, by simp [S], by
+            change ¬ DegreeEquals
+              (linkageAuxGraph Cross.replacementLinkageConcrete) auxD 2
+            exact hD_new⟩
       exact Or.inl ⟨L'', by
         simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
   · have hdrop :
@@ -38668,7 +38790,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
       degreeTwoVertexCount_lt_of_supported_local_drop
         (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
         hlocal_old
-        ⟨auxA, by simp [S], by simpa [L''] using hA_new⟩
+        ⟨auxA, by simp [S], by
+          change ¬ DegreeEquals
+            (linkageAuxGraph Cross.replacementLinkageConcrete) auxA 2
+          exact hA_new⟩
     exact Or.inl ⟨L'', by
       simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
 
@@ -38780,7 +38905,7 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
             hLA_old hAU_old hUV_old hVD_old hDR_old hAV_new
             (by
               exact
-                (linkageAuxGraph Cross.replacementLinkageConcrete).symm
+                (linkageAuxGraph Cross.replacementLinkageConcrete).adj_symm
                   Cross.replacementLinkageConcrete_adj_left_right_from_deletedLeftMiddle)
             hUD_new hA_old hU_old hV_old hD_old hA_new hU_new hV_new
             hD_new hL_not hR_not hLU hRV hAU_ne hAD hUD hAV hDV hLD
@@ -38790,8 +38915,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
       let haux_prev : AuxGraphsIsomorphic I.linkage L'' :=
         auxGraphsIsomorphic_of_equiv_adj e (by
           intro i j
+          change (linkageAuxGraph I.linkage).Adj i j ↔
+            (linkageAuxGraph Cross.replacementLinkageConcrete).Adj (e i) (e j)
           have h := hadj_swap (e i) (e j)
-          simpa [e, L''] using h.symm)
+          simpa [e] using h.symm)
       let haux_fixed : AuxGraphsIsomorphic L L'' :=
         auxGraphsIsomorphic_trans I.aux_iso_fixed_outside haux_prev
       let hq0 :
@@ -38808,7 +38935,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
         degreeTwoVertexCount_lt_of_supported_local_drop
           (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
           hlocal_old
-          ⟨auxD, by simp [S], by simpa [L''] using hD_new⟩
+          ⟨auxD, by simp [S], by
+            change ¬ DegreeEquals
+              (linkageAuxGraph Cross.replacementLinkageConcrete) auxD 2
+            exact hD_new⟩
       exact Or.inl ⟨L'', by
         simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
   · have hdrop :
@@ -38817,7 +38947,10 @@ noncomputable def paperActionUpdate_rightLeft_of_localDichotomy_constructedSucce
       degreeTwoVertexCount_lt_of_supported_local_drop
         (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
         hlocal_old
-        ⟨auxA, by simp [S], by simpa [L''] using hA_new⟩
+        ⟨auxA, by simp [S], by
+          change ¬ DegreeEquals
+            (linkageAuxGraph Cross.replacementLinkageConcrete) auxA 2
+          exact hA_new⟩
     exact Or.inl ⟨L'', by
       simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
 
@@ -40489,7 +40622,7 @@ noncomputable def ofForwardInteriorInvariant
       hAV := h_auxA_ne_right
       hDV := h_auxD_ne_right
       hLD := h_auxL_ne_auxD }
-  · exact (linkageAuxGraph I.linkage).symm
+  · exact (linkageAuxGraph I.linkage).adj_symm
       (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
   · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
   · exact Inv.extended.full.active_aux.consecutive_adj hcon_next
@@ -40811,7 +40944,7 @@ noncomputable def ofForwardRightBoundaryInvariant
           hAV := h_prev_ne_right
           hDV := Inv.extended.boundary.upper_ne_row Cross.rowRight
           hLD := Inv.extended.boundary.lower_ne_upper }
-      · exact H.symm (by
+      · exact H.adj_symm (by
           simpa [hprev_row_first] using
             Inv.extended.boundary.lower_adj_first)
       · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
@@ -40883,7 +41016,7 @@ noncomputable def ofForwardRightBoundaryInvariant
           hAV := h_prev_ne_right
           hDV := Inv.extended.boundary.upper_ne_row Cross.rowRight
           hLD := (Inv.extended.boundary.upper_ne_row prevPrevRow).symm }
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
           hcon_prevPrev)
       · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
       · simpa [hrow_right_last] using Inv.extended.boundary.last_adj_upper
@@ -41025,7 +41158,7 @@ noncomputable def ofForwardSecondRowInvariant
           hAV := h_prev_ne_right
           hDV := h_next_ne_right
           hLD := Inv.extended.boundary.lower_ne_row nextRow }
-      · exact H.symm (by
+      · exact H.adj_symm (by
           simpa [hprev_row_first] using
             Inv.extended.boundary.lower_adj_first)
       · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
@@ -41104,7 +41237,7 @@ noncomputable def ofForwardSecondRowInvariant
           hAV := h_prev_ne_right
           hDV := h_next_ne_right
           hLD := Inv.extended.boundary.lower_ne_row nextRow }
-      · exact H.symm (by
+      · exact H.adj_symm (by
           simpa [hprev_row_first] using
             Inv.extended.boundary.lower_adj_first)
       · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
@@ -41290,7 +41423,7 @@ noncomputable def ofForwardNextToRightBoundaryInvariant
             hAV := h_prev_ne_right
             hDV := h_next_ne_right
             hLD := h_prevPrev_ne_next }
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
             hcon_prevPrev)
         · exact Inv.extended.full.active_aux.consecutive_adj hcon_prev
         · exact Inv.extended.full.active_aux.consecutive_adj hcon_next
@@ -41407,9 +41540,9 @@ noncomputable def ofBackwardUpperBoundaryInvariant
         hAV := Inv.extended.boundary.upper_ne_row Cross.rowRight
         hDV := Inv.extended.boundary.lower_ne_row Cross.rowRight
         hLD := Inv.extended.boundary.upperOutside_ne_lower }
-    · exact H.symm (by
+    · exact H.adj_symm (by
         simpa [hrow_left_last] using Inv.extended.boundary.last_adj_upper)
-    · exact H.symm (by
+    · exact H.adj_symm (by
         simpa [hrow_right_first] using Inv.extended.boundary.lower_adj_first)
     · simp [Inv.extended.boundary.upperOutside_ne_upper,
         Inv.extended.boundary.upperOutside_ne_row Cross.rowLeft,
@@ -41480,10 +41613,10 @@ noncomputable def ofBackwardUpperBoundaryInvariant
           hAV := Inv.extended.boundary.upper_ne_row Cross.rowRight
           hDV := h_prev_ne_right
           hLD := Inv.extended.boundary.upperOutside_ne_row prevRow }
-      · exact H.symm (by
+      · exact H.adj_symm (by
           simpa [hrow_left_last] using Inv.extended.boundary.last_adj_upper)
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-      · exact H.symm (by
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+      · exact H.adj_symm (by
           simpa [hprev_row_first] using
             Inv.extended.boundary.lower_adj_first)
       · simp [Inv.extended.boundary.upperOutside_ne_upper,
@@ -41556,10 +41689,10 @@ noncomputable def ofBackwardUpperBoundaryInvariant
           hAV := Inv.extended.boundary.upper_ne_row Cross.rowRight
           hDV := h_prev_ne_right
           hLD := Inv.extended.boundary.upperOutside_ne_row prevRow }
-      · exact H.symm (by
+      · exact H.adj_symm (by
           simpa [hrow_left_last] using Inv.extended.boundary.last_adj_upper)
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
           hcon_prevPrev)
       · simp [Inv.extended.boundary.upperOutside_ne_upper,
           Inv.extended.boundary.upperOutside_ne_row Cross.rowLeft,
@@ -41667,8 +41800,8 @@ noncomputable def ofBackwardLowerBoundaryInvariant
           hDV := Inv.extended.boundary.lower_ne_row Cross.rowRight
           hLD := Inv.extended.boundary.lower_ne_upper.symm }
       · simpa [hnext_row_last] using Inv.extended.boundary.last_adj_upper
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-      · exact H.symm (by
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+      · exact H.adj_symm (by
           simpa [hrow_right_first] using
             Inv.extended.boundary.lower_adj_first)
       · simp [Inv.extended.boundary.upper_ne_row nextRow,
@@ -41741,8 +41874,8 @@ noncomputable def ofBackwardLowerBoundaryInvariant
           hDV := Inv.extended.boundary.lower_ne_row Cross.rowRight
           hLD := h_nextNext_ne_lower }
       · exact Inv.extended.full.active_aux.consecutive_adj hcon_nextNext
-      · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-      · exact H.symm (by
+      · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+      · exact H.adj_symm (by
           simpa [hrow_right_first] using
             Inv.extended.boundary.lower_adj_first)
       · simp [h_nextNext_ne_next, h_nextNext_ne_left, h_nextNext_ne_right,
@@ -41888,9 +42021,9 @@ noncomputable def ofBackwardNextToUpperBoundaryInvariant
             hDV := h_prev_ne_right
             hLD := (Inv.extended.boundary.upper_ne_row prevRow) }
         · simpa [hnext_row_last] using Inv.extended.boundary.last_adj_upper
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-        · exact H.symm (by
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+        · exact H.adj_symm (by
             simpa [hprev_row_first] using
               Inv.extended.boundary.lower_adj_first)
         · simp [Inv.extended.boundary.upper_ne_row nextRow,
@@ -41968,9 +42101,9 @@ noncomputable def ofBackwardNextToUpperBoundaryInvariant
             hDV := h_prev_ne_right
             hLD := (Inv.extended.boundary.upper_ne_row prevRow) }
         · simpa [hnext_row_last] using Inv.extended.boundary.last_adj_upper
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
             hcon_prevPrev)
         · simp [Inv.extended.boundary.upper_ne_row nextRow,
             Inv.extended.boundary.upper_ne_row Cross.rowLeft,
@@ -42150,9 +42283,9 @@ noncomputable def ofBackwardSecondRowInvariant
             hDV := h_prev_ne_right
             hLD := h_nextNext_ne_prev }
         · exact Inv.extended.full.active_aux.consecutive_adj hcon_nextNext
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-        · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-        · exact H.symm (by
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+        · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+        · exact H.adj_symm (by
             simpa [hprev_row_first] using
               Inv.extended.boundary.lower_adj_first)
         · simp [h_nextNext_ne_next, h_nextNext_ne_left,
@@ -42362,9 +42495,9 @@ noncomputable def ofBackwardInteriorInvariant
       hDV := h_prev_ne_right
       hLD := h_nextNext_ne_prev }
   · exact Inv.extended.full.active_aux.consecutive_adj hcon_nextNext
-  · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
-  · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
-  · exact H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
+  · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_next)
+  · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prev)
+  · exact H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
   · simp [h_nextNext_ne_next, h_nextNext_ne_left, h_nextNext_ne_right,
       h_nextNext_ne_prev]
   · simp [h_prevPrev_ne_next, h_prevPrev_ne_left, h_prevPrev_ne_right,
@@ -42650,7 +42783,7 @@ noncomputable def ofForwardInvariant
             auxL_ne_auxD := Inv.extended.boundary.lower_ne_upper }
         · have hadj :
               H.Adj (I.rowIndex prevRow) Inv.extended.boundary.lowerBoundary := by
-            exact H.symm (by
+            exact H.adj_symm (by
               simpa [hprev_row_first] using Inv.extended.boundary.lower_adj_first)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
             order, pL, pR, hleft_first, hright_last, prevFin, prevRow] using hadj
@@ -42706,7 +42839,7 @@ noncomputable def ofForwardInvariant
             auxL_ne_auxD := (Inv.extended.boundary.upper_ne_row prevPrevRow).symm }
         · have hadj :
               H.Adj (I.rowIndex prevRow) (I.rowIndex prevPrevRow) :=
-            H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
+            H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
             order, pL, pR, hleft_first, hright_last, prevFin, prevRow] using hadj
         · simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
@@ -42764,7 +42897,7 @@ noncomputable def ofForwardInvariant
               auxL_ne_auxD := Inv.extended.boundary.lower_ne_row nextRow }
           · have hadj :
                 H.Adj (I.rowIndex prevRow) Inv.extended.boundary.lowerBoundary := by
-              exact H.symm (by
+              exact H.adj_symm (by
                 simpa [hprev_row_first] using Inv.extended.boundary.lower_adj_first)
             simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
               order, pL, pR, hleft_first, hright_last, prevFin, prevRow,
@@ -42830,7 +42963,7 @@ noncomputable def ofForwardInvariant
               auxL_ne_auxD := Inv.extended.boundary.lower_ne_row nextRow }
           · have hadj :
                 H.Adj (I.rowIndex prevRow) Inv.extended.boundary.lowerBoundary := by
-              exact H.symm (by
+              exact H.adj_symm (by
                 simpa [hprev_row_first] using Inv.extended.boundary.lower_adj_first)
             simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
               order, pL, pR, hleft_first, hright_last, prevFin, prevRow,
@@ -42901,7 +43034,7 @@ noncomputable def ofForwardInvariant
               auxL_ne_auxD := hprevPrev_ne_right }
           · have hadj :
                 H.Adj (I.rowIndex prevRow) (I.rowIndex prevPrevRow) :=
-              H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
+              H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
             simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
               order, pL, pR, hleft_first, hright_last, prevFin, prevRow,
               nextFin, nextRow] using hadj
@@ -42968,7 +43101,7 @@ noncomputable def ofForwardInvariant
               auxL_ne_auxD := hprevPrev_ne_next }
           · have hadj :
                 H.Adj (I.rowIndex prevRow) (I.rowIndex prevPrevRow) :=
-              H.symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
+              H.adj_symm (Inv.extended.full.active_aux.consecutive_adj hcon_prevPrev)
             simpa [TypeOneExtendedFutureCleanIterationInvariants.crossForwardLocalQuadData,
               order, pL, pR, hleft_first, hright_last, prevFin, prevRow,
               nextFin, nextRow] using hadj
@@ -43094,7 +43227,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
           (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
           hlocal_old
           ⟨I.rowIndex Cross.rowRight, by simp [S], by
-            simpa [L''] using hV_new⟩
+            change ¬ DegreeEquals
+              (linkageAuxGraph Cross.replacementLinkageConcrete)
+              (I.rowIndex Cross.rowRight) 2
+            exact hV_new⟩
       exact Or.inl ⟨L'', by
         simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
   · have hdrop :
@@ -43104,7 +43240,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
         (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
         hlocal_old
         ⟨I.rowIndex Cross.rowLeft, by simp [S], by
-          simpa [L''] using hU_new⟩
+          change ¬ DegreeEquals
+            (linkageAuxGraph Cross.replacementLinkageConcrete)
+            (I.rowIndex Cross.rowLeft) 2
+          exact hU_new⟩
     exact Or.inl ⟨L'', by
       simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
 
@@ -43218,7 +43357,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
           (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
           hlocal_old
           ⟨I.rowIndex Cross.rowRight, by simp [S], by
-            simpa [L''] using hV_new⟩
+            change ¬ DegreeEquals
+              (linkageAuxGraph Cross.replacementLinkageConcrete)
+              (I.rowIndex Cross.rowRight) 2
+            exact hV_new⟩
       exact Or.inl ⟨L'', by
         simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
   · have hdrop :
@@ -43228,7 +43370,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
         (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
         hlocal_old
         ⟨I.rowIndex Cross.rowLeft, by simp [S], by
-          simpa [L''] using hU_new⟩
+          change ¬ DegreeEquals
+            (linkageAuxGraph Cross.replacementLinkageConcrete)
+            (I.rowIndex Cross.rowLeft) 2
+          exact hU_new⟩
     exact Or.inl ⟨L'', by
       simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
 
@@ -43337,7 +43482,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
           (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
           hlocal_old
           ⟨I.rowIndex Cross.rowRight, by simp [S], by
-            simpa [L''] using hV_new⟩
+            change ¬ DegreeEquals
+              (linkageAuxGraph Cross.replacementLinkageConcrete)
+              (I.rowIndex Cross.rowRight) 2
+            exact hV_new⟩
       exact Or.inl ⟨L'', by
         simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
   · have hdrop :
@@ -43347,7 +43495,10 @@ noncomputable def paperActionUpdate_of_localDegreeTest_constructedSuccessor_byLe
         (linkageAuxGraph I.linkage) (linkageAuxGraph L'') S hsupport
         hlocal_old
         ⟨I.rowIndex Cross.rowLeft, by simp [S], by
-          simpa [L''] using hU_new⟩
+          change ¬ DegreeEquals
+            (linkageAuxGraph Cross.replacementLinkageConcrete)
+            (I.rowIndex Cross.rowLeft) 2
+          exact hU_new⟩
     exact Or.inl ⟨L'', by
       simpa [L'', linkageAuxDegreeTwoCount] using hdrop⟩
 
@@ -44297,7 +44448,9 @@ noncomputable def toHillCandidateData
     rcases hcases with hrl | hrm | hrr
     · left
       have hr_eq_left : r = Vly.left := Fin.ext hrl
-      simpa [hr_eq_left] using hr.symm
+      calc
+        v = T.contact Vly.left := by simpa [hr_eq_left] using hr.symm
+        _ = Seg.source := by simp [Seg]
     · have hr_eq_mid : r = Vly.mid := Fin.ext hrm
       have hk_eq_lower : k = Vly.rowLower := by
         calc
@@ -44307,7 +44460,9 @@ noncomputable def toHillCandidateData
       exact False.elim (hk_lower hk_eq_lower)
     · right
       have hr_eq_right : r = Vly.right := Fin.ext hrr
-      simpa [hr_eq_right] using hr.symm
+      calc
+        v = T.contact Vly.right := by simpa [hr_eq_right] using hr.symm
+        _ = Seg.target := by simp [Seg]
   by_cases hrow_left_right :
       (claimB3RowPath I inv Vly.rowTop).Before
         (T.contact Vly.left) (T.contact Vly.right)
@@ -44625,9 +44780,13 @@ noncomputable def toHillCandidateData
     rcases Vly.contacts_only_lower_or_endpoints r hleft_le_r hr_le_right
         hr_not_lower with hr_left | hr_right
     · left
-      simpa [hr_left] using hr.symm
+      calc
+        v = T.contact Vly.left := by simpa [hr_left] using hr.symm
+        _ = Seg.source := by simp [Seg]
     · right
-      simpa [hr_right] using hr.symm
+      calc
+        v = T.contact Vly.right := by simpa [hr_right] using hr.symm
+        _ = Seg.target := by simp [Seg]
   by_cases hrow_left_right :
       (claimB3RowPath I inv Vly.rowTop).Before
         (T.contact Vly.left) (T.contact Vly.right)
@@ -46568,7 +46727,7 @@ variable {I : IterationInput R hpos Q0}
 variable {inv : TypeOneIterationInvariants I}
 
 /-- The raw trace generated by the retained atomization. -/
-noncomputable def trace
+noncomputable abbrev trace
     (C : ClaimB3AtomizedTraceCompressionExtractionCertificate I inv)
     (j : Fin h) : ClaimB3RowContactTrace I inv j :=
   (C.atomization j).toRowContactTrace C.stripCertificate
@@ -55261,7 +55420,7 @@ noncomputable def ofInvariant
             auxL_ne_right := ?_ }
         · have hadj :
               H.Adj (I.rowIndex prevRow) Inv.extended.boundary.lowerBoundary := by
-            exact H.symm (by
+            exact H.adj_symm (by
               simpa [hprev_row_first] using
                 Inv.extended.boundary.lower_adj_first)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.bumpLocalTripleData,
@@ -55290,7 +55449,7 @@ noncomputable def ofInvariant
             auxL_ne_right := ?_ }
         · have hadj :
               H.Adj (I.rowIndex prevRow) (I.rowIndex prevPrevRow) :=
-            H.symm (Inv.extended.full.active_aux.consecutive_adj
+            H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
               hcon_prevPrev)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.bumpLocalTripleData,
             order, p, hfirst, hlast, prevFin, prevRow] using hadj
@@ -55338,7 +55497,7 @@ noncomputable def ofInvariant
             auxL_ne_right := ?_ }
         · have hadj :
               H.Adj (I.rowIndex prevRow) Inv.extended.boundary.lowerBoundary := by
-            exact H.symm (by
+            exact H.adj_symm (by
               simpa [hprev_row_first] using
                 Inv.extended.boundary.lower_adj_first)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.bumpLocalTripleData,
@@ -55367,7 +55526,7 @@ noncomputable def ofInvariant
             auxL_ne_right := ?_ }
         · have hadj :
               H.Adj (I.rowIndex prevRow) (I.rowIndex prevPrevRow) :=
-            H.symm (Inv.extended.full.active_aux.consecutive_adj
+            H.adj_symm (Inv.extended.full.active_aux.consecutive_adj
               hcon_prevPrev)
           simpa [TypeOneExtendedFutureCleanIterationInvariants.bumpLocalTripleData,
             order, p, hfirst, hlast, prevFin, prevRow, nextFin, nextRow] using hadj

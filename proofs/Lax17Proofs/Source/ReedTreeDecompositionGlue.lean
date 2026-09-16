@@ -193,7 +193,8 @@ theorem glue {K : Finset V} (D₁ : RegionDecomposition G C₁)
           · rcases D₂.edge_mem_bag huv hu₂ hv₂ with ⟨j, hju, hjv⟩
             exact ⟨right j, hju, hjv⟩
           · have hv₁ : v ∈ C₁ := (mem_union.mp hv').resolve_right hv₂
-            exact False.elim (hsep.no_cross hv₁ hv₂ hu₂ hu₁ (G.symm huv))
+            exact False.elim
+              (hsep.no_cross hv₁ hv₂ hu₂ hu₁ (G.symm.symm u v huv))
       bag_walk := by
         intro v hv i j hi hj
         rcases i with (⟨_ | i⟩ | i) <;> rcases j with (⟨_ | j⟩ | j)

@@ -159,7 +159,8 @@ def mainPathPacking (C : Crossbar G A B X rho) : PathPacking G A B where
 /-- The main-path packing has the crossbar width. -/
 @[simp] theorem mainPathPacking_card (C : Crossbar G A B X rho) :
     C.mainPathPacking.card = rho := by
-  simpa [mainPathPacking, PathPacking.card] using C.card_index
+  change Fintype.card C.Index = rho
+  exact C.card_index
 
 @[simp] theorem mainPathPacking_path_vertexSet
     (C : Crossbar G A B X rho) (i : C.Index) :
@@ -198,7 +199,8 @@ noncomputable def reindex {ι : Type} [Fintype ι] [DecidableEq ι]
     {ι : Type} [Fintype ι] [DecidableEq ι]
     (C : Crossbar G A B X rho) (e : ι ≃ C.Index) :
     (C.reindex e).mainPathPacking.card = rho := by
-  simpa [mainPathPacking, PathPacking.card] using (C.reindex e).card_index
+  change Fintype.card ι = rho
+  exact (C.reindex e).card_index
 
 @[simp] theorem reindex_mainPath_vertexSet
     {ι : Type} [Fintype ι] [DecidableEq ι]
@@ -260,8 +262,9 @@ noncomputable def mainPerfectPathPacking
 @[simp] theorem mainPerfectPathPacking_card
     (C : Crossbar G A B X rho) (hA : A.card = rho) (hB : B.card = rho) :
     (C.mainPerfectPathPacking hA hB).card = rho := by
-  simpa [mainPerfectPathPacking, PathPacking.toPerfectOfCardEq,
-    PerfectPathPacking.card, PathPacking.card] using C.card_index
+  change Fintype.card C.mainPathPacking.orient.Index = rho
+  change Fintype.card C.Index = rho
+  exact C.card_index
 
 /-- A crossbar in a graph is also a crossbar in any same-vertex supergraph. -/
 def mapLe (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
@@ -271,14 +274,21 @@ def mapLe (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
   mainPath := fun i => (C.mainPath i).mapLe hGG'
   main_connects := by
     intro i
-    simpa [GraphPath.Connects] using C.main_connects i
+    change (C.mainPath i).Connects A B
+    exact C.main_connects i
   main_nodeDisjoint := by
     intro i j hij
     simpa [GraphPath.NodeDisjoint] using C.main_nodeDisjoint hij
   spokePath := fun i => (C.spokePath i).mapLe hGG'
   spoke_connects := by
     intro i
-    simpa [GraphPath.ConnectsPathToSet] using C.spoke_connects i
+    rcases C.spoke_connects i with h | h
+    · exact Or.inl ⟨by
+        rw [GraphPath.mapLe_vertexSet]
+        exact h.1, h.2⟩
+    · exact Or.inr ⟨by
+        rw [GraphPath.mapLe_vertexSet]
+        exact h.1, h.2⟩
   spoke_nodeDisjoint := by
     intro i j hij
     simpa [GraphPath.NodeDisjoint] using C.spoke_nodeDisjoint hij
@@ -295,12 +305,14 @@ def mapLe (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
     refine ⟨v, ?_, ?_, ?_, ?_⟩
     · simpa [GraphPath.mapLe, GraphPath.IsEndpoint] using hvendpoint
     · simpa [GraphPath.MeetsExactlyAt] using hmeet
-    · simpa [GraphPath.mapLe, GraphPath.otherEndpoint] using hotherX
+    · change (C.spokePath i).otherEndpoint v ∈ X
+      exact hotherX
     · change
         ((C.spokePath i).mapLe hGG').otherEndpoint v ∉
           ((C.mainPath i).mapLe hGG').vertexSet
       rw [GraphPath.mapLe_vertexSet]
-      simpa [GraphPath.mapLe, GraphPath.otherEndpoint] using hotherMain
+      change (C.spokePath i).otherEndpoint v ∉ (C.mainPath i).vertexSet
+      exact hotherMain
   spoke_disjoint_other_main := by
     intro i j hij
     simpa [GraphPath.NodeDisjoint] using C.spoke_disjoint_other_main hij
@@ -327,16 +339,18 @@ def mapLe (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
     (hGG' : G ≤ G') (i : Fin rho) :
     ((C.mapLe hGG').finReindex.mainPath i).edgeSet =
       (C.finReindex.mainPath i).edgeSet := by
-  simp [finReindex]
-  rfl
+  change ((C.mainPath (C.finIndexEquiv i)).mapLe hGG').edgeSet =
+    (C.mainPath (C.finIndexEquiv i)).edgeSet
+  exact GraphPath.mapLe_edgeSet _ _
 
 @[simp] theorem mapLe_finReindex_mainPathPacking_path_edgeSet
     (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
     (hGG' : G ≤ G') (i : Fin rho) :
     (((C.mapLe hGG').finReindex.mainPathPacking).path i).edgeSet =
       (C.finReindex.mainPath i).edgeSet := by
-  simp [finReindex]
-  rfl
+  change ((C.mainPath (C.finIndexEquiv i)).mapLe hGG').edgeSet =
+    (C.mainPath (C.finIndexEquiv i)).edgeSet
+  exact GraphPath.mapLe_edgeSet _ _
 
 @[simp] theorem mapLe_spokePath_vertexSet
     (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
@@ -355,8 +369,9 @@ def mapLe (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}
     (hGG' : G ≤ G') (i : Fin rho) :
     ((C.mapLe hGG').finReindex.spokePath i).edgeSet =
       (C.finReindex.spokePath i).edgeSet := by
-  simp [finReindex]
-  rfl
+  change ((C.spokePath (C.finIndexEquiv i)).mapLe hGG').edgeSet =
+    (C.spokePath (C.finIndexEquiv i)).edgeSet
+  exact GraphPath.mapLe_edgeSet _ _
 
 @[simp] theorem mapLe_mainPathPacking_card
     (C : Crossbar G A B X rho) {G' : _root_.SimpleGraph V}

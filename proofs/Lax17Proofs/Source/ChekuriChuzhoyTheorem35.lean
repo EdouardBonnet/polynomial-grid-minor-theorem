@@ -1199,17 +1199,17 @@ theorem exists_target_reserve_linkage_for_selected_leaf_connector
     ⟨I, A₁, A₂, hIcard, htarget, hA₁, hA₂, hdisj, hA₁card, hA₂card⟩
   have htarget_subset :
       (T.connector i j hij).targetSet I ⊆
-        T.interface j i (T.metaTree.symm hij) :=
+        T.interface j i (T.metaTree.adj_symm hij) :=
     (T.connector i j hij).targetSet_subset_right I
   have hA₁_interface :
-      A₁ ⊆ T.interface j i (T.metaTree.symm hij) :=
+      A₁ ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     subset_trans hA₁ htarget_subset
   have hA₂_interface :
-      A₂ ⊆ T.interface j i (T.metaTree.symm hij) :=
+      A₂ ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     subset_trans hA₂ htarget_subset
   have hcard : A₁.card = A₂.card := hA₁card.trans hA₂card.symm
   rcases T.exists_interface_self_perfect_linkage_between_disjoint_subsets
-      (T.metaTree.symm hij) hA₁_interface hA₂_interface hdisj hcard with
+      (T.metaTree.adj_symm hij) hA₁_interface hA₂_interface hdisj hcard with
     ⟨Q, hQcard, hQstay⟩
   exact ⟨I, A₁, A₂, Q, hIcard, htarget, hA₁, hA₂, hdisj,
     hA₁card, hA₂card, hQcard.trans hA₁card, hQstay⟩
@@ -1570,12 +1570,12 @@ noncomputable def SelectedLeafConnectorCoherentWidthData.toTargetSingletonStrong
     intro _
     exact subset_trans
       ((T.connector i j hij).targetSet_subset_right D.leftIndexSet)
-      (T.interface_subset_cluster j i (T.metaTree.symm hij))
+      (T.interface_subset_cluster j i (T.metaTree.adj_symm hij))
   right_subset_cluster := by
     intro _
     exact subset_trans
       ((T.connector i j hij).targetSet_subset_right D.rightIndexSet)
-      (T.interface_subset_cluster j i (T.metaTree.symm hij))
+      (T.interface_subset_cluster j i (T.metaTree.adj_symm hij))
   left_right_disjoint := by
     intro _
     exact D.targetReserve_disjoint
@@ -1604,17 +1604,17 @@ noncomputable def SelectedLeafConnectorCoherentWidthData.toTargetSingletonStrong
   left_nodeWellLinked := by
     intro _
     exact NodeWellLinkedIn.mono_terminals
-      (T.interface_nodeWellLinked j i (T.metaTree.symm hij))
+      (T.interface_nodeWellLinked j i (T.metaTree.adj_symm hij))
       ((T.connector i j hij).targetSet_subset_right D.leftIndexSet)
   right_nodeWellLinked := by
     intro _
     exact NodeWellLinkedIn.mono_terminals
-      (T.interface_nodeWellLinked j i (T.metaTree.symm hij))
+      (T.interface_nodeWellLinked j i (T.metaTree.adj_symm hij))
       ((T.connector i j hij).targetSet_subset_right D.rightIndexSet)
   left_right_nodeLinked := by
     intro _
     exact NodeWellLinkedIn.nodeLinkedIn_between_disjoint_subsets
-      (T.interface_nodeWellLinked j i (T.metaTree.symm hij))
+      (T.interface_nodeWellLinked j i (T.metaTree.adj_symm hij))
       ((T.connector i j hij).targetSet_subset_right D.leftIndexSet)
       ((T.connector i j hij).targetSet_subset_right D.rightIndexSet)
       D.targetReserve_disjoint
@@ -1704,10 +1704,10 @@ theorem SelectedLeafConnectorCoherentStep2Data.exists_widthData
       Disjoint (P.targetSet leftIndexSet) (P.targetSet rightIndexSet) :=
     P.targetSet_disjoint hindexDisj
   have htargetLeft_interface :
-      P.targetSet leftIndexSet ⊆ T.interface j i (T.metaTree.symm hij) :=
+      P.targetSet leftIndexSet ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     P.targetSet_subset_right leftIndexSet
   have htargetRight_interface :
-      P.targetSet rightIndexSet ⊆ T.interface j i (T.metaTree.symm hij) :=
+      P.targetSet rightIndexSet ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     P.targetSet_subset_right rightIndexSet
   have htargetLeft_card : (P.targetSet leftIndexSet).card = w := by
     simp [hleft_card]
@@ -1717,7 +1717,7 @@ theorem SelectedLeafConnectorCoherentStep2Data.exists_widthData
       (P.targetSet leftIndexSet).card = (P.targetSet rightIndexSet).card :=
     htargetLeft_card.trans htargetRight_card.symm
   rcases T.exists_interface_self_perfect_linkage_between_disjoint_subsets
-      (T.metaTree.symm hij) htargetLeft_interface htargetRight_interface
+      (T.metaTree.adj_symm hij) htargetLeft_interface htargetRight_interface
       htargetDisj htargetCardEq with
     ⟨targetLinkage, htargetLinkageCard, htargetLinkageStay⟩
   exact ⟨{
@@ -1802,17 +1802,17 @@ theorem exists_selectedLeafConnectorStep2Data
     (T.connector i j hij).sourceSet_subset_left I
   have htarget_subset :
       (T.connector i j hij).targetSet I ⊆
-        T.interface j i (T.metaTree.symm hij) :=
+        T.interface j i (T.metaTree.adj_symm hij) :=
     (T.connector i j hij).targetSet_subset_right I
   have hsourceLeft_interface : sourceLeft ⊆ T.interface i j hij :=
     subset_trans hsourceLeft hsource_subset
   have hsourceRight_interface : sourceRight ⊆ T.interface i j hij :=
     subset_trans hsourceRight hsource_subset
   have htargetLeft_interface :
-      targetLeft ⊆ T.interface j i (T.metaTree.symm hij) :=
+      targetLeft ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     subset_trans htargetLeft htarget_subset
   have htargetRight_interface :
-      targetRight ⊆ T.interface j i (T.metaTree.symm hij) :=
+      targetRight ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     subset_trans htargetRight htarget_subset
   have hsourceCardEq : sourceLeft.card = sourceRight.card :=
     hsourceLeftCard.trans hsourceRightCard.symm
@@ -1823,7 +1823,7 @@ theorem exists_selectedLeafConnectorStep2Data
       hsourceCardEq with
     ⟨sourceLinkage, hsourceLinkageCard, hsourceLinkageStay⟩
   rcases T.exists_interface_self_perfect_linkage_between_disjoint_subsets
-      (T.metaTree.symm hij) htargetLeft_interface htargetRight_interface
+      (T.metaTree.adj_symm hij) htargetLeft_interface htargetRight_interface
       htargetDisj htargetCardEq with
     ⟨targetLinkage, htargetLinkageCard, htargetLinkageStay⟩
   exact ⟨{
@@ -1892,10 +1892,10 @@ theorem exists_selectedLeafConnectorCoherentStep2Data
       P.sourceSet rightIndexSet ⊆ T.interface i j hij :=
     P.sourceSet_subset_left rightIndexSet
   have htargetLeft_interface :
-      P.targetSet leftIndexSet ⊆ T.interface j i (T.metaTree.symm hij) :=
+      P.targetSet leftIndexSet ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     P.targetSet_subset_right leftIndexSet
   have htargetRight_interface :
-      P.targetSet rightIndexSet ⊆ T.interface j i (T.metaTree.symm hij) :=
+      P.targetSet rightIndexSet ⊆ T.interface j i (T.metaTree.adj_symm hij) :=
     P.targetSet_subset_right rightIndexSet
   have hsourceDisj :
       Disjoint (P.sourceSet leftIndexSet) (P.sourceSet rightIndexSet) :=
@@ -1914,7 +1914,7 @@ theorem exists_selectedLeafConnectorCoherentStep2Data
       hsourceCardEq with
     ⟨sourceLinkage, hsourceLinkageCard, hsourceLinkageStay⟩
   rcases T.exists_interface_self_perfect_linkage_between_disjoint_subsets
-      (T.metaTree.symm hij) htargetLeft_interface htargetRight_interface
+      (T.metaTree.adj_symm hij) htargetLeft_interface htargetRight_interface
       htargetDisj htargetCardEq with
     ⟨targetLinkage, htargetLinkageCard, htargetLinkageStay⟩
   exact ⟨{
@@ -2829,7 +2829,7 @@ theorem exists_selectedLeafMetaPathTurnLinkageData
     exact S.selectedLeafMetaPathVertex_ne_two_step r ha
   have hincoming_subset :
       incoming.selectedLeafTargetSet ⊆
-        T.interface mid prev (T.metaTree.symm hin) := by
+        T.interface mid prev (T.metaTree.adj_symm hin) := by
     dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
       incoming, ia, prev, mid, hin]
     exact (T.connector (S.selectedLeafMetaPathVertex r a)
@@ -2852,7 +2852,7 @@ theorem exists_selectedLeafMetaPathTurnLinkageData
       outgoing.selectedLeafTranche_source_card.symm
   rcases T.exists_interface_pair_perfect_linkage_between_subsets
       (i := mid) (j := prev) (k := next)
-      (hij := T.metaTree.symm hin) (hik := hout)
+      (hij := T.metaTree.adj_symm hin) (hik := hout)
       hprev_next hincoming_subset houtgoing_subset hcard with
     ⟨Q, hQcard, hQstay⟩
   exact ⟨{
@@ -2985,7 +2985,7 @@ theorem exists_selectedLeafMetaPathIncomingTurnConcatData
           have htarget_interface :
               D.incoming.selectedLeafTargetSet ⊆
                 T.interface mid prev
-                  (T.metaTree.symm
+                  (T.metaTree.adj_symm
                     (S.selectedLeafMetaPathVertex_adj_succ r (by omega))) := by
             dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
               prev, mid]
@@ -2994,7 +2994,7 @@ theorem exists_selectedLeafMetaPathIncomingTurnConcatData
               (S.selectedLeafMetaPathVertex_adj_succ r (by omega))).targetSet_subset_right _
           exact subset_trans htarget_interface
             (T.interface_subset_cluster mid prev
-              (T.metaTree.symm
+              (T.metaTree.adj_symm
                 (S.selectedLeafMetaPathVertex_adj_succ r (by omega))))
         exact Finset.disjoint_of_subset_left htarget_cluster
           (T.cluster_disjoint (hc.symm))
@@ -3062,7 +3062,7 @@ theorem exists_selectedLeafMetaPathTurnOutgoingConcatData
       have htarget_interface :
           D.outgoing.selectedLeafTargetSet ⊆
             T.interface next mid
-              (T.metaTree.symm
+              (T.metaTree.adj_symm
                 (S.selectedLeafMetaPathVertex_adj_succ r ha)) := by
         dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
           mid, next]
@@ -3071,7 +3071,7 @@ theorem exists_selectedLeafMetaPathTurnOutgoingConcatData
           (S.selectedLeafMetaPathVertex_adj_succ r ha)).targetSet_subset_right _
       exact subset_trans htarget_interface
         (T.interface_subset_cluster next mid
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_adj_succ r ha)))
     dsimp [A]
     exact Finset.disjoint_of_subset_left htarget_cluster
@@ -3252,7 +3252,7 @@ theorem exists_rootChildSelectedLeafFirstTurnLinkageData
     simpa [next] using h
   have hrootChildTarget_subset :
       P.targetSet (S.rootChildSelectedLeafTranche r) ⊆
-        T.interface S.child S.root (T.metaTree.symm S.root_child_adj) := by
+        T.interface S.child S.root (T.metaTree.adj_symm S.root_child_adj) := by
     exact P.targetSet_subset_right _
   have houtgoing_subset :
       outgoing.selectedLeafSourceSet ⊆ T.interface S.child next hchild_next := by
@@ -3269,7 +3269,7 @@ theorem exists_rootChildSelectedLeafFirstTurnLinkageData
       outgoing.selectedLeafTranche_source_card.symm
   rcases T.exists_interface_pair_perfect_linkage_between_subsets
       (i := S.child) (j := S.root) (k := next)
-      (hij := T.metaTree.symm S.root_child_adj) (hik := hchild_next)
+      (hij := T.metaTree.adj_symm S.root_child_adj) (hik := hchild_next)
       hroot_ne_next hrootChildTarget_subset houtgoing_subset hcard with
     ⟨Q, hQcard, hQstay⟩
   exact ⟨{
@@ -3337,7 +3337,7 @@ theorem exists_rootChildSelectedLeafFirstTurnOutgoingConcatData
         D.outgoing.selectedLeafTargetSet ⊆ T.cluster next := by
       have htarget_interface :
           D.outgoing.selectedLeafTargetSet ⊆
-            T.interface next S.child (T.metaTree.symm hchild_next) := by
+            T.interface next S.child (T.metaTree.adj_symm hchild_next) := by
         dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
           next]
         simpa [next] using
@@ -3345,7 +3345,7 @@ theorem exists_rootChildSelectedLeafFirstTurnOutgoingConcatData
             (S.selectedLeafMetaPathVertex r 2)
             (S.selectedLeafMetaPathVertex_adj_succ r (a := 1) ha)).targetSet_subset_right _
       exact subset_trans htarget_interface
-        (T.interface_subset_cluster next S.child (T.metaTree.symm hchild_next))
+        (T.interface_subset_cluster next S.child (T.metaTree.adj_symm hchild_next))
     dsimp [A]
     exact Finset.disjoint_of_subset_left htarget_cluster
       (T.cluster_disjoint hchild_next.ne.symm)
@@ -3435,7 +3435,7 @@ structure RootChildSelectedLeafFirstTurnWidthRestrictionData
     (firstTurnOutgoing.firstTurnOutgoingPacking.targetSet
       (firstTurnOutgoing.firstTurnOutgoingPacking.sourceIndexSetOfSubset sourceSet)) ⊆
         T.interface (S.selectedLeafMetaPathVertex r 2) S.child
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (by
               simpa using
                 (S.selectedLeafMetaPathVertex_adj_succ r (a := 1) ha)))
@@ -3501,7 +3501,7 @@ theorem exists_rootChildSelectedLeafFirstTurnWidthRestrictionData
       have htarget_interface :
           D.firstTurn.outgoing.selectedLeafTargetSet ⊆
             T.interface (S.selectedLeafMetaPathVertex r 2) S.child
-              (T.metaTree.symm
+              (T.metaTree.adj_symm
                 (by
                   simpa using
                     (S.selectedLeafMetaPathVertex_adj_succ r (a := 1) ha))) := by
@@ -3534,7 +3534,7 @@ structure SelectedLeafMetaPathAdvanceRouteData
     sourceSet ⊆
       T.interface (S.selectedLeafMetaPathVertex r (a + 1))
         (S.selectedLeafMetaPathVertex r a)
-        (T.metaTree.symm
+        (T.metaTree.adj_symm
           (S.selectedLeafMetaPathVertex_adj_succ r (a := a) (by omega)))
   source_card : sourceSet.card = w
   outgoing :
@@ -3562,7 +3562,7 @@ structure SelectedLeafMetaPathAdvanceRouteData
       (outgoing.selectedLeafRestrictedPacking.sourceIndexSetOfSubset outgoingSourceSet)) ⊆
         T.interface (S.selectedLeafMetaPathVertex r (a + 2))
           (S.selectedLeafMetaPathVertex r (a + 1))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_adj_succ r (a := a + 1) ha))
   advancePacking_staysIn :
     advancePacking.toPathPacking.StaysIn
@@ -3586,7 +3586,7 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
       sourceSet ⊆
         T.interface (S.selectedLeafMetaPathVertex r (a + 1))
           (S.selectedLeafMetaPathVertex r a)
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_adj_succ r (a := a) (by omega))))
     (hsource_card : sourceSet.card = w) :
     Nonempty
@@ -3625,7 +3625,7 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
     hsource_card.trans houtgoingSource_card.symm
   rcases T.exists_interface_pair_perfect_linkage_between_subsets
       (i := mid) (j := prev) (k := next)
-      (hij := T.metaTree.symm hin) (hik := hout)
+      (hij := T.metaTree.adj_symm hin) (hik := hout)
       hprev_next hsource_interface houtgoing_interface hcard_eq with
     ⟨Qturn, hQturn_card, hQturn_stay⟩
   let Qout : PerfectPathPacking G outgoingSourceSet
@@ -3643,7 +3643,7 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
   have htarget_interface :
       outgoing.selectedLeafRestrictedPacking.targetSet
           (outgoing.selectedLeafRestrictedPacking.sourceIndexSetOfSubset outgoingSourceSet) ⊆
-        T.interface next mid (T.metaTree.symm hout) := by
+        T.interface next mid (T.metaTree.adj_symm hout) := by
     have htarget_selected :
         outgoing.selectedLeafRestrictedPacking.targetSet
             (outgoing.selectedLeafRestrictedPacking.sourceIndexSetOfSubset outgoingSourceSet) ⊆
@@ -3651,7 +3651,7 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
       outgoing.selectedLeafRestrictedPacking.targetSet_subset_right _
     have hselected_target :
         outgoing.selectedLeafTargetSet ⊆
-          T.interface next mid (T.metaTree.symm hout) := by
+          T.interface next mid (T.metaTree.adj_symm hout) := by
       dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
         outgoing, mid, next, hout]
       exact (T.connector (S.selectedLeafMetaPathVertex r (a + 1))
@@ -3668,7 +3668,7 @@ theorem exists_selectedLeafMetaPathAdvanceRouteData
             (outgoing.selectedLeafRestrictedPacking.sourceIndexSetOfSubset outgoingSourceSet) ⊆
           T.cluster next :=
       subset_trans htarget_interface
-        (T.interface_subset_cluster next mid (T.metaTree.symm hout))
+        (T.interface_subset_cluster next mid (T.metaTree.adj_symm hout))
     exact Finset.disjoint_of_subset_left htarget_cluster
       (T.cluster_disjoint hout.ne.symm)
   let R : PerfectPathPacking G sourceSet
@@ -3759,7 +3759,7 @@ structure SelectedLeafMetaPathBoundaryState
     sourceSet ⊆
       T.interface (S.selectedLeafMetaPathVertex r b)
         (S.selectedLeafMetaPathVertex r (b - 1))
-        (T.metaTree.symm
+        (T.metaTree.adj_symm
           (by
             have hb_pred_add : b - 1 + 1 = b := by omega
             simpa [hb_pred_add] using
@@ -3778,7 +3778,7 @@ theorem exists_rootChildSelectedLeafLeftBoundaryState
   let P := T.connector S.root S.child S.root_child_adj
   have htarget :
       P.targetSet D.leftIndexSet ⊆
-        T.interface S.child S.root (T.metaTree.symm S.root_child_adj) :=
+        T.interface S.child S.root (T.metaTree.adj_symm S.root_child_adj) :=
     P.targetSet_subset_right D.leftIndexSet
   exact ⟨{
     b_pos := by omega
@@ -3800,7 +3800,7 @@ theorem exists_rootChildSelectedLeafRightBoundaryState
   let P := T.connector S.root S.child S.root_child_adj
   have htarget :
       P.targetSet D.rightIndexSet ⊆
-        T.interface S.child S.root (T.metaTree.symm S.root_child_adj) :=
+        T.interface S.child S.root (T.metaTree.adj_symm S.root_child_adj) :=
     P.targetSet_subset_right D.rightIndexSet
   exact ⟨{
     b_pos := by omega
@@ -3827,7 +3827,7 @@ theorem exists_selectedLeafMetaPathBoundaryState_succ
       B.sourceSet ⊆
         T.interface (S.selectedLeafMetaPathVertex r ((b - 1) + 1))
           (S.selectedLeafMetaPathVertex r (b - 1))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_adj_succ r
               (a := b - 1) (by omega))) := by
     simpa [hb_pred_add] using B.source_subset_interface
@@ -4005,14 +4005,14 @@ theorem exists_selectedLeafMetaPathFullTurnConcatData
       C.turn.outgoing.selectedLeafTargetSet ⊆ T.cluster next := by
     have htarget_interface :
         C.turn.outgoing.selectedLeafTargetSet ⊆
-          T.interface next mid (T.metaTree.symm hout) := by
+          T.interface next mid (T.metaTree.adj_symm hout) := by
       dsimp [SelectedLeafMetaPathEdgeTrancheData.selectedLeafTargetSet,
         mid, next, hout]
       exact (T.connector (S.selectedLeafMetaPathVertex r (a + 1))
         (S.selectedLeafMetaPathVertex r (a + 2))
         (S.selectedLeafMetaPathVertex_adj_succ r ha)).targetSet_subset_right _
     exact subset_trans htarget_interface
-      (T.interface_subset_cluster next mid (T.metaTree.symm hout))
+      (T.interface_subset_cluster next mid (T.metaTree.adj_symm hout))
   have htarget_prev :
       Disjoint C.turn.outgoing.selectedLeafTargetSet prevConnectorVertexSet := by
     have htarget_out :
@@ -4101,7 +4101,7 @@ theorem exists_selected_leaf_parent
       ∀ z : Fin m, T.metaTree.Adj leaf z → z = parent := by
   rcases DegreeEquals.one_exists_unique_adj (S.leaves_leaf leaf hleaf) with
     ⟨parent, hleaf_parent, hunique⟩
-  exact ⟨parent, T.metaTree.symm hleaf_parent, hunique⟩
+  exact ⟨parent, T.metaTree.adj_symm hleaf_parent, hunique⟩
 
 /-- The actual parent-to-leaf connector of a selected leaf admits the full
 Step 2 reserve/linkage package. -/
@@ -4296,7 +4296,7 @@ structure SelectedLeafParentLeftAdvanceRouteData
       (S.selectedLeafParent_adj leaf) w) where
   source_subset_interface :
     sourceSet ⊆
-      T.interface (S.selectedLeafParent leaf) prev (T.metaTree.symm hprev_parent)
+      T.interface (S.selectedLeafParent leaf) prev (T.metaTree.adj_symm hprev_parent)
   source_card : sourceSet.card = w
   parentLinkage :
     PerfectPathPacking G sourceSet
@@ -4333,7 +4333,7 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData
     (hsource_interface :
       sourceSet ⊆
         T.interface (S.selectedLeafParent leaf) prev
-          (T.metaTree.symm hprev_parent))
+          (T.metaTree.adj_symm hprev_parent))
     (hsource_card : sourceSet.card = w) :
     Nonempty
       (SelectedLeafParentLeftAdvanceRouteData
@@ -4349,7 +4349,7 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData
     exact hsource_card.trans D.sourceLeft_card.symm
   rcases T.exists_interface_pair_perfect_linkage_between_subsets
       (i := parent) (j := prev) (k := leaf.1)
-      (hij := T.metaTree.symm hprev_parent) (hik := hparent_leaf)
+      (hij := T.metaTree.adj_symm hprev_parent) (hik := hparent_leaf)
       hprev_ne_leaf hsource_interface hleft_source_interface hcard_eq with
     ⟨Qturn, hQturn_card, hQturn_stay⟩
   have hQturn :
@@ -4363,7 +4363,7 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData
       Disjoint (P.targetSet D.leftIndexSet) (T.cluster parent) := by
     have htarget_cluster : P.targetSet D.leftIndexSet ⊆ T.cluster leaf.1 := by
       exact subset_trans (P.targetSet_subset_right D.leftIndexSet)
-        (T.interface_subset_cluster leaf.1 parent (T.metaTree.symm hparent_leaf))
+        (T.interface_subset_cluster leaf.1 parent (T.metaTree.adj_symm hparent_leaf))
     exact Finset.disjoint_of_subset_left htarget_cluster
       (T.cluster_disjoint hparent_leaf.ne.symm)
   let R : PerfectPathPacking G sourceSet (P.targetSet D.leftIndexSet) :=
@@ -4424,7 +4424,7 @@ structure SelectedLeafParentRightAdvanceRouteData
       (S.selectedLeafParent_adj leaf) w) where
   source_subset_interface :
     sourceSet ⊆
-      T.interface (S.selectedLeafParent leaf) prev (T.metaTree.symm hprev_parent)
+      T.interface (S.selectedLeafParent leaf) prev (T.metaTree.adj_symm hprev_parent)
   source_card : sourceSet.card = w
   parentLinkage :
     PerfectPathPacking G sourceSet
@@ -4461,7 +4461,7 @@ theorem exists_selectedLeafParentRightAdvanceRouteData
     (hsource_interface :
       sourceSet ⊆
         T.interface (S.selectedLeafParent leaf) prev
-          (T.metaTree.symm hprev_parent))
+          (T.metaTree.adj_symm hprev_parent))
     (hsource_card : sourceSet.card = w) :
     Nonempty
       (SelectedLeafParentRightAdvanceRouteData
@@ -4477,7 +4477,7 @@ theorem exists_selectedLeafParentRightAdvanceRouteData
     exact hsource_card.trans D.sourceRight_card.symm
   rcases T.exists_interface_pair_perfect_linkage_between_subsets
       (i := parent) (j := prev) (k := leaf.1)
-      (hij := T.metaTree.symm hprev_parent) (hik := hparent_leaf)
+      (hij := T.metaTree.adj_symm hprev_parent) (hik := hparent_leaf)
       hprev_ne_leaf hsource_interface hright_source_interface hcard_eq with
     ⟨Qturn, hQturn_card, hQturn_stay⟩
   have hQturn :
@@ -4491,7 +4491,7 @@ theorem exists_selectedLeafParentRightAdvanceRouteData
       Disjoint (P.targetSet D.rightIndexSet) (T.cluster parent) := by
     have htarget_cluster : P.targetSet D.rightIndexSet ⊆ T.cluster leaf.1 := by
       exact subset_trans (P.targetSet_subset_right D.rightIndexSet)
-        (T.interface_subset_cluster leaf.1 parent (T.metaTree.symm hparent_leaf))
+        (T.interface_subset_cluster leaf.1 parent (T.metaTree.adj_symm hparent_leaf))
     exact Finset.disjoint_of_subset_left htarget_cluster
       (T.cluster_disjoint hparent_leaf.ne.symm)
   let R : PerfectPathPacking G sourceSet (P.targetSet D.rightIndexSet) :=
@@ -4552,7 +4552,7 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData_prepenultimate
       sourceSet ⊆
         T.interface (S.selectedLeafParent (S.selectedLeafSubtype r))
           (S.selectedLeafMetaPathVertex r (S.selectedLeafMetaPathLength r - 2))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_prepenultimate_adj_parent r hL)))
     (hsource_card : sourceSet.card = w) :
     Nonempty
@@ -4578,7 +4578,7 @@ theorem exists_selectedLeafParentRightAdvanceRouteData_prepenultimate
       sourceSet ⊆
         T.interface (S.selectedLeafParent (S.selectedLeafSubtype r))
           (S.selectedLeafMetaPathVertex r (S.selectedLeafMetaPathLength r - 2))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_prepenultimate_adj_parent r hL)))
     (hsource_card : sourceSet.card = w) :
     Nonempty
@@ -4618,7 +4618,7 @@ theorem exists_selectedLeafParentLeftAdvanceRouteData_of_boundaryState
       B.sourceSet ⊆
         T.interface (S.selectedLeafParent (S.selectedLeafSubtype r))
           (S.selectedLeafMetaPathVertex r (S.selectedLeafMetaPathLength r - 2))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_prepenultimate_adj_parent r hL)) := by
     simpa [L, hparent, hprev] using B.source_subset_interface
   exact S.exists_selectedLeafParentLeftAdvanceRouteData_prepenultimate
@@ -4650,7 +4650,7 @@ theorem exists_selectedLeafParentRightAdvanceRouteData_of_boundaryState
       B.sourceSet ⊆
         T.interface (S.selectedLeafParent (S.selectedLeafSubtype r))
           (S.selectedLeafMetaPathVertex r (S.selectedLeafMetaPathLength r - 2))
-          (T.metaTree.symm
+          (T.metaTree.adj_symm
             (S.selectedLeafMetaPathVertex_prepenultimate_adj_parent r hL)) := by
     simpa [L, hparent, hprev] using B.source_subset_interface
   exact S.exists_selectedLeafParentRightAdvanceRouteData_prepenultimate
