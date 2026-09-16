@@ -192,7 +192,7 @@ theorem endpointEdge_mem_blue
   change
     e ∈ edgesOfSubgraph
       (E.assembledSupport hbudget) E.blueSupport le_sup_right
-  rw [mem_edgesOfSubgraph]
+  refine (mem_edgesOfSubgraph _ _ _ _).mpr ?_
   exact
     E.crossingChunk_edge_mem_blueSupport hbudget S
       (recordAt E S M hcard i)
@@ -290,7 +290,7 @@ theorem chunkAt_survives_of_safe
     change
       named ∈ edgesOfSubgraph
         (E.assembledSupport hbudget) E.blueSupport le_sup_right
-    rw [mem_edgesOfSubgraph]
+    refine (mem_edgesOfSubgraph _ _ _ _).mpr ?_
     exact heBlueSupport
   apply
     (E.blueThinningInput hbudget).edge_mem_thinned_of_endpoint_avoiding
