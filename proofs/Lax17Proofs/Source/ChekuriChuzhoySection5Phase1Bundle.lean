@@ -296,6 +296,7 @@ noncomputable def selectedPathPacking
     (selectedPathPacking S hij hclusterDisjoint global htransversal
       selected hselectedGlobal hjoins hinjI hinjJ).card = selected.card := by
   simp [selectedPathPacking, PathPacking.card]
+  exact Fintype.card_coe _
 
 /-- Every selected support path is direct with respect to the union of any
 specified family of router clusters.  This is the directness condition used

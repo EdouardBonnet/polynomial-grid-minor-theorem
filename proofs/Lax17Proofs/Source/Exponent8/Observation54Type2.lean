@@ -64,7 +64,8 @@ noncomputable def selectedSliceAuxInRaw
     (hgood : good ⊆ Qset) :
     (selectedSliceAuxInRaw sigma i Qset good hgood).card = good.card := by
   classical
-  simp [selectedSliceAuxInRaw, PathPacking.card]
+  change Fintype.card {q : Qbar.Index // q ∈ good} = good.card
+  exact Fintype.card_coe good
 
 @[simp] theorem selectedSliceAuxInRaw_path_vertexSet
     (sigma : PathSlicing Rbar M) (i : Fin M)
@@ -73,12 +74,12 @@ noncomputable def selectedSliceAuxInRaw
     (q : (selectedSliceAuxInRaw sigma i Qset good hgood).Index) :
     ((selectedSliceAuxInRaw sigma i Qset good hgood).path q).vertexSet =
       (Qbar.path q.1).vertexSet := by
-  change
-    (((((sliceAux Qbar Qset).path ⟨q.1, hgood q.2⟩).transfer
-      (sliceAux Qbar Qset).spanningGraph _).mapLe _).vertexSet) =
+  show
+    (((sliceAux Qbar Qset).inSpanningGraph.path ⟨q.1, hgood q.2⟩).mapLe
+      le_sup_right).vertexSet =
         (Qbar.path q.1).vertexSet
-  rw [GraphPath.mapLe_vertexSet, GraphPath.transfer_vertexSet]
-  rfl
+  rw [GraphPath.mapLe_vertexSet]
+  exact PathPacking.inSpanningGraph_path_vertexSet _ _
 
 theorem selectedSliceAuxInRaw_staysIn_support
     (sigma : PathSlicing Rbar M) (i : Fin M)
@@ -203,12 +204,13 @@ theorem auxiliaryDeletedSliceRows_isUniqueLinkage
     (auxiliaryDeletedSliceRows
       sigma i Qset good hunique.1 hQset hgood).IsUniqueLinkage := by
   let rows0 := sliceRowsInSupport sigma Qbar i Qset
+  have hspan : Rbar.SpansVertices := hunique.1
   let rowsSmall :=
     auxiliaryDeletedSliceRows
-      sigma i Qset good hunique.1 hQset hgood
+      sigma i Qset good hspan hQset hgood
   let hKL :=
     auxiliaryDeletedSliceGraph_le
-      sigma i Qset good hunique.1 hQset hgood
+      sigma i Qset good hspan hQset hgood
   have hrows0Unique :
       rows0.IsUniqueLinkage :=
     sliceSupport_isUniqueLinkage sigma Qbar i Qset hunique hQset
@@ -226,13 +228,11 @@ theorem auxiliaryDeletedSliceRows_isUniqueLinkage
     exact hzr
   have hcanonical :
       (rowsSmall.mapLe hKL).toPathPacking.edgeSet =
-        rows0.toPathPacking.edgeSet := by
-    change
-      (((rows0.inSpanningGraph.mapLe le_sup_left).mapLe hKL).toPathPacking.edgeSet) =
-        rows0.toPathPacking.edgeSet
-    rw [PerfectPathPacking.mapLe_edgeSet,
-      PerfectPathPacking.mapLe_edgeSet]
-    exact inSpanningGraph_edgeSet_eq_local rows0
+        rows0.toPathPacking.edgeSet :=
+    (PerfectPathPacking.mapLe_edgeSet
+        (rows0.inSpanningGraph.mapLe le_sup_left) hKL).trans
+      ((PerfectPathPacking.mapLe_edgeSet rows0.inSpanningGraph le_sup_left).trans
+        (inSpanningGraph_edgeSet_eq_local rows0))
   have hmappedUnique :
       (rowsSmall.mapLe hKL).IsUniqueLinkage := by
     constructor
@@ -243,11 +243,13 @@ theorem auxiliaryDeletedSliceRows_isUniqueLinkage
       apply
         (rowsSmall.mapLe hKL).toPathPacking.mem_vertexSet.2
       refine ⟨r, ?_⟩
-      change
-        z ∈
-          ((((rows0.inSpanningGraph.path r).mapLe le_sup_left).mapLe hKL).vertexSet)
-      rw [GraphPath.mapLe_vertexSet, GraphPath.mapLe_vertexSet,
-        PerfectPathPacking.inSpanningGraph_path_vertexSet]
+      have hVeq :
+          ((rowsSmall.mapLe hKL).path r).vertexSet = (rows0.path r).vertexSet :=
+        (GraphPath.mapLe_vertexSet
+            ((rows0.inSpanningGraph.path r).mapLe le_sup_left) hKL).trans
+          ((GraphPath.mapLe_vertexSet (rows0.inSpanningGraph.path r) le_sup_left).trans
+            (PerfectPathPacking.inSpanningGraph_path_vertexSet rows0 r))
+      rw [hVeq]
       exact hzr
     · intro L
       calc
@@ -270,23 +272,31 @@ theorem auxiliaryDeletedSliceRows_path_vertexSet
     z ∈ ((auxiliaryDeletedSliceRows
       sigma i Qset good hspan hQset hgood).path r).vertexSet ↔
       z.1 ∈ (sigma.sliceRowPath i r).vertexSet := by
-  change
-    z ∈
-        (((sliceRowsInSupport sigma Qbar i Qset).inSpanningGraph.path r).mapLe
-          le_sup_left).vertexSet ↔
-      z.1 ∈ (sigma.sliceRowPath i r).vertexSet
-  rw [GraphPath.mapLe_vertexSet,
-    PerfectPathPacking.inSpanningGraph_path_vertexSet]
-  change
-    z ∈
-        (((sliceRowsInRawGraph sigma Qbar i Qset).path r).induce
-          (sliceSupportVertexSetFor sigma Qbar i Qset)
-          (sliceRowsInRawGraph_stayIn_support
-            sigma Qbar i Qset r)).vertexSet ↔
-      z.1 ∈ (sigma.sliceRowPath i r).vertexSet
-  rw [GraphPath.mem_induce_vertexSet]
-  simp [sliceRowsInRawGraph, PerfectPathPacking.mapLe,
-    PathPacking.mapLe]
+  have hVeq :
+      ((auxiliaryDeletedSliceRows
+        sigma i Qset good hspan hQset hgood).path r).vertexSet =
+        ((sliceRowsInSupport sigma Qbar i Qset).path r).vertexSet :=
+    (GraphPath.mapLe_vertexSet
+        ((sliceRowsInSupport sigma Qbar i Qset).inSpanningGraph.path r)
+        le_sup_left).trans
+      (PerfectPathPacking.inSpanningGraph_path_vertexSet
+        (sliceRowsInSupport sigma Qbar i Qset) r)
+  have hIff :
+      z ∈ ((sliceRowsInSupport sigma Qbar i Qset).path r).vertexSet ↔
+        z.1 ∈ ((sliceRowsInRawGraph sigma Qbar i Qset).path r).vertexSet :=
+    GraphPath.mem_induce_vertexSet
+      ((sliceRowsInRawGraph sigma Qbar i Qset).path r)
+      (sliceSupportVertexSetFor sigma Qbar i Qset)
+      (sliceRowsInRawGraph_stayIn_support sigma Qbar i Qset r) z
+  have hRawEq :
+      ((sliceRowsInRawGraph sigma Qbar i Qset).path r).vertexSet =
+        (sigma.sliceRowPath i r).vertexSet :=
+    (GraphPath.mapLe_vertexSet
+        ((sliceRowPerfectPacking sigma i).inSpanningGraph.path r)
+        le_sup_left).trans
+      (PerfectPathPacking.inSpanningGraph_path_vertexSet
+        (sliceRowPerfectPacking sigma i) r)
+  rw [hVeq, hIff, hRawEq]
 
 theorem auxiliaryDeletedSliceAux_path_vertexSet
     (sigma : PathSlicing Rbar M) (i : Fin M)
@@ -300,23 +310,29 @@ theorem auxiliaryDeletedSliceAux_path_vertexSet
     z ∈ ((auxiliaryDeletedSliceAux
       sigma i Qset good hspan hQset hgood).path q).vertexSet ↔
       z.1 ∈ (Qbar.path q.1).vertexSet := by
-  change
-    z ∈
-        (((selectedSliceAuxInSupport
-          sigma i Qset good hspan hQset hgood).inSpanningGraph.path q).mapLe
-          le_sup_right).vertexSet ↔
-      z.1 ∈ (Qbar.path q.1).vertexSet
-  rw [GraphPath.mapLe_vertexSet,
-    PathPacking.inSpanningGraph_path_vertexSet]
-  change
-    z ∈
-        (((selectedSliceAuxInRaw sigma i Qset good hgood).path q).induce
-          (sliceSupportVertexSetFor sigma Qbar i Qset)
-          (selectedSliceAuxInRaw_staysIn_support
-            sigma i Qset good hspan hQset hgood q)).vertexSet ↔
-      z.1 ∈ (Qbar.path q.1).vertexSet
-  rw [GraphPath.mem_induce_vertexSet]
-  rw [selectedSliceAuxInRaw_path_vertexSet sigma i Qset good hgood q]
+  have hVeq :
+      ((auxiliaryDeletedSliceAux
+        sigma i Qset good hspan hQset hgood).path q).vertexSet =
+        ((selectedSliceAuxInSupport
+          sigma i Qset good hspan hQset hgood).path q).vertexSet :=
+    (GraphPath.mapLe_vertexSet
+        ((selectedSliceAuxInSupport
+          sigma i Qset good hspan hQset hgood).inSpanningGraph.path q)
+        le_sup_right).trans
+      (PathPacking.inSpanningGraph_path_vertexSet
+        (selectedSliceAuxInSupport
+          sigma i Qset good hspan hQset hgood) q)
+  have hIff :
+      z ∈ ((selectedSliceAuxInSupport
+        sigma i Qset good hspan hQset hgood).path q).vertexSet ↔
+        z.1 ∈ ((selectedSliceAuxInRaw sigma i Qset good hgood).path q).vertexSet :=
+    PathPacking.induceUniv_path_vertexSet
+      (selectedSliceAuxInRaw sigma i Qset good hgood)
+      (sliceSupportVertexSetFor sigma Qbar i Qset)
+      (selectedSliceAuxInRaw_staysIn_support
+        sigma i Qset good hspan hQset hgood) q z
+  rw [hVeq, hIff,
+    selectedSliceAuxInRaw_path_vertexSet sigma i Qset good hgood q]
 
 /-- If every selected auxiliary path avoids every discarded sliced row, then
 the auxiliary packing in the deleted graph stays in the exact union of the
@@ -483,16 +499,9 @@ theorem retainedSliceRows_isUniqueLinkage
     (hgood : good ⊆ Qset) :
     (retainedSliceRows
       sigma i Qset good retained hspan hQset hgood).card =
-        retained.card := by
-  change
-    (selectedRowsInSupport
-      (auxiliaryDeletedSliceRows
-        sigma i Qset good hspan hQset hgood)
-      retained).card = retained.card
-  unfold selectedRowsInSupport
-  rw [PerfectPathPacking.induce_card,
-    PerfectPathPacking.restrictIndexSet_card]
-  rfl
+        retained.card :=
+  PerfectPathPacking.restrictIndexSet_card
+    (auxiliaryDeletedSliceRows sigma i Qset good hspan hQset hgood) retained
 
 theorem retainedSliceAux_intersectsRows
     (sigma : PathSlicing Rbar M) (i : Fin M)
